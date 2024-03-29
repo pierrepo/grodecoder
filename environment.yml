@@ -1,0 +1,109 @@
+name: GroGuesser-python
+# channels priority
+# see https://bioconda.github.io/
+# conda-forge has highest prioriy
+channels:
+  - defaults
+  - etetoolkit
+  - bioconda
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - numpy
+  - scipy
+  - matplotlib
+  - pandas
+  # Read / write xlsx Excel files
+  - openpyxl
+  # Read / write netCDF files
+  - xarray
+  - biopython
+  - jupyterlab>=3
+  - ipywidgets
+  # Linters and formaters
+  - pycodestyle
+  - pydocstyle
+  - pylint
+  - black
+  - ruff
+  - nodejs
+  # Tools
+  - nbresuse
+  - psutil
+  # Jupyter archive
+  # https://github.com/jupyterlab-contrib/jupyter-archive
+  - jupyter-archive
+  # for projects
+  - pytest
+  # Bokeh
+  # https://docs.bokeh.org/en/latest/docs/user_guide/output/jupyter.html#jupyterlab
+  - bokeh
+  - jupyter_bokeh
+  # plotly
+  # https://plotly.com/python/getting-started/
+  - plotly
+  # Pillow
+  # https://pillow.readthedocs.io/en/stable/installation.html
+  - pillow
+  # scikit-image
+  # https://scikit-image.org/docs/stable/install.html
+  - scikit-image
+  # scikit-learn
+  # https://scikit-learn.org/stable/install.html
+  - scikit-learn
+  # RDKit
+  # https://scikit-learn.org/stable/install.html
+  - rdkit
+  # Requests
+  # https://anaconda.org/conda-forge/requests
+  - requests
+  # Ete
+  # http://etetoolkit.org/download/
+  - ete3
+  # BioPandas
+  # http://rasbt.github.io/biopandas/installation/
+  - biopandas
+  # MDanalys
+  - mdanalysis
+  # nglview
+  # https://github.com/nglviewer/nglview
+  # force installation from conda-forge since bioconda has an old version
+  - vmd
+  - pymol
+  - loguru
+  
+  - conda-forge::nglview
+  - pip:
+    # watermark
+    - watermark
+    # streamlit
+    - streamlit
+    # Folium
+    # https://github.com/python-visualization/folium
+    - folium
+    # streamlit-folium
+    # https://github.com/randyzwitch/streamlit-folium
+    - streamlit-folium
+    # Flask
+    - Flask
+    # nbqa : notebook quality control
+    # https://nbqa.readthedocs.io/en/latest/index.html
+    - nbqa
+    # jupyterlab-fasta
+    # https://github.com/jupyterlab/jupyter-renderers/tree/main/packages/fasta-extension
+    - jupyterlab-fasta
+    # worldcloud
+    # https://github.com/amueller/word_cloud
+    - wordcloud
+    # Beautiful Soup
+    # https://www.crummy.com/software/BeautifulSoup/
+    - beautifulsoup4
+    # NLTK
+    # https://www.nltk.org/index.html
+    - nltk
+    # py3Dmol
+    # https://3dmol.csb.pitt.edu/index.html
+    - py3Dmol
+
+
