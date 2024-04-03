@@ -1,4 +1,4 @@
-name: GroDecoder-python
+name: grodecoder-env
 # channels priority
 # see https://bioconda.github.io/
 # conda-forge has highest prioriy
