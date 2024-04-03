@@ -17,9 +17,9 @@ dependencies:
   - pylint
   - black
   - ruff
-  # MDanalysis
+  # MD tools
   - mdanalysis
-  # 3D molecular viewers
+  - networkx
   - vmd
   - pymol-open-source
   # Logging
