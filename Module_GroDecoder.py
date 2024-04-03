@@ -211,6 +211,34 @@ def count_molecule(modified_subgraph):
     return count
 
 
+def count_molecule_matrix (modified_subgraphs) : 
+    """Print information about the modified subgraphs.
+
+    Args:
+        modified_subgraph (list): A list of modified subgraphs.
+
+    Returns:
+        list of tuple : a list that contain index of graph that are identical 
+                    or index (i, i) for graph that are different than the other.
+    """
+    size_matrix = len(modified_subgraphs)
+    #print(size_matrix)
+    similar_graphs = []
+    flag = False
+    #graph_matrix = np.full((size_matrix, size_matrix), False)
+    for i in range(size_matrix):
+        flag = False
+        for j in range(i+1, size_matrix):
+            if modified_subgraphs[i].size() == modified_subgraphs[j].size():  
+                if nx.is_isomorphic(modified_subgraphs[i], modified_subgraphs[j], node_match=compare_nodes) : 
+                    similar_graphs.append((i, j))
+                    flag = True
+        if not flag:
+            similar_graphs.append((i, i))
+        
+    return similar_graphs
+
+
 def print_count(count, option=""):
     """Print the count of molecules.
 
@@ -301,8 +329,15 @@ def grodecoder_principal(filepath_gro):
     start_time = time.time()
     connexgraph_return, graph_return = pairmatrix_to_graph(pair_matrix)
     modified_subgraph = relabel_node(connexgraph_return, graph_return, file_gro.atoms.names)
-    count = count_molecule(modified_subgraph)
-    print_count(count)
+    #count = count_molecule(modified_subgraph)
+    #print_count(count)
+
+    countMatrix = count_molecule_matrix(modified_subgraph)
+    countMatrix = np.array(countMatrix)
+    pairMatrixCount = np.argwhere(countMatrix[:,0] != countMatrix[:,1])
+    print("[countMatrix count_molecule_matrix] ",countMatrix)
+    print("[pairMatrixCount np.argwhere] ",pairMatrixCount)
+    
     end_time = time.time()
     temps = end_time - start_time
     logger.success(Colors.colorize_text(f"[pairmatrix_to_graph / count_molecule / print_graph / print_count ]{temps} seconds", Colors.BLUE))
