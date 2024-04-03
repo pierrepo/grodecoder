@@ -10,7 +10,6 @@ dependencies:
   - matplotlib
   - pandas
   - jupyterlab>=4
-  - ipywidgets
   # Linters and formaters
   - pycodestyle
   - pydocstyle
@@ -20,7 +19,6 @@ dependencies:
   # MD tools
   - mdanalysis
   - networkx
-  - vmd
   - pymol-open-source
   # Logging
   - loguru
