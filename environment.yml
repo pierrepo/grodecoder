@@ -1,4 +1,4 @@
-name: GroGuesser-python
+name: GroDecoder-python
 # channels priority
 # see https://bioconda.github.io/
 # conda-forge has highest prioriy
@@ -12,22 +12,12 @@ dependencies:
   - scipy
   - matplotlib
   - pandas
-  - biopython
   - jupyterlab>=3
   # Linters and formaters
   - pycodestyle
   - pydocstyle
   - pylint
   # Tools
-  # Jupyter archive
-  # https://github.com/jupyterlab-contrib/jupyter-archive
-  - jupyter-archive
-  # for projects
-  - pytest
-  # plotly
-  # https://plotly.com/python/getting-started/
-  - plotly
-  # Requests
   # https://anaconda.org/conda-forge/requests
   - biopandas
   # MDanalys
@@ -40,7 +30,5 @@ dependencies:
   - pip:
     # watermark
     - watermark
-    # streamlit
-    - streamlit
 
 
