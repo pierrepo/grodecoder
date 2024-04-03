@@ -1,7 +1,4 @@
 name: grodecoder-env
-# channels priority
-# see https://bioconda.github.io/
-# conda-forge has highest prioriy
 channels:
   - defaults
   - conda-forge
@@ -17,18 +14,15 @@ dependencies:
   - pycodestyle
   - pydocstyle
   - pylint
-  # Tools
-  # https://anaconda.org/conda-forge/requests
-  - biopandas
-  # MDanalys
+  # MDanalysis
   - mdanalysis
-  # force installation from conda-forge since bioconda has an old version
+  # 3D molecular viewers
   - vmd
   - pymol
+  # Logging
   - loguru
-  
   - pip:
-    # watermark
+    # watermark: keep track of dependency versions
     - watermark
 
 
