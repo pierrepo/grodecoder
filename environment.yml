@@ -9,11 +9,14 @@ dependencies:
   - scipy
   - matplotlib
   - pandas
-  - jupyterlab>=3
+  - jupyterlab>=4
+  - ipywidgets
   # Linters and formaters
   - pycodestyle
   - pydocstyle
   - pylint
+  - black
+  - ruff
   # MDanalysis
   - mdanalysis
   # 3D molecular viewers
