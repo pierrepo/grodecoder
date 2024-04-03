@@ -149,54 +149,17 @@ def relabel_node(graph, G, atom_name):
         subgraph = G.subgraph(component)  # Create a subgraph from the component
 
         # Create a replacement dictionary for node names
-        mapping = {node: f"{atom_name[node]}_{node}" for node in subgraph.nodes()}
+        mapping_atom_name = {node: atom_name[node] for node in subgraph.nodes()}
         # Create a new subgraph with modified node names
-        modified_subgraph = nx.relabel_nodes(subgraph, mapping)
-        modified_subgraphs.append(modified_subgraph)  # Add the modified subgraph to the list of modified subgraphs
+        for node, label in mapping_atom_name.items():
+            nx.set_node_attributes(subgraph, {node:node}, "label")
+            nx.set_node_attributes(subgraph, {node:label}, name="atom_name")
+        modified_subgraphs.append(subgraph)  # Add the modified subgraph to the list of modified subgraphs
     return modified_subgraphs
 
 
-def extract_node_labels(graph):
-    """Extract node labels (just the atom's name) from a graph.
-
-    Args:
-        graph (networkx.Graph): The input graph.
-
-    Returns:
-        tuple: A tuple containing the node labels extracted from the graph sorted.
-    """
-    return tuple(sorted([str(node).split('_')[0] for node in graph.nodes()]))
-
-
-def compare_node_labels(graph1, graph2):
-    """Compare the node labels of two graphs.
-
-    Args:
-        graph1 (networkx.Graph): The first input graph.
-        graph2 (networkx.Graph): The second input graph.
-
-    Returns:
-        bool: True if the node labels of both graphs are the same, False otherwise.
-    """
-    labels1 = extract_node_labels(graph1)
-    labels2 = extract_node_labels(graph2) 
-    return labels1 == labels2
-
-
-def compare_graphs(graph1, graph2):
-    """Compare two graphs for isomorphism.
-
-    Args:
-        graph1 (networkx.Graph): The first input graph.
-        graph2 (networkx.Graph): The second input graph.
-
-    Returns:
-        bool: True if the graphs are isomorphic, False otherwise.
-    """
-    if not compare_node_labels(graph1, graph2):  # first see if both graph have the same label
-        return False
-    else:  # if it's True, see if both graph have the same connection
-        return nx.vf2pp_is_isomorphic(graph1, graph2) #node_label="label"
+def compare_nodes(G1, G2):
+    return G1["atom_name"] == G2["atom_name"]
 
 
 def count_molecule(modified_subgraph):
@@ -223,24 +186,25 @@ def count_molecule(modified_subgraph):
         k = 0
         while k < len(subgraph_list):
             if len(subgraph_list) == 1:  # If the number of subgraph for this size is 1
-                name_molecule = tuple(extract_node_labels(subgraph_list[k]))
-                count[name_molecule] = 1  # Add it to the dictionary
+                name_molecule_list1 = tuple(name for name in nx.get_node_attributes(subgraph_list[k], "atom_name").values())
+                count[name_molecule_list1] = 1  # Add it to the dictionary  
             else : 
                 if taille==1 :  # See if the subgraph only have one node
-                    name_node = next(iter(subgraph_list[k].nodes()))
-                    nom = str(name_node).split('_')[0]
-                    count[nom] = count.get(nom, 0) + 1 
+                    for name in nx.get_node_attributes(subgraph_list[k], "atom_name").values():
+                        count[name] = count.get(name, 0) + 1 
                 else : 
                     i = k 
                     while i < len(subgraph_list)-1 : 
-                        if compare_graphs(subgraph_list[i], subgraph_list[i+1]): 
-                            name_node = extract_node_labels(subgraph_list[i])
-                            count[name_node] = count.get(name_node, 1) + 1 
+                        if nx.is_isomorphic(subgraph_list[i], subgraph_list[i+1], node_match=compare_nodes): 
+                            name_molecule_list1 = tuple(sorted(name for name in nx.get_node_attributes(subgraph_list[i], "atom_name").values()))
+                            count[name_molecule_list1] = count.get(name_molecule_list1, 1) + 1 
+                        
                         else : 
-                            name_node1 = extract_node_labels(subgraph_list[i])
-                            name_node2 = extract_node_labels(subgraph_list[i+1])
-                            count[name_node1] = count.get(name_node1, 0) + 1 
-                            count[name_node2] = count.get(name_node2, 0) + 1 
+                            name_molecule_list1 = tuple(sorted(name for name in nx.get_node_attributes(subgraph_list[i], "atom_name").values()))
+                            name_molecule_list2 = tuple(sorted(name for name in nx.get_node_attributes(subgraph_list[i+1], "atom_name").values()))
+                             
+                            count[name_molecule_list1] = count.get(name_molecule_list1, 0) + 1
+                            count[name_molecule_list2] = count.get(name_molecule_list2, 0) + 1
                         i += 1 
                         k = i+1
             k += 1
@@ -338,7 +302,7 @@ def grodecoder_principal(filepath_gro):
     connexgraph_return, graph_return = pairmatrix_to_graph(pair_matrix)
     modified_subgraph = relabel_node(connexgraph_return, graph_return, file_gro.atoms.names)
     count = count_molecule(modified_subgraph)
-    print_count(count, "detail")
+    print_count(count)
     end_time = time.time()
     temps = end_time - start_time
     logger.success(Colors.colorize_text(f"[pairmatrix_to_graph / count_molecule / print_graph / print_count ]{temps} seconds", Colors.BLUE))
