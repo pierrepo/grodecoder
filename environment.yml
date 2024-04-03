@@ -1,7 +1,4 @@
-name: GroGuesser-python
-# channels priority
-# see https://bioconda.github.io/
-# conda-forge has highest prioriy
+name: grodecoder-env
 channels:
   - defaults
   - conda-forge
@@ -12,48 +9,20 @@ dependencies:
   - scipy
   - matplotlib
   - pandas
-  # Read / write netCDF files
-  - xarray
-  - biopython
   - jupyterlab>=3
   # Linters and formaters
   - pycodestyle
   - pydocstyle
   - pylint
-  - black
-  - ruff
-  - nodejs
-  # Tools
-  # Jupyter archive
-  # https://github.com/jupyterlab-contrib/jupyter-archive
-  - jupyter-archive
-  # for projects
-  - pytest
-  # plotly
-  # https://plotly.com/python/getting-started/
-  - plotly
-  # Pillow
-  # https://pillow.readthedocs.io/en/stable/installation.html
-  # Requests
-  # https://anaconda.org/conda-forge/requests
-  - requests
-  # BioPandas
-  # http://rasbt.github.io/biopandas/installation/
-  - biopandas
-  # MDanalys
+  # MDanalysis
   - mdanalysis
-  # nglview
-  # https://github.com/nglviewer/nglview
-  # force installation from conda-forge since bioconda has an old version
+  # 3D molecular viewers
   - vmd
   - pymol
+  # Logging
   - loguru
-  
-  - conda-forge::nglview
   - pip:
-    # watermark
+    # watermark: keep track of dependency versions
     - watermark
-    # streamlit
-    - streamlit
 
 
