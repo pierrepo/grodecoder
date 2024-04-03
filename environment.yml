@@ -18,7 +18,7 @@ dependencies:
   - mdanalysis
   # 3D molecular viewers
   - vmd
-  - pymol
+  - pymol-open-source
   # Logging
   - loguru
   - pip:
