@@ -19,6 +19,7 @@ from networkx.algorithms.components.connected import connected_components
 import matplotlib.pyplot as plt
 from loguru import logger
 from itertools import groupby
+from scipy.sparse import triu
 
 
 BOND_LENGTH = {'C-C': 1.54,
@@ -67,7 +68,7 @@ def matrice(file_gro):
     return tmp
 
 
-def convert_atompairs_to_graph(atom_pairs, number_of_atoms):
+def convert_atom_pairs_to_graph(atom_pairs, total_number_of_atoms):
     """Convert a list of pairs to a graph and its connected components.
 
     SOURCE : https://stackoverflow.com/questions/4842613/merge-lists-that-share-common-elements
@@ -86,21 +87,47 @@ def convert_atompairs_to_graph(atom_pairs, number_of_atoms):
                1. A generator object that iterates over the connected components of the graph.
                2. A graph object representing the input list as a graph.
     """
+    print(atom_pairs[:10, :])
     graph = nx.Graph()
-    graph.add_nodes_from(list(range(0, number_of_atoms)))
+    # All all atoms as nodes.
+    graph.add_nodes_from(list(range(0, total_number_of_atoms)))
+    # Add atom pairs as edges.
     graph.add_edges_from(atom_pairs)
     return (nx.connected_components(graph), graph)
 
 
-def create_atompair(matrix_contact):
+def get_contact_matrix(molecular_system, threshold):
+    """Create a contact matrix based on the input system and threshold.
+
+    Documentation:
+    - https://docs.mdanalysis.org/1.1.0/documentation_pages/analysis/distances.html#MDAnalysis.analysis.distances.contact_matrix
+
+    Parameters
+    ----------
+        molecular_system : MDAnalysis.core.universe.Universe
+            An object representing the molecular structure loaded from a GRO file.
+        threshold : float
+            The distance threshold for determining contacts between atoms.
+    """
+    logger.info("Creating contact_matrix...")
+    matrix = contact_matrix(molecular_system.atoms.positions, cutoff=threshold, returntype="sparse")
+    # Keep only the upper triangular part of the matrix (without the diagonal)
+    matrix = triu(matrix, k=1)
+    return matrix
+
+
+def create_atom_pairs(contact_matrix):
     """Create a list of atom pairs based on the contact matrix.
 
     This function takes a contact matrix as input and returns a list of atom pairs
     where their value (their index in the distance matrix) is below a certain threshold.
 
+    Documentation:
+    - https://numpy.org/doc/stable/reference/generated/numpy.argwhere.html
+
     Parameters
     ----------
-        matrix_contact : numpy.ndarray
+        matrix_contact : scipy.sparse matrix
             A 2D numpy array representing the contact matrix.
 
     Returns
@@ -109,9 +136,10 @@ def create_atompair(matrix_contact):
             A 2D numpy array containing pairs of atoms where the value in the contact matrix
         is below the threshold. Each row represents an atom pair.
     """
-    atom_pair = np.argwhere(matrix_contact)  # list of pair where their value (their indice in the distance matrix) is below the threshold
-    atom_pair = atom_pair[atom_pair[:, 0] != atom_pair[:, 1]]
-    return atom_pair
+    logger.info("Creating atom pairs list...")
+    atom_pairs = np.argwhere(contact_matrix)
+    logger.info(f"Found {len(atom_pairs):,d} atom pairs")
+    return atom_pairs
 
 
 def relabel_node(graph, G, atom_names, resnames):
@@ -326,20 +354,15 @@ def grodecoder_principal(filepath_gro):
     file_gro = delete_hydrogen_grofile(filepath_gro)
     logger.success(f"How many atoms there is in this file (without all hydrogen): {len(file_gro.atoms):,}")
 
-    # https://docs.mdanalysis.org/1.1.0/documentation_pages/analysis/distances.html#MDAnalysis.analysis.distances.contact_matrix
-    logger.info("Create contact_matrix ...")
-    matrix_contact = contact_matrix(file_gro.atoms.positions, cutoff=threshold, returntype='sparse')
+    matrix = get_contact_matrix(file_gro, threshold)
 
-    # https://numpy.org/doc/stable/reference/generated/numpy.argwhere.html
-    # https://www.includehelp.com/python/how-to-get-indices-of-elements-that-are-greater-than-a-threshold-in-2d-numpy-array.aspx
-    logger.info("Create list of pair ...")
-    atom_pair = create_atompair(matrix_contact)
+    atom_pair = create_atom_pairs(matrix)
 
     # Turn each tuple into a graph, if one node's label is already existant
     # It attached the other label to it
     # So it connected all the node who have common label
     logger.info("Convert atom pairs to graph ...")
-    connexgraph_return, graph_return = convert_atompairs_to_graph(atom_pair, len(file_gro.atoms))
+    connexgraph_return, graph_return = convert_atom_pairs_to_graph(atom_pair, len(file_gro.atoms))
 
     logger.info("Begin relabel_node ...")
     graph_list = relabel_node(connexgraph_return, graph_return, file_gro.atoms.names, file_gro.resnames)
