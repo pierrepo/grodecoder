@@ -1,6 +1,6 @@
 """Extract each molecule of a GRO file and print their occurence.
 
-Usage :
+Usage:
     import grodecoder as gd
 """
 
