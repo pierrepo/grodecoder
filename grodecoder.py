@@ -9,17 +9,17 @@ __contact__ = ("karine.duong@etu.u-paris.fr")
 __copyright__ = "IBPC"
 __date__ = "2024-03-18"
 
+from itertools import groupby
 
 import numpy as np
 import MDAnalysis as mda
 from MDAnalysis.analysis.distances import contact_matrix
-from scipy.spatial.distance import cdist
 import networkx as nx
 from networkx.algorithms.components.connected import connected_components
 import matplotlib.pyplot as plt
 from loguru import logger
-from itertools import groupby
 from scipy.sparse import triu
+from scipy.spatial.distance import cdist
 
 
 BOND_LENGTH = {'C-C': 1.54,
@@ -71,7 +71,8 @@ def matrice(file_gro):
 def convert_atom_pairs_to_graph(atom_pairs, total_number_of_atoms):
     """Convert a list of pairs to a graph and its connected components.
 
-    SOURCE : https://stackoverflow.com/questions/4842613/merge-lists-that-share-common-elements
+    Reference: 
+    - https://stackoverflow.com/questions/4842613/merge-lists-that-share-common-elements
 
     Parameters
     ----------
@@ -85,11 +86,11 @@ def convert_atom_pairs_to_graph(atom_pairs, total_number_of_atoms):
         tuple
             A tuple containing two elements:
                1. A generator object that iterates over the connected components of the graph.
-               2. A graph object representing the input list as a graph.
+               2. A graph object representing the molecular system.
     """
-    print(atom_pairs[:10, :])
+    logger.info("Converting atom pairs to graph...")
     graph = nx.Graph()
-    # All all atoms as nodes.
+    # Add all atoms as single nodes.
     graph.add_nodes_from(list(range(0, total_number_of_atoms)))
     # Add atom pairs as edges.
     graph.add_edges_from(atom_pairs)
@@ -99,7 +100,7 @@ def convert_atom_pairs_to_graph(atom_pairs, total_number_of_atoms):
 def get_contact_matrix(molecular_system, threshold):
     """Create a contact matrix based on the input system and threshold.
 
-    Documentation:
+    Reference:
     - https://docs.mdanalysis.org/1.1.0/documentation_pages/analysis/distances.html#MDAnalysis.analysis.distances.contact_matrix
 
     Parameters
@@ -122,7 +123,7 @@ def create_atom_pairs(contact_matrix):
     This function takes a contact matrix as input and returns a list of atom pairs
     where their value (their index in the distance matrix) is below a certain threshold.
 
-    Documentation:
+    Reference:
     - https://numpy.org/doc/stable/reference/generated/numpy.argwhere.html
 
     Parameters
@@ -138,7 +139,7 @@ def create_atom_pairs(contact_matrix):
     """
     logger.info("Creating atom pairs list...")
     atom_pairs = np.argwhere(contact_matrix)
-    logger.info(f"Found {len(atom_pairs):,d} atom pairs")
+    logger.info(f"Found {len(atom_pairs):,} atom pairs")
     return atom_pairs
 
 
@@ -267,7 +268,7 @@ def count_molecule(graph_list):
     return dict_count
 
 
-def print_count(count, option=""):
+def print_count(count, option=False):
     """Print the count of molecules.
 
     Parameters
@@ -281,16 +282,17 @@ def print_count(count, option=""):
     -------
         None
     """
-    logger.info("Here is the content of this GRO file :")
-    nb_molecule = 0
-    for index, (graph, occurence) in enumerate(count.items()):
-        if option == "detail":
-            atom_names = " ".join(nx.get_node_attributes(graph, "atom_name").values())
-            logger.success(f"\nMolecule {index+1}: \n\t {graph.number_of_nodes():,} atoms \n\t Quantity: {occurence:,} \n\t Composition: {atom_names}")
-        else:
-            logger.success(f"\nMolecule {index+1}: \n\t {graph.number_of_nodes():,} atoms \n\t Quantity: {occurence:,}")
-        nb_molecule += occurence
-    logger.success(f"It containt {nb_molecule:,} molecules")
+    logger.info("File content:")
+    total_molecules_count = 0
+    for mol_idx, (mol_graph, mol_count) in enumerate(count.items(), start=1):
+        logger.success(f"Molecule {mol_idx}:")
+        logger.success(f"- number of atoms: {mol_graph.number_of_nodes():,}")
+        logger.success(f"- number of molecules: {mol_count:,}")
+        if option:
+            atom_names = " ".join(nx.get_node_attributes(mol_graph, "atom_name").values())
+            logger.success(f"- atom names: {atom_names}")
+        total_molecules_count += mol_count
+    logger.success(f"{total_molecules_count:,} molecules in total")
 
 
 def print_graph(dict_graph_count):
@@ -349,19 +351,16 @@ def grodecoder_principal(filepath_gro):
     logger.success(f"Threshold: {threshold} Angstrom")
 
     file_gro = mda.Universe(filepath_gro)  # load the .gro file
-    logger.success(f"How many atoms there is in this file (at the beginning): {len(file_gro.atoms):,}")
+    logger.success(f"Number of atoms: {len(file_gro.atoms):,}")
 
     file_gro = delete_hydrogen_grofile(filepath_gro)
-    logger.success(f"How many atoms there is in this file (without all hydrogen): {len(file_gro.atoms):,}")
+    logger.success(f"Number of atoms without H: {len(file_gro.atoms):,}")
 
     matrix = get_contact_matrix(file_gro, threshold)
 
     atom_pair = create_atom_pairs(matrix)
 
-    # Turn each tuple into a graph, if one node's label is already existant
-    # It attached the other label to it
-    # So it connected all the node who have common label
-    logger.info("Convert atom pairs to graph ...")
+
     connexgraph_return, graph_return = convert_atom_pairs_to_graph(atom_pair, len(file_gro.atoms))
 
     logger.info("Begin relabel_node ...")
