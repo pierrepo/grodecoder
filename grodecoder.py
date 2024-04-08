@@ -112,7 +112,9 @@ def get_contact_matrix(molecular_system, threshold):
     """
     logger.info("Creating contact_matrix...")
     matrix = contact_matrix(molecular_system.atoms.positions, cutoff=threshold, returntype="sparse")
-    # Keep only the upper triangular part of the matrix (without the diagonal)
+    # Output matrix is sparse matrix of type: scipy.sparse
+    # Keep only the upper triangular part of the sparse matrix (without the diagonal)
+    # https://docs.scipy.org/doc/scipy-1.13.0/reference/generated/scipy.sparse.triu.html
     matrix = triu(matrix, k=1)
     return matrix
 
