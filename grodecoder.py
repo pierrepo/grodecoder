@@ -1,7 +1,7 @@
 """Extract each molecule of a GRO file and print their occurence.
 
 Usage :
-    import ModuleGroDecoder
+    import grodecoder as gd
 """
 
 __authors__ = ("Karine DUONG")
