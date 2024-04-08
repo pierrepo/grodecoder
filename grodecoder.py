@@ -19,7 +19,7 @@ import networkx as nx
 from networkx.algorithms.components.connected import connected_components
 import matplotlib.pyplot as plt
 from loguru import logger
-from collections import Counter
+from itertools import groupby 
 
 
 BOND_LENGTH = {'C-C': 1.54,
@@ -64,271 +64,130 @@ def matrice(file_gro):
             tmp[i][j] = cdist([pos_i], [pos_j])
     return tmp
 
-
-def pairmatrix_to_graph(liste):
+def convert_atompairs_to_graph(atom_pairs, number_of_atoms):
     """Convert a list of pairs to a graph and its connected components.
 
     SOURCE : https://stackoverflow.com/questions/4842613/merge-lists-that-share-common-elements
 
-    Args:
-        liste (list): A list of pairs representing edges in the graph.
+    Parameters
+    ----------
+        atom_pairs : list
+            A list of pairs representing edges in the graph.
+        number_of_atoms : 
+            
 
-    Returns :
-        tuple: A tuple containing two elements:
+    Returns
+    -------
+        tuple
+            A tuple containing two elements:
                1. A generator object that iterates over the connected components of the graph.
                2. A graph object representing the input list as a graph.
     """
-    def to_graph(liste):
-        """Create a graph based on a list of list \
-           Where each sub-list is a group of connected node in the graph.
-
-        Args:
-            l (list): list of pair's list
-
-        Returns:
-            networkx.classes.graph.Graph: graph where each node is a value of the list
-        """
-        graph = nx.Graph()
-        for part in liste:  # each sublist is a bunch of nodes
-            graph.add_nodes_from(part)
-            # it also imlies a number of edges:
-            graph.add_edges_from(to_edges(part))
-        return graph
-
-    def to_edges(liste):
-        """Generate edges for a graph from a list of nodes.
-
-        Args :
-            liste (list): A list of nodes representing a graph.
-        """
-        it = iter(liste)
-        last = next(it)
-
-        for current in it:
-            yield last, current
-            last = current
-
-    graph = to_graph(liste)
-    # networkx.draw(G, with_labels=True, font_weight='bold')
-    # plt.show()
-    return (connected_components(graph), graph)
+    graph = nx.Graph()
+    graph.add_nodes_from(list(range(0, number_of_atoms)))
+    graph.add_edges_from(atom_pairs)
+    return (nx.connected_components(graph), graph)
 
 
-def relabel_node(graph, G, atom_name):
+def create_atompair(matrix_contact) : 
+    """Create a list of atom pairs based on the contact matrix.
+
+    This function takes a contact matrix as input and returns a list of atom pairs
+    where their value (their index in the distance matrix) is below a certain threshold.
+
+    Parameters
+    ----------
+        matrix_contact : numpy.ndarray
+            A 2D numpy array representing the contact matrix.
+
+    Returns
+    -------
+        numpy.ndarray
+            A 2D numpy array containing pairs of atoms where the value in the contact matrix
+        is below the threshold. Each row represents an atom pair.
+    """
+    atom_pair = np.argwhere(matrix_contact)  # list of pair where their value (their indice in the distance matrix) is below the threshold
+    atom_pair = atom_pair[atom_pair[:, 0] != atom_pair[:, 1]]
+    return atom_pair
+
+
+def relabel_node(graph, G, atom_names, resnames):
     """Iterate each connected subgraph, and relabel their node by [atom_name]_[index].
 
     Args:
         graph (generator): An object that lists all connected graphs
         G (networkx.classes.graph.Graph): The graph for this file
         atom_name (numpy.ndarray): A list of each atoms for this file
+        resnames ():  
 
     Returns:
         list: list where each node is relabel
     """
     modified_subgraphs = []   # List to store modified subgraphs
-
+    
     # For each connected component, create a subgraph and add it to the list
     for component in graph:
-        subgraph = G.subgraph(component)  # Create a subgraph from the component
+        # Create a subgraph from the component
+        subgraph = G.subgraph(component)
 
         # Create a replacement dictionary for node names
-        mapping_atom_name = {node: atom_name[node] for node in subgraph.nodes()}
+        mapping_atom_name = {node: [atom_names[node], resnames[node]] for node in subgraph.nodes()}
+        
         # Create a new subgraph with modified node names
-        for node, label in mapping_atom_name.items():
+        for node, (atom_name, resname) in mapping_atom_name.items():
             nx.set_node_attributes(subgraph, {node:node}, "label")
-            nx.set_node_attributes(subgraph, {node:label}, name="atom_name")
+            nx.set_node_attributes(subgraph, {node:atom_name}, name="atom_name")
+            nx.set_node_attributes(subgraph, {node:resname}, name="resnames")
         modified_subgraphs.append(subgraph)  # Add the modified subgraph to the list of modified subgraphs
     return modified_subgraphs
-
-
-def compare_nodes(G1, G2):
-    return G1["atom_name"] == G2["atom_name"]
-
-
-def sort_by_size (list_graph) : 
-    dict_size = {}  # Dictionary to store each subgraph based on their size
-    for i in range(len(list_graph)): # Iterate on each sublist, and sort it based on their size
-        size = list_graph[i].number_of_nodes()
-        if size in dict_size:
-            dict_size[size] += [i]
-        else:
-            dict_size[size] = [i]
-
-    dict_size = dict(sorted(dict_size.items()))
-    for key, value in dict_size.items():
-        logger.info(f"{len(value)} graph with {key} nodes")
-
-    return dict_size
-
-
-def count_molecule(list_graph, dict_size):
-    """Print information about the modified subgraphs.
-
-    Args:
-        list_graph (list): A list of modified subgraphs.
-        dict_size (dict): A dictionary with in key the size of a graph, and in value all the index of graph (from list_graph) that have this size
-
-    Returns:
-        dict: A dictionary containing information about the subgraphs.
-              Keys are tuples representing the node labels of each subgraph,
-              and values are the number of occurrences of each subgraph.
-    """
-    dict_count = {}  # Dictionary to store each subgraph based on their occurence
-
-    for taille, subgraph_list in dict_size.items():  # Iterate on the dictionary
-        k = 0
-        while k < len(subgraph_list):
-            if len(subgraph_list) == 1:  # If the number of subgraph for this size is 1
-                name_molecule_list1 = tuple(name for name in nx.get_node_attributes(subgraph_list[k], "atom_name").values())
-                dict_count[name_molecule_list1] = 1  # Add it to the dictionary  
-            else : 
-                if taille==1 :  # See if the subgraph only have one node
-                    for name in nx.get_node_attributes(subgraph_list[k], "atom_name").values():
-                        dict_count[name] = dict_count.get(name, 0) + 1 
-                else : 
-                    i = k 
-                    while i < len(subgraph_list)-1 : 
-                        if nx.is_isomorphic(subgraph_list[i], subgraph_list[i+1], node_match=compare_nodes): 
-                            name_molecule_list1 = tuple(sorted(name for name in nx.get_node_attributes(subgraph_list[i], "atom_name").values()))
-                            dict_count[name_molecule_list1] = dict_count.get(name_molecule_list1, 1) + 1 
-                        
-                        else : 
-                            name_molecule_list1 = tuple(sorted(name for name in nx.get_node_attributes(subgraph_list[i], "atom_name").values()))
-                            name_molecule_list2 = tuple(sorted(name for name in nx.get_node_attributes(subgraph_list[i+1], "atom_name").values()))
-                             
-                            dict_count[name_molecule_list1] = dict_count.get(name_molecule_list1, 0) + 1
-                            dict_count[name_molecule_list2] = dict_count.get(name_molecule_list2, 0) + 1
-                        i += 1 
-                        k = i+1
-            k += 1
-    return dict_count
-
-
-def count_molecule2(list_graph, dict_size):
-    dict_count = {}  # "atom_name" : occurence 
-    dict_graph = {}  # "atom_name" : graph
-
-    for nb_node, subgraph_index_list in dict_size.items():
-        if nb_node == 1:  # je n'ai qu'un node
-            name_node = {index : list(nx.get_node_attributes(list_graph[index], "atom_name").values())[0] 
-                         for index in subgraph_index_list
-                         }
-            occurence_name_node = Counter(name_node.values())
-            dict_count = {**dict_count, **occurence_name_node}
-            dict_graph = {value: key for key, value in name_node.items()}
-
-        elif len(subgraph_index_list) == 1: 
-            name_molecule = tuple(sorted(nx.get_node_attributes(list_graph[subgraph_index_list[0]], "atom_name").values()))
-            dict_count[name_molecule] = 1
-            dict_graph[name_molecule] = subgraph_index_list[0]
-
-        else: 
-            i = 0 
-            while i < len(subgraph_index_list)-1: 
-                index1 = subgraph_index_list[i] 
-                index2 = subgraph_index_list[i+1]
-                if nx.is_isomorphic(list_graph[index1], list_graph[index2], node_match=compare_nodes): 
-                    name_molecule_list1 = tuple(sorted(nx.get_node_attributes(list_graph[index1], "atom_name").values()))
-                    dict_count[name_molecule_list1] = dict_count.get(name_molecule_list1, 1) + 1
-                    dict_graph[name_molecule_list1] = dict_graph.get(name_molecule_list1, index1)
-                else:
-                    name_molecule_list1 = tuple(sorted(nx.get_node_attributes(list_graph[index1], "atom_name").values()))
-                    name_molecule_list2 = tuple(sorted(nx.get_node_attributes(list_graph[index2], "atom_name").values()))
-                    dict_count[name_molecule_list1] = dict_count.get(name_molecule_list1, 0) + 1
-                    dict_count[name_molecule_list2] = dict_count.get(name_molecule_list2, 0) + 1
-                    dict_graph[name_molecule_list1] = dict_graph.get(name_molecule_list1, index1)
-                    dict_graph[name_molecule_list2] = dict_graph.get(name_molecule_list2, index2)
-                i +=1
-    return (dict_count,dict_graph)
 
 
 def get_graph_fingerprint(g):
     nodes = g.number_of_nodes()
     edges = g.number_of_edges()
-    #atom_names = " ".join(sorted(set(nx.get_node_attributes(g, "atom_name").values())))  # pourquoi mettre des sets ? 
     atom_names = " ".join(sorted(nx.get_node_attributes(g, "atom_name").values()))
-    return(nodes, edges, atom_names)
+    resnames = " ".join(sorted(set((nx.get_node_attributes(g, "resnames").values()))))
+    return(nodes, edges, atom_names, resnames)
 
 
 def print_groupby(object_groupby): 
     for f, g in object_groupby:
-        print(f"graph_fingerprint {f[0]} | {f[1]} | {f[2]}")
+        print(f"graph_fingerprint {f[0]} | {f[1]} | {f[2]} | {f[3]}")
         for i in list(g): 
             print("\t", i.nodes()(data=True))
     print("\n")
 
 
-# https://stackoverflow.com/questions/46999771/comparing-a-large-number-of-graphs-for-isomorphism
-from itertools import groupby 
-def count_molecule3 (list_graph): 
+def count_molecule (list_graph): 
+    """_summary_
+    https://stackoverflow.com/questions/46999771/comparing-a-large-number-of-graphs-for-isomorphism
+
+
+    Args:
+        list_graph (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     dict_count = {}
-    dict_graph = {}
-    
+
     sorted_graphs = sorted(list_graph, key=get_graph_fingerprint)
     # print_groupby(groupby(sorted_graphs, key=get_graph_fingerprint))
 
-    for f, g in groupby(sorted_graphs, key=get_graph_fingerprint): 
-        # f : (nb_node, nb_edge, atom_name)
-        # g : objet itertools qui regroupe les graphes avec les memes caractéristiques f
-        similar_graphs = list(g)  # [tous les graph qui ont les memes caractéristiques f]
-        nb_graph = len(similar_graphs) #nb de graph pour chaque caractéristique
-        atom_name = f[2]
+    for fingerprint, graph in groupby(sorted_graphs, key=get_graph_fingerprint): 
+        # fingerprint : (nb_node, nb_edge, atom_name)
+        # graph : objet itertools that group all graph with the same fingerprint
+        similar_graphs = list(graph)  # A list that contain all graph with the same fingerprint
+        nb_graph = len(similar_graphs)  # Number of graph for this fingerprint
 
-        if nb_graph > 1:
-            if f[0]==1:  # je n'ai qu'un node pour ces carac 
-                for i in range(nb_graph):
-                    dict_count[atom_name] = dict_count.get(atom_name, 0) + 1
-                    dict_graph[atom_name] = dict_graph.get(atom_name, similar_graphs[i])
+        if nb_graph == 1:  # For this fingerprint, there is only one graph
+            dict_count[similar_graphs[0]] = nb_graph
+        else: 
+            if fingerprint[0] == 1:  # For this fingerprint, all the graph only have one node 
+                dict_count[similar_graphs[0]] = nb_graph
             else:
-                for i in range(nb_graph):
-                    for j in range(i + 1, nb_graph):
-                        g1, g2 = similar_graphs[i], similar_graphs[j]
-                        if g1 != g2 and nx.is_isomorphic(g1, g2):
-                            dict_count[atom_name] = dict_count.get(atom_name, 1) + 1 
-                            dict_graph[atom_name] = dict_graph.get(atom_name, g1)
-                        else : 
-                            dict_count[atom_name] = dict_count.get(atom_name, 0) + 1 
-                            dict_count[atom_name] = dict_count.get(atom_name, 0) + 1 
-                            dict_graph[atom_name] = dict_graph.get(atom_name, g1)
-                            dict_graph[atom_name] = dict_graph.get(atom_name, g2)
-        else:
-            dict_count[atom_name] = dict_count.get(atom_name, 0) + 1 
-            dict_graph[atom_name] = dict_graph.get(atom_name, similar_graphs[0])
-    return (dict_count, dict_graph)
-
-
-def reorganize_dictionnary(list_graph, dict_count, dict_graph) : 
-    dict_return = {}
-    for key, value in dict_count.items():
-        value_graph = dict_graph[key]
-        dict_return[list_graph[value_graph]] = value
-    return dict_return
-
-
-def reorganize_dictionnary3 (list_graph, dict_count, dict_graph): 
-    dict_return = {}
-    for key, value in dict_count.items():
-        graph = dict_graph[key]
-        dict_return[graph] = value
-    return dict_return
-
-
-def print_dict_graph_count (dict_graph_count, option=""):
-    size = 0
-    for i, (key, value) in enumerate(dict_graph_count.items()): 
-        print(f"\nMolecule {i+1}: \n\t {len(key):,} atoms \n\t Quantity: {value:,}")
-        if option=="detail":
-            print(f"\t Composition: {key}")
-        size += value
-    print(f"It containt {size:,} molecules")
-
-
-def print_graph(dict_graph_count):
-    for graph in dict_graph_count.keys() : 
-        nx.draw(graph, node_color="green", with_labels=True, labels=nx.get_node_attributes(graph, "atom_name"))
-
-
-
+                dict_count[similar_graphs[0]] = nb_graph
+    return dict_count
 
 
 def print_count(count, option=""):
@@ -338,33 +197,23 @@ def print_count(count, option=""):
         count (dict): A dictionary containing information about the molecules.
         option (str): either we want to print the composition of each molecule (with the option "detail") or not
     """
-    logger.info("Voici le contenu de ce fichier GRO : ")
+    logger.info("Here is the content of this GRO file :")
     size = 0
     for i, (key, value) in enumerate(count.items()):
-        logger.info(f"\nMolecule {i+1}: \n\t {len(key):,} atoms \n\t Quantity: {value:,}")
         if option=="detail":
-            logger.info(f"\t Composition: {key}")
+            atom_names = " ".join(nx.get_node_attributes(key, "atom_name").values())
+            logger.success(f"\nMolecule {i+1}: \n\t {key.number_of_nodes():,} atoms \n\t Quantity: {value:,} \n\t Composition: {atom_names}")
+        else : 
+            logger.success(f"\nMolecule {i+1}: \n\t {key.number_of_nodes():,} atoms \n\t Quantity: {value:,}")
         size += value
-    logger.info(f"It containt {size:,} molecule")
+    logger.success(f"It containt {size:,} molecules")
 
 
-def name_molecule_graph(belong_mole, file_gro):
-    """Based on the value of each list (one molecule), it search the name of each atome.
-
-    Args:
-        belong_mole (list): list of every indice (from de matrix) that have bond between them
-        file_gro (MDAnalysis.core.universe.Universe): object that contain information about GRO file
-
-    Returns:
-        list: list that contain the name of each atom for each molecule (sub-list)
-    """
-    atoms_names = file_gro.atoms.names
-    list_mole = []
-
-    for sublist in belong_mole:
-        mol = [atoms_names[indice] for indice in sublist]
-        list_mole.append(mol)
-    return list_mole
+def print_graph(dict_graph_count):
+    for graph in dict_graph_count.keys():
+        plt.figure()
+        nx.draw(graph, node_color="green", with_labels=True, labels=nx.get_node_attributes(graph, "atom_name"))
+        plt.show()
 
 
 def delete_hydrogen_grofile(filepath):
@@ -392,47 +241,38 @@ def grodecoder_principal(filepath_gro):
     logger.info(f"Filename: {filepath_gro} --------") 
 
     threshold = max(BOND_LENGTH.values())
-    logger.info(f"Threshold: {threshold} Angstrom")
+    logger.success(f"Threshold: {threshold} Angstrom")
 
     file_gro = mda.Universe(filepath_gro)  # load the .gro file
-    logger.info(f"How many atoms there is in this file (at the beginning): {len(file_gro.atoms):,}")
+    logger.success(f"How many atoms there is in this file (at the beginning): {len(file_gro.atoms):,}")
 
     file_gro = delete_hydrogen_grofile(filepath_gro)
-    logger.info(f"How many atoms there is in this file (without all hydrogen): {len(file_gro.atoms):,}")
+    logger.success(f"How many atoms there is in this file (without all hydrogen): {len(file_gro.atoms):,}")
 
     # https://docs.mdanalysis.org/1.1.0/documentation_pages/analysis/distances.html#MDAnalysis.analysis.distances.contact_matrix
     logger.info("Create contact_matrix ...")
-    mat_contact = contact_matrix(file_gro.atoms.positions, cutoff=threshold, returntype='sparse')
+    matrix_contact = contact_matrix(file_gro.atoms.positions, cutoff=threshold, returntype='sparse')
 
     # https://numpy.org/doc/stable/reference/generated/numpy.argwhere.html
     # https://www.includehelp.com/python/how-to-get-indices-of-elements-that-are-greater-than-a-threshold-in-2d-numpy-array.aspx
     logger.info("Create list of pair ...")
-    pair_matrix = np.argwhere(mat_contact)  # list of pair where their value (their indice in the distance matrix) is below the threshold
+    atom_pair = create_atompair(matrix_contact)
 
     # Turn each tuple into a graph, if one node's label is already existant
     # It attached the other label to it
     # So it connected all the node who have common label
-    logger.info("Create pairmatrix_to_graph ...")
-    connexgraph_return, graph_return = pairmatrix_to_graph(pair_matrix)
+    logger.info("Convert atom pairs to graph ...")
+    connexgraph_return, graph_return = convert_atompairs_to_graph(atom_pair, len(file_gro.atoms))
 
     logger.info("Begin relabel_node ...")
-    list_graph = relabel_node(connexgraph_return, graph_return, file_gro.atoms.names)
-
-    logger.info("Begin sort_by_size()...")
-    dict_sizegraph = sort_by_size (list_graph)
+    list_graph = relabel_node(connexgraph_return, graph_return, file_gro.atoms.names, file_gro.resnames)
 
     logger.info("Counting molecules version1...")
-    dict_count, dict_graph = count_molecule2(list_graph, dict_sizegraph)
-    dict_graph_count = reorganize_dictionnary(list_graph, dict_count, dict_graph)
-
-    # logger.info("Counting molecules version2...")
-    # dict_count, dict_graph = count_molecule3(list_graph)
-    # dict_graph_count = reorganize_dictionnary3(list_graph, dict_count, dict_graph)
+    dict_count = count_molecule(list_graph)
 
     logger.info("Print dictionnary count and graph...")
-    print_dict_graph_count(dict_graph_count)
-    #print_graph(dict_graph_count) #--> pas final
-    #print_count(count)
+    print_count(dict_count)
+    # print_graph(dict_count)
     
     print("[main] ------------")
 
