@@ -10,7 +10,6 @@ __copyright__ = "IBPC"
 __date__ = "2024-03-18"
 
 
-import time
 import numpy as np
 import MDAnalysis as mda
 from MDAnalysis.analysis.distances import contact_matrix
@@ -44,10 +43,10 @@ def matrice(file_gro):
     https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html \
     https://stackoverflow.com/questions/72701992/convert-a-matrix-of-distance-to-adjacency-list/72702534#72702534 .
 
-    (Warning : MDAnalysis convert the coordonate in Angstrom
+    Warning : MDAnalysis convert the coordonate in Angstrom
     despite in the gro file it's in nm
     https://userguide.mdanalysis.org/stable/units.html#table-baseunits
-    https://manual.gromacs.org/current/reference-manual/file-formats.html#gro )
+    https://manual.gromacs.org/current/reference-manual/file-formats.html#gro
 
     Parameters
     ----------
@@ -352,4 +351,4 @@ def grodecoder_principal(filepath_gro):
     print_count(dict_count)
     # print_graph(dict_count)
 
-    print("[main] ------------")
+    print("---------------")
