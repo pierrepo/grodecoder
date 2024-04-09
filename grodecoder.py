@@ -195,10 +195,27 @@ def relabel_node(graph, mol_system):
 
 
 def get_graph_components(graph):
+    """Extract the connected components of a graph.
+
+    Parameters
+    ----------
+        graph : networkx.Graph
+            The input graph from which to extract connected components.
+
+    Returns
+    -------
+        list
+            A list containing subgraphs, each representing a connected component of the input graph.
+    """
     logger.info("Extracting graph components...")
     graph_components = nx.connected_components(graph)
-    logger.info(f"Found {len(list(graph_components))} subgraphs")
-    return graph_components
+
+    graph_list = []
+    for subgraph in graph_components : 
+        graph_list.append(graph.subgraph(subgraph))
+
+    logger.info(f"Found {len(graph_list)} subgraphs")
+    return graph_list
 
 
 def get_graph_fingerprint(graph):
