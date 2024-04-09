@@ -437,11 +437,7 @@ def is_an_existing_GRO_file(filepath):
     """
     source = pathlib.Path(filepath)
     if not pathlib.Path.is_file(source):  # If it's not a file
-        if pathlib.Path.is_dir(source):
-            error_msg = f"{filepath} is a directory."
-        else:
-            error_msg = f"{filepath} not exist"
-        raise argparse.ArgumentTypeError(error_msg)
+        raise argparse.ArgumentTypeError(f"{filepath} not exist")
     else:
         file_extension = pathlib.Path(filepath).suffix
         if file_extension != ".gro":
