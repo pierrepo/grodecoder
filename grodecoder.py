@@ -242,11 +242,15 @@ def get_graph_fingerprint(graph):
                - Concatenation of sorted atom names of all nodes in the graph.
                - Concatenation of sorted residue names of all nodes in the graph.
     """
+    logger.info("Get graph_fingerprint...")
+
     nodes = graph.number_of_nodes()
     edges = graph.number_of_edges()
     atom_names = " ".join(sorted(nx.get_node_attributes(graph, "atom_name").values()))
     resnames = " ".join(sorted(set((nx.get_node_attributes(graph, "resnames").values()))))
-    return (nodes, edges, atom_names, resnames)
+    res_id = " ".join(str(id_res) for id_res in sorted(nx.get_node_attributes(graph, "residue_id").values()))
+    atom_id = " ".join(str(id_res) for id_res in sorted(nx.get_node_attributes(graph, "atom_id").values()))
+    return (nodes, edges, atom_names, resnames, res_id, atom_id)
 
 
 def print_groupby(object_groupby):
@@ -291,7 +295,7 @@ def count_molecule(graph_list):
     """
     dict_count = {}
     sorted_graphs = sorted(graph_list, key=get_graph_fingerprint)
-    print_groupby(groupby(sorted_graphs, key=get_graph_fingerprint))
+    # print_groupby(groupby(sorted_graphs, key=get_graph_fingerprint))
 
     for fingerprint, graph in groupby(sorted_graphs, key=get_graph_fingerprint):
         # fingerprint : (nb_node, nb_edge, atom_name, resname)
