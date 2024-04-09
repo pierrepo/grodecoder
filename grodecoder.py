@@ -13,14 +13,13 @@ from itertools import groupby
 from pathlib import Path
 
 import argparse
-import pathlib
-import numpy as np
+from loguru import logger
 import MDAnalysis as mda
 from MDAnalysis.analysis.distances import contact_matrix
+import matplotlib.pyplot as plt
+import numpy as np
 import networkx as nx
 from networkx.algorithms.components.connected import connected_components
-import matplotlib.pyplot as plt
-from loguru import logger
 from scipy.sparse import triu
 from scipy.spatial.distance import cdist
 
@@ -277,6 +276,7 @@ def count_molecule(graph_list):
             A dictionary where keys are unique molecules (graph objects) and values are
         their respective occurrence counts in the input list of graphs.
     """
+    logger.info("Counting molecules...")
     dict_count = {}
     sorted_graphs = sorted(graph_list, key=get_graph_fingerprint)
     # print_groupby(groupby(sorted_graphs, key=get_graph_fingerprint))
@@ -386,7 +386,7 @@ def read_gro_files_remove_hydrogens(gro_file_path):
     return molecule_without_H
 
 
-def main(filepath_gro, print_molecule_option="", print_graph_option=""):
+def main(filepath_gro, print_molecule_option, print_graph_option):
     """Excute the main function for analyzing a .gro file.
 
     Parameters
@@ -406,7 +406,6 @@ def main(filepath_gro, print_molecule_option="", print_graph_option=""):
     graph_relabel = relabel_node(graph_return, molecular_system)
     graph_connex = get_graph_components(graph_relabel)
 
-    logger.info("Counting molecules version1...")
     dict_count = count_molecule(graph_connex)
 
     logger.info("Print dictionnary count and graph...")
@@ -435,11 +434,11 @@ def is_an_existing_GRO_file(filepath):
         str
             The validated path.
     """
-    source = pathlib.Path(filepath)
-    if not pathlib.Path.is_file(source):  # If it's not a file
+    source = Path(filepath)
+    if not Path.is_file(source):  # If it's not a file
         raise argparse.ArgumentTypeError(f"{filepath} not exist")
     else:
-        file_extension = pathlib.Path(filepath).suffix
+        file_extension = Path(filepath).suffix
         if file_extension != ".gro":
             raise argparse.ArgumentTypeError(f"{filepath} is not a GRO file.")
     return filepath
@@ -447,6 +446,20 @@ def is_an_existing_GRO_file(filepath):
 
 def parse_arg():
     """Parse command-line arguments.
+
+    This function uses the argparse module to parse the command-line arguments
+    provided by the user. It sets up the argument parser with information about
+    the program, its usage, and the available options.
+
+    Ressources
+    ----------
+    - https://docs.python.org/3/library/argparse.html
+
+    Return
+    ------
+        argparse.Namespace
+            An object containing the parsed arguments as attributes.
+
     """
     parser = argparse.ArgumentParser(prog="grodecoder", 
                                      description="Programm to extract and identify molecules from a .gro file.", 
@@ -464,7 +477,6 @@ def parse_arg():
     parser.add_argument('-pg', "--printgraph",
                         help="Either we want to print the graph of each molecule (with the option True) or not. By default it's False.", 
                         default=False)
-
     return parser.parse_args()
     
 
