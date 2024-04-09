@@ -1,13 +1,33 @@
 # GROdecoder
+
 GROdecoder is a Python module designed to extract and identify molecules from a .gro file.
 
-## Installation Guide
-Clone the project :  
-` git clone https://github.com/pierrepo/grodecoder.git`
+## Installation
 
-Create and activate a conda environment :  
-` conda env create -f environment.yml `  
-` conda activate grodecoder-env `
+Clone the project:
+
+```bash
+git clone https://github.com/pierrepo/grodecoder.git
+cd grodecoder
+```
+
+Create and activate a conda environment:
+
+```bash
+conda env create -f environment.yml
+conda activate grodecoder-env
+```
+
+## Usage
+
+Run GROdecoder on a test file:
+
+```bash
+python grodecoder.py -g data/examples/barstar.gro
+```
+
+
+
 
 
 
