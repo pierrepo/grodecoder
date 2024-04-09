@@ -103,18 +103,24 @@ def convert_atom_pairs_to_graph(atom_pairs, total_number_of_atoms):
     return graph
 
 
-def get_contact_matrix(molecular_system, threshold):
-    """Create a contact matrix based on the input system and threshold.
+def get_atom_pairs(molecular_system, threshold):
+    """ Create a list of atom pairs based on the contact matrix (which based on the input system and threshold).
+    
+    This function calculates the pairs of atoms in the molecular system based on their distances.
+    It uses a specified threshold to determine which pairs of atoms are considered to be in contact.
 
     Reference:
     - https://docs.mdanalysis.org/1.1.0/documentation_pages/analysis/distances.html#MDAnalysis.analysis.distances.contact_matrix
+    - https://numpy.org/doc/stable/reference/generated/numpy.argwhere.html
 
     Parameters
     ----------
-        molecular_system : MDAnalysis.core.universe.Universe
-            An object representing the molecular structure loaded from a GRO file.
-        threshold : float
-            The distance threshold for determining contacts between atoms.
+        molecular_system (MolecularSystem): The molecular system object containing information about atoms.
+        threshold (float): The distance threshold used to determine atom contacts.
+
+    Returns
+    -------
+        numpy.ndarray: An array containing pairs of atom indices representing atom contacts.
     """
     logger.info("Creating contact_matrix...")
     matrix = contact_matrix(molecular_system.atoms.positions, cutoff=threshold, returntype="sparse")
@@ -122,31 +128,9 @@ def get_contact_matrix(molecular_system, threshold):
     # Keep only the upper triangular part of the sparse matrix (without the diagonal)
     # https://docs.scipy.org/doc/scipy-1.13.0/reference/generated/scipy.sparse.triu.html
     matrix = triu(matrix, k=1)
-    return matrix
 
-
-def create_atom_pairs(contact_matrix):
-    """Create a list of atom pairs based on the contact matrix.
-
-    This function takes a contact matrix as input and returns a list of atom pairs
-    where their value (their index in the distance matrix) is below a certain threshold.
-
-    Reference:
-    - https://numpy.org/doc/stable/reference/generated/numpy.argwhere.html
-
-    Parameters
-    ----------
-        matrix_contact : scipy.sparse matrix
-            A 2D numpy array representing the contact matrix.
-
-    Returns
-    -------
-        numpy.ndarray
-            A 2D numpy array containing pairs of atoms where the value in the contact matrix
-        is below the threshold. Each row represents an atom pair.
-    """
     logger.info("Creating atom pairs list...")
-    atom_pairs = np.argwhere(contact_matrix)
+    atom_pairs = np.argwhere(matrix)
     logger.info(f"Found {len(atom_pairs):,} atom pairs")
     return atom_pairs
 
@@ -242,15 +226,15 @@ def get_graph_fingerprint(graph):
                - Concatenation of sorted atom names of all nodes in the graph.
                - Concatenation of sorted residue names of all nodes in the graph.
     """
-    logger.info("Get graph_fingerprint...")
-
     nodes = graph.number_of_nodes()
     edges = graph.number_of_edges()
     atom_names = " ".join(sorted(nx.get_node_attributes(graph, "atom_name").values()))
     resnames = " ".join(sorted(set((nx.get_node_attributes(graph, "resnames").values()))))
-    res_id = " ".join(str(id_res) for id_res in sorted(nx.get_node_attributes(graph, "residue_id").values()))
-    atom_id = " ".join(str(id_res) for id_res in sorted(nx.get_node_attributes(graph, "atom_id").values()))
-    return (nodes, edges, atom_names, resnames, res_id, atom_id)
+    
+    # dict_degree = {key: value for key, value in graph.degree} 
+    # degree = " ".join([f"{key}:{value}" for key, value in dict_degree.items()])
+    # return (nodes, edges, atom_names, resnames, degree)
+    return (nodes, edges, atom_names, resnames)
 
 
 def print_groupby(object_groupby):
@@ -415,9 +399,7 @@ def grodecoder_principal(filepath_gro, print_molecule_option="", print_graph_opt
 
     molecular_system = read_gro_files_remove_hydrogens(filepath_gro)
 
-    matrix = get_contact_matrix(molecular_system, threshold)
-
-    atom_pair = create_atom_pairs(matrix)
+    atom_pair = get_atom_pairs(molecular_system, threshold)
 
     graph_return = convert_atom_pairs_to_graph(atom_pair, len(molecular_system.atoms))
     
