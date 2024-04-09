@@ -386,7 +386,7 @@ def read_gro_files_remove_hydrogens(gro_file_path):
     return molecule_without_H
 
 
-def grodecoder_principal(filepath_gro, print_molecule_option="", print_graph_option=""):
+def main(filepath_gro, print_molecule_option="", print_graph_option=""):
     """Excute the main function for analyzing a .gro file.
 
     Parameters
@@ -452,7 +452,7 @@ def is_an_existing_GRO_file(filepath):
 def parse_arg():
     """Parse command-line arguments.
     """
-    parser = argparse.ArgumentParser(prog=grodecoder_principal, 
+    parser = argparse.ArgumentParser(prog=main, 
                                      description="description", 
                                      usage="grodecoder.py [-h] -g GRO [-pm PRINTMOLECULE] [-pg PRINTGRAPH]")
     
@@ -474,4 +474,4 @@ def parse_arg():
 
 if __name__=="__main__":
     args = parse_arg()
-    grodecoder_principal(args.gro, args.printmolecule, args.printgraph)
+    main(args.gro, args.printmolecule, args.printgraph)
