@@ -448,8 +448,8 @@ def is_an_existing_GRO_file(filepath):
 def parse_arg():
     """Parse command-line arguments.
     """
-    parser = argparse.ArgumentParser(prog=main, 
-                                     description="description", 
+    parser = argparse.ArgumentParser(prog="grodecoder", 
+                                     description="Programm to extract and identify molecules from a .gro file.", 
                                      usage="grodecoder.py [-h] -g GRO [-pm PRINTMOLECULE] [-pg PRINTGRAPH]")
     
     parser.add_argument("-g", "--gro", 
