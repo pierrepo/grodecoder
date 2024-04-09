@@ -458,6 +458,6 @@ def parse_arg():
     
 
 
-if (__name__=="__main__"):
+if __name__=="__main__":
     args = parse_arg()
     grodecoder_principal(args.gro, args.printmolecule, args.printgraph)
