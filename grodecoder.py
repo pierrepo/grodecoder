@@ -386,6 +386,36 @@ def read_gro_files_remove_hydrogens(gro_file_path):
     return molecule_without_H
 
 
+def control_quality (graph_list):
+    """Check the quality of the molecular graphs.
+
+    This function checks the quality of the molecular graphs to ensure that 
+    there are no overlapping atoms between different molecules. It extracts 
+    the set of atom IDs for each molecule and performs an intersection 
+    operation between these sets. If any intersection is found, it indicates
+    that there are overlapping atoms between molecules.
+
+    Parameters
+    ----------
+        graph_list : list
+            A list of NetworkX graph objects representing different molecules.
+    """
+
+    logger.info("Quality control ...")
+    list_set = []
+    for component in graph_list : 
+        atom_id = set((nx.get_node_attributes(component, "label").values()))
+        list_set.append(atom_id)
+
+    for index_i in range(len(list_set)-1) : 
+        for index_j in range(index_i+1, len(list_set)):
+            intersect = list_set[index_i].intersection(list_set[index_j])
+            if intersect != set():
+                logger.info(f"Intersection between molecules {index_i} and {index_j} with the atom {intersect}")
+    logger.success("No intersection between atom of different molecule")
+
+
+
 def main(filepath_gro, print_molecule_option, print_graph_option):
     """Excute the main function for analyzing a .gro file.
 
@@ -404,9 +434,11 @@ def main(filepath_gro, print_molecule_option, print_graph_option):
     graph_return = convert_atom_pairs_to_graph(atom_pair, len(molecular_system.atoms))
     
     graph_relabel = relabel_node(graph_return, molecular_system)
-    graph_connex = get_graph_components(graph_relabel)
+    graph_connex_list = get_graph_components(graph_relabel)
 
-    dict_count = count_molecule(graph_connex)
+    dict_count = count_molecule(graph_connex_list)
+
+    control_quality(graph_connex_list)
 
     logger.info("Print dictionnary count and graph...")
     print_count(dict_count, print_molecule_option)
