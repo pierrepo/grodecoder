@@ -454,9 +454,10 @@ def parse_arg():
                         help="Either we want to print the graph of each molecule (with the option True) or not. By default it's False.", 
                         default=False)
 
-    option = parser.parse_args()
-    grodecoder_principal(option.gro, option.printmolecule, option.printgraph)
+    return parser.parse_args()
+    
 
 
 if (__name__=="__main__"):
-    parse_arg()
+    args = parse_arg()
+    grodecoder_principal(args.gro, args.printmolecule, args.printgraph)
