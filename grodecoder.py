@@ -291,7 +291,7 @@ def print_count(count, option):
     logger.info("File content:")
     total_molecules_count = 0
     for mol_idx, (mol_graph, mol_count) in enumerate(count.items(), start=1):
-        logger.success(f"Molecule {mol_idx}:")
+        logger.success(f"Molecule {mol_idx} ----------------")
         logger.success(f"- number of atoms: {mol_graph.number_of_nodes():,}")
         logger.success(f"- number of molecules: {mol_count:,}")
         if option:
