@@ -10,6 +10,7 @@ __copyright__ = "IBPC"
 __date__ = "2024-03-18"
 
 from itertools import groupby
+from pathlib import Path
 
 import argparse
 import pathlib
@@ -319,8 +320,28 @@ def print_graph(dict_graph_count,):
         plt.show()
 
 
-def delete_hydrogen_grofile(filepath):
-    """Delete hydrogen atoms from a .gro file and save the modified file.
+def print_first_atoms(mda_universe, number_of_atoms=10):
+    """Print the first atoms in the MDAnalysis Universe object.
+
+    For debugging purpose only.
+
+    Parameters
+    ----------
+        mda_universe : MDAnalysis.core.universe.Universe
+            An object representing the molecular structure.
+        number_of_atoms : int
+            The number of atoms to be printed. Default is 10.   
+    """
+    for atom in mda_universe.atoms[:number_of_atoms]:
+        string_coords = " ".join([f"{coord:.2f}" for coord in atom.position])
+        logger.debug(f"Res. id: {atom.residue.resid} | res. name: {atom.residue.resname} | "
+                     f"at. name: {atom.name} | at. id: {atom.id} | "
+                     f"at. coord.: {string_coords}"
+        )
+
+
+def read_gro_files_remove_hydrogens(gro_file_path):
+    """Read Groamacs .gro file and remove hydrogen atoms.
 
     Parameters
     ----------
@@ -329,17 +350,25 @@ def delete_hydrogen_grofile(filepath):
 
     Returns
     -------
-        atoms_remains
+        molecule_without_H
             A modified MDA Universe object containing only non-hydrogen atoms.
     """
-    filegro = mda.Universe(filepath)
-    atoms_remains = filegro.select_atoms("not (name H*)")
-    new_filepath = f"{filepath[:-4]}_withoutH.gro"
-    atoms_remains.write(new_filepath)
-    return atoms_remains
+    logger.info(f"Reading file: {gro_file_path}")
+    molecule = mda.Universe(gro_file_path)
+    logger.success(f"Found {len(molecule.atoms):,} atoms")
+    # Print 10 first atoms for debugging.  
+    print_first_atoms(molecule)
+    logger.info("Removing H atoms...")
+    molecule_without_H = molecule.select_atoms("not (name H*)")
+    logger.success(f"{len(molecule_without_H.atoms):,} atoms remaining")
+    # Print 10 first atoms for debugging.  
+    print_first_atoms(molecule_without_H)
+    without_H_file_path = Path(gro_file_path).stem + "_wo_H.gro"
+    molecule_without_H.write(without_H_file_path)
+    return molecule_without_H
 
 
-def grodecoder_principal(filepath_gro, print_molecule_option, print_graph_option):
+def grodecoder_principal(filepath_gro, print_molecule_option="", print_graph_option=""):
     """Excute the main function for analyzing a .gro file.
 
     Parameters
@@ -347,26 +376,20 @@ def grodecoder_principal(filepath_gro, print_molecule_option, print_graph_option
         filepath_gro : str
             Filepath of the .gro file we want to analyzed
     """
-    logger.info(f"Filename: {filepath_gro} --------")
-
     threshold = max(BOND_LENGTH.values())
     logger.success(f"Threshold: {threshold} Angstrom")
 
-    file_gro = mda.Universe(filepath_gro)  # load the .gro file
-    logger.success(f"Number of atoms: {len(file_gro.atoms):,}")
+    molecular_system = read_gro_files_remove_hydrogens(filepath_gro)
 
-    file_gro = delete_hydrogen_grofile(filepath_gro)
-    logger.success(f"Number of atoms without H: {len(file_gro.atoms):,}")
-
-    matrix = get_contact_matrix(file_gro, threshold)
+    matrix = get_contact_matrix(molecular_system, threshold)
 
     atom_pair = create_atom_pairs(matrix)
 
 
-    connexgraph_return, graph_return = convert_atom_pairs_to_graph(atom_pair, len(file_gro.atoms))
+    connexgraph_return, graph_return = convert_atom_pairs_to_graph(atom_pair, len(molecular_system.atoms))
 
     logger.info("Begin relabel_node ...")
-    graph_list = relabel_node(connexgraph_return, graph_return, file_gro.atoms.names, file_gro.resnames)
+    graph_list = relabel_node(connexgraph_return, graph_return, molecular_system.atoms.names, molecular_system.resnames)
 
     logger.info("Counting molecules version1...")
     dict_count = count_molecule(graph_list)
