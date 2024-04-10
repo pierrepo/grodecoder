@@ -163,3 +163,4 @@ cython_debug/
 /fileGRO
 /tmp
 GroGuess.ipynb
+/results
