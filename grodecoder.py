@@ -375,13 +375,13 @@ def read_gro_files_remove_hydrogens(gro_file_path):
     molecule = mda.Universe(gro_file_path)
     logger.success(f"Found {len(molecule.atoms):,} atoms")
     # Print 10 first atoms for debugging.  
-    print_first_atoms(molecule)
+    # print_first_atoms(molecule)
     logger.info("Removing H atoms...")
     molecule_without_H = molecule.select_atoms("not (name H*)")
     logger.success(f"{len(molecule_without_H.atoms):,} atoms remaining")
     # Print 10 first atoms for debugging.  
-    print_first_atoms(molecule_without_H)
-    without_H_file_path = "./data/examples/" + Path(gro_file_path).stem + "_withoutH.gro"
+    # print_first_atoms(molecule_without_H)
+    without_H_file_path = "./results/" + Path(gro_file_path).stem + "_withoutH.gro"
     molecule_without_H.write(without_H_file_path)
     return molecule_without_H
 
