@@ -130,7 +130,7 @@ def get_atom_pairs(molecular_system, threshold):
 
     logger.info("Creating atom pairs list...")
     atom_pairs = np.argwhere(matrix)
-    logger.info(f"Found {len(atom_pairs):,} atom pairs")
+    logger.success(f"Found {len(atom_pairs):,} atom pairs")
     return atom_pairs
 
 
@@ -150,7 +150,7 @@ def relabel_node(graph, mol_system):
             list where each node is relabel
     """
     logger.info("Relabeling nodes in graph...")
-    logger.info(f"Old graph: {graph.number_of_nodes()} nodes")
+    logger.success(f"Old graph: {graph.number_of_nodes()} nodes")
     # Create a subgraph from the component
     # new_graph = old_graph.copy()
 
@@ -173,7 +173,7 @@ def relabel_node(graph, mol_system):
         nx.set_node_attributes(graph, {node_id: atom["res_name"]}, name="residue_name")
         # Then node id.
         nx.set_node_attributes(graph, {node_id: atom["atom_id"]}, "label")
-    logger.info(f"New graph: {graph.number_of_nodes()} nodes")
+    logger.success(f"New graph: {graph.number_of_nodes()} nodes")
     return graph
 
 
@@ -197,7 +197,7 @@ def get_graph_components(graph):
     for subgraph in graph_components : 
         graph_list.append(graph.subgraph(subgraph))
 
-    logger.info(f"Found {len(graph_list)} subgraphs")
+    logger.success(f"Found {len(graph_list)} subgraphs")
     return graph_list
 
 
@@ -391,7 +391,7 @@ def control_quality (graph_list):
 
     This function checks the quality of the molecular graphs to ensure that 
     there are no overlapping atoms between different molecules. It extracts 
-    the set of atom IDs for each molecule and performs an intersection 
+    the set of residue IDs for each molecule and performs an intersection 
     operation between these sets. If any intersection is found, it indicates
     that there are overlapping atoms between molecules.
 
@@ -404,14 +404,14 @@ def control_quality (graph_list):
     logger.info("Quality control ...")
     list_set = []
     for component in graph_list : 
-        atom_id = set((nx.get_node_attributes(component, "label").values()))
+        atom_id = set((nx.get_node_attributes(component, "res_id").values()))
         list_set.append(atom_id)
 
     for index_i in range(len(list_set)-1) : 
         for index_j in range(index_i+1, len(list_set)):
             intersect = list_set[index_i].intersection(list_set[index_j])
             if intersect != set():
-                logger.info(f"Intersection between molecules {index_i} and {index_j} with the atom {intersect}")
+                logger.warning(f"Intersection between molecules {index_i} and {index_j} with the atom {intersect}")
     logger.success("No intersection between atom of different molecule")
 
 
