@@ -230,7 +230,7 @@ def get_graph_fingerprint(graph):
     nodes = graph.number_of_nodes()
     edges = graph.number_of_edges()
     atom_names = " ".join(sorted(nx.get_node_attributes(graph, "atom_name").values()))
-    resnames = " ".join(sorted(set((nx.get_node_attributes(graph, "resnames").values()))))
+    resnames = " ".join(sorted(set((nx.get_node_attributes(graph, "res_name").values()))))
 
     dict_degree = {key: value for key, value in graph.degree}
     degree = Counter(dict_degree.values())
