@@ -9,6 +9,7 @@ __contact__ = ("karine.duong@etu.u-paris.fr")
 __copyright__ = "IBPC"
 __date__ = "2024-03-18"
 
+
 from itertools import groupby
 from pathlib import Path
 
@@ -114,12 +115,15 @@ def get_atom_pairs(molecular_system, threshold):
 
     Parameters
     ----------
-        molecular_system (MolecularSystem): The molecular system object containing information about atoms.
-        threshold (float): The distance threshold used to determine atom contacts.
+        molecular_system : MDAnalysis.core.groups.AtomGroup
+            The molecular system object containing information about atoms.
+        threshold : float
+            The distance threshold used to determine atom contacts.
 
     Returns
     -------
-        numpy.ndarray: An array containing pairs of atom indices representing atom contacts.
+        numpy.ndarray  
+            An array containing pairs of atom indices representing atom contacts.
     """
     logger.info("Creating contact_matrix...")
     matrix = contact_matrix(molecular_system.atoms.positions, cutoff=threshold, returntype="sparse")
@@ -141,20 +145,18 @@ def relabel_node(graph, mol_system):
     ----------
         old_graph : networkx.classes.graph.Graph
             The graph for this file
-        mol_system : 
+        mol_system : MDAnalysis.core.groups.AtomGroup
+            The molecular system object containing information about atoms.
             
-
     Returns
     -------
         list
             list where each node is relabel
     """
     logger.info("Relabeling nodes in graph...")
-    logger.success(f"Old graph: {graph.number_of_nodes()} nodes")
-    # Create a subgraph from the component
-    # new_graph = old_graph.copy()
+    logger.success(f"Old graph: {graph.number_of_nodes():,} nodes")
 
-    # Create a replacement dictionary for node names
+    # Create a replacement dictionary for the new attributes for each node
     atoms_to_matrix_ids = {}
     for node_id in graph.nodes():
         atoms = {}
@@ -165,7 +167,6 @@ def relabel_node(graph, mol_system):
 
         atoms_to_matrix_ids[node_id] = atoms
 
-    # Create a new subgraph with modified node names
     for node_id, atom in atoms_to_matrix_ids.items():
         # Change properties first.
         nx.set_node_attributes(graph, {node_id: atom["atom_name"]}, name="atom_name")
@@ -173,7 +174,7 @@ def relabel_node(graph, mol_system):
         nx.set_node_attributes(graph, {node_id: atom["res_name"]}, name="residue_name")
         # Then node id.
         nx.set_node_attributes(graph, {node_id: atom["atom_id"]}, "label")
-    logger.success(f"New graph: {graph.number_of_nodes()} nodes")
+    logger.success(f"New graph: {graph.number_of_nodes():,} nodes")
     return graph
 
 
@@ -192,12 +193,9 @@ def get_graph_components(graph):
     """
     logger.info("Extracting graph components...")
     graph_components = nx.connected_components(graph)
+    graph_list = [graph.subgraph(subgraph) for subgraph in graph_components]
 
-    graph_list = []
-    for subgraph in graph_components : 
-        graph_list.append(graph.subgraph(subgraph))
-
-    logger.success(f"Found {len(graph_list)} subgraphs")
+    logger.success(f"Found {len(graph_list):,} subgraphs")
     return graph_list
 
 
@@ -205,7 +203,8 @@ def get_graph_fingerprint(graph):
     """Generate a fingerprint for a given graph.
 
     This function calculates a fingerprint for a given graph based on its properties, including
-    the number of nodes, the number of edges, and sorted concatenations of atom names and residue names.
+    the number of nodes, the number of edges, and sorted concatenations of atom names, residue 
+    names and their degree.
     
     Reference
     ---------
@@ -224,16 +223,16 @@ def get_graph_fingerprint(graph):
                - Number of edges in the graph.
                - Concatenation of sorted atom names of all nodes in the graph.
                - Concatenation of sorted residue names of all nodes in the graph.
+               - Concatenation of sorted degree of all nodes in the graph.
     """
     nodes = graph.number_of_nodes()
     edges = graph.number_of_edges()
     atom_names = " ".join(sorted(nx.get_node_attributes(graph, "atom_name").values()))
     resnames = " ".join(sorted(set((nx.get_node_attributes(graph, "resnames").values()))))
     
-    # dict_degree = {key: value for key, value in graph.degree} 
-    # degree = " ".join([f"{key}:{value}" for key, value in dict_degree.items()])
-    # return (nodes, edges, atom_names, resnames, degree)
-    return (nodes, edges, atom_names, resnames)
+    dict_degree = {index: value for index, (key, value) in enumerate(sorted(graph.degree))} 
+    degree = " ".join([f"{key}:{value}" for key, value in dict_degree.items()])
+    return (nodes, edges, atom_names, resnames, degree)
 
 
 def print_groupby(object_groupby):
@@ -249,7 +248,7 @@ def print_groupby(object_groupby):
     """
     logger.info("print groupby ... ")
     for fingerprint, graph in object_groupby:
-        print(f"graph_fingerprint {fingerprint[0]} | {fingerprint[1]} | {fingerprint[2]} | {fingerprint[3]}")
+        print(f"graph_fingerprint {fingerprint[0]} | {fingerprint[1]} | {fingerprint[2]} | {fingerprint[3]} | {fingerprint[4]}")
         for subgraph in list(graph):
             print("\t", subgraph.nodes()(data=True))
     print("\n")
@@ -282,7 +281,7 @@ def count_molecule(graph_list):
     # print_groupby(groupby(sorted_graphs, key=get_graph_fingerprint))
 
     for fingerprint, graph in groupby(sorted_graphs, key=get_graph_fingerprint):
-        # fingerprint : (nb_node, nb_edge, atom_name, resname)
+        # fingerprint : (nb_node, nb_edge, atom_name, resname, degree)
         # graph : objet itertools that group all graph with the same fingerprint
         similar_graphs = list(graph)  # A list that contain all graph with the same fingerprint
         nb_graph = len(similar_graphs)  # Number of graph for this fingerprint
@@ -415,7 +414,6 @@ def control_quality (graph_list):
     logger.success("No intersection between atom of different molecule")
 
 
-
 def main(filepath_gro, print_molecule_option, print_graph_option):
     """Excute the main function for analyzing a .gro file.
 
@@ -467,11 +465,10 @@ def is_an_existing_GRO_file(filepath):
             The validated path.
     """
     source = Path(filepath)
-    if not Path.is_file(source):  # If it's not a file
+    if not Path.is_file(source):
         raise argparse.ArgumentTypeError(f"{filepath} not exist")
     else:
-        file_extension = Path(filepath).suffix
-        if file_extension != ".gro":
+        if Path(filepath).suffix != ".gro":
             raise argparse.ArgumentTypeError(f"{filepath} is not a GRO file.")
     return filepath
 
@@ -494,7 +491,7 @@ def parse_arg():
 
     """
     parser = argparse.ArgumentParser(prog="grodecoder", 
-                                     description="Programm to extract and identify molecules from a .gro file.", 
+                                     description="Programm to extract each molecule of a GRO file and print their occurence.", 
                                      usage="grodecoder.py [-h] -g GRO [-pm PRINTMOLECULE] [-pg PRINTGRAPH]")
     
     parser.add_argument("-g", "--gro", 
