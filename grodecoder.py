@@ -232,10 +232,9 @@ def get_graph_fingerprint(graph):
     atom_names = " ".join(sorted(nx.get_node_attributes(graph, "atom_name").values()))
     resnames = " ".join(sorted(set((nx.get_node_attributes(graph, "resnames").values()))))
 
-    dict_degree = {key: value for key, value in graph.degree}
-    degree = Counter(dict_degree.values())
-    degree = " ".join([f"{key}:{value}" for key, value in sorted(degree.items())])
-    return (nodes, edges, atom_names, resnames, degree)
+    graph_degrees = Counter(dict(graph.degree).values())
+    degrees = " ".join([f"{key}:{value}" for key, value in sorted(graph_degrees.items())])
+    return (nodes, edges, atom_names, resnames, degrees)
 
 
 def print_groupby(object_groupby):
