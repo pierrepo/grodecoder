@@ -16,7 +16,6 @@ from pathlib import Path
 import re
 
 import argparse
-import argcomplete
 from loguru import logger
 import MDAnalysis as mda
 from MDAnalysis.analysis.distances import contact_matrix
@@ -320,45 +319,48 @@ def print_graph_inventory(graph_dict):
     logger.success(f"{total_molecules_count:,} molecules in total")
 
 
-def print_graph(dict_graph_count, option_color=False):
-    """Display each graph in a dictionary along with its count.
+def print_graph(graph, filepath_name, option_color=False):
+    """Print and save a graph as PNG
 
-    This function takes a dictionary where the keys are graph objects and the values
-    are their respective counts. It then displays each graph using Matplotlib's pyplot
-    library, with the graph nodes colored green and labeled with their atom names.
+    Ressources
+    ----------
+    - Ressources to explore to increase node spacing with networkx-spring-layout 
+    https://stackoverflow.com/questions/14283341/how-to-increase-node-spacing-for-networkx-spring-layout
 
     Parameters
     ----------
-        dict_graph_count: dict
-            A dictionary where the keys are graph objects and the values are their respective counts.
+        graph : networkx.classes.graph.Graph
+            A NetworkX graph object.
+        filepath_name : str 
+            Filepath to where I want to save the output graph
         option_color: str
             Either we want to display the nodes of the graph colored. By default, it's False.
 
     """
-    for graph in dict_graph_count.keys():
-        plt.figure()
+    plt.figure()
 
-        if option_color:
-            node_colors = []
-            for node in graph.nodes:
-                atom_name = re.sub(r'\d', '', graph.nodes[node]['atom_name'])
-                if atom_name == 'C' or atom_name == 'CA' or atom_name == 'CB' or atom_name == 'CD' or atom_name == 'CE' or atom_name == 'CZ' or atom_name == 'CG':
-                    node_colors.append('black')
-                elif atom_name == 'O' or atom_name == 'OE' or atom_name == 'OH' or atom_name == 'OD' or atom_name == 'OG':
-                    node_colors.append('red')
-                elif atom_name == 'N' or atom_name == 'ND' or atom_name == 'NE' or atom_name == 'NH' or atom_name == 'NZ':
-                    node_colors.append('blue')
-                else:
-                    node_colors.append('green')  # Default color for other labels
+    if option_color:
+        node_colors = []
+        for node in graph.nodes:
+            atom_name = re.sub(r'\d', '', graph.nodes[node]['atom_name'])
+            if atom_name == 'C' or atom_name == 'CA' or atom_name == 'CB' or atom_name == 'CD' or atom_name == 'CE' or atom_name == 'CZ' or atom_name == 'CG':
+                node_colors.append('black')
+            elif atom_name == 'O' or atom_name == 'OE' or atom_name == 'OH' or atom_name == 'OD' or atom_name == 'OG':
+                node_colors.append('red')
+            elif atom_name == 'N' or atom_name == 'ND' or atom_name == 'NE' or atom_name == 'NH' or atom_name == 'NZ':
+                node_colors.append('blue')
+            else:
+                node_colors.append('green')  # Default color for other labels
 
-            nx.draw(graph, node_color=node_colors, node_size = 75,
-                    with_labels=True, labels=nx.get_node_attributes(graph, "atom_name"), 
-                    edge_color = "grey")
-        else:
-            nx.draw(graph, node_color="green", node_size = 75,
+        nx.draw(graph, node_color=node_colors, node_size = 75,
                 with_labels=True, labels=nx.get_node_attributes(graph, "atom_name"), 
-                edge_color = "grey")    
-        plt.show()
+                edge_color = "grey")
+    else:
+        nx.draw(graph, node_color="green", node_size = 75,
+            with_labels=True, labels=nx.get_node_attributes(graph, "atom_name"), 
+            edge_color = "grey")    
+    plt.savefig(filepath_name)
+    plt.show()
 
 
 def print_first_atoms(mda_universe, number_of_atoms=10):
@@ -446,7 +448,7 @@ def check_overlapping_residue_between_graphs(graph_list):
         raise Exception("Some residue id are found in multiple graphs")
     
 
-def main(filepath_gro, print_graph=False):
+def main(filepath_gro, print_graph_option=False):
     """Excute the main function for analyzing a .gro file.
 
     Parameters
@@ -478,74 +480,74 @@ def main(filepath_gro, print_graph=False):
     for graph in graph_count_dict.keys():
         print_graph_fingerprint(graph)
 
-
     logger.info("Printing molecules inventory...")
     print_graph_inventory(graph_count_dict)
-    if print_graph:
-        print_graph(graph_count_dict)
+    if print_graph_option:
+        filename = Path(filepath_gro).stem
+        for index_graph, graph_count in enumerate(graph_count_dict.keys()):
+            print_graph(graph_count, f"./{filename}_{index_graph}.png")
 
 
-def is_an_existing_gro_file(filepath):
-    """Check if the given filepath points to an existing GRO file.
 
-    Parameters
-    ----------
-        filepath : str
-            The path to be checked.
+# def is_an_existing_gro_file(filepath):
+#     """Check if the given filepath points to an existing GRO file.
 
-    Raises
-    ------
-        argparse.ArgumentTypeError
-            If the given filepath is not a file or does not exist, or if it does not have '.gro' extension
+#     Parameters
+#     ----------
+#         filepath : str
+#             The path to be checked.
 
-    Returns
-    -------
-        str
-            The validated path.
-    """
-    source = Path(filepath)
-    if not Path.is_file(source):
-        raise argparse.ArgumentTypeError(f"{filepath} not exist")
+#     Raises
+#     ------
+#         argparse.ArgumentTypeError
+#             If the given filepath is not a file or does not exist, or if it does not have '.gro' extension
 
-    if Path(filepath).suffix != ".gro":
-        raise argparse.ArgumentTypeError(f"{filepath} is not a GRO file.")
-    return filepath
+#     Returns
+#     -------
+#         str
+#             The validated path.
+#     """
+#     source = Path(filepath)
+#     if not Path.is_file(source):
+#         raise argparse.ArgumentTypeError(f"{filepath} not exist")
 
-
-def parse_arg():
-    """Parse command-line arguments.
-
-    This function uses the argparse module to parse the command-line arguments
-    provided by the user. It sets up the argument parser with information about
-    the program, its usage, and the available options.
-
-    Ressources
-    ----------
-    - https://docs.python.org/3/library/argparse.html
-
-    Return
-    ------
-        argparse.Namespace
-            An object containing the parsed arguments as attributes.
-
-    """
-    parser = argparse.ArgumentParser(prog="grodecoder",
-                                     description="Programm to extract each molecule of a GRO file and print their occurence.",
-                                     usage="grodecoder.py [-h] -g GRO [-pm PRINTMOLECULE] [-pg PRINTGRAPH]")
-
-    parser.add_argument("-g", "--gro",
-                        type=is_an_existing_gro_file,
-                        help="a GRO filepath in input to this programm",
-                        required=True)
-
-    parser.add_argument('-pg', "--printgraph",
-                        help="Either we want to print the graph of each molecule (with the option True) or not. By default it's False.",
-                        default=False)
-    
-    argcomplete.autocomplete(parser)
-    return parser.parse_args()
+#     if source.suffix != ".gro":
+#         raise argparse.ArgumentTypeError(f"{filepath} is not a GRO file.")
+#     return filepath
 
 
-if __name__=="__main__":
-    args = parse_arg()
-    main(args.gro, print_graph=args.printgraph)
+# def parse_arg():
+#     """Parse command-line arguments.
+
+#     This function uses the argparse module to parse the command-line arguments
+#     provided by the user. It sets up the argument parser with information about
+#     the program, its usage, and the available options.
+
+#     Ressources
+#     ----------
+#     - https://docs.python.org/3/library/argparse.html
+
+#     Return
+#     ------
+#         argparse.Namespace
+#             An object containing the parsed arguments as attributes.
+
+#     """
+#     parser = argparse.ArgumentParser(prog="grodecoder",
+#                                      description="Programm to extract each molecule of a GRO file and print their occurence.",
+#                                      usage="grodecoder.py [-h] -g GRO [-pm PRINTMOLECULE] [-pg PRINTGRAPH]")
+
+#     parser.add_argument("-g", "--gro",
+#                         type=is_an_existing_gro_file,
+#                         help="a GRO filepath in input to this programm",
+#                         required=True)
+
+#     parser.add_argument('-pg', "--printgraph",
+#                         help="Either we want to print the graph of each molecule (with the option True) or not. By default it's False.",
+#                         default=False)
+#     return parser.parse_args()
+
+
+# if __name__ == "__main__":
+#     args = parse_arg()
+#     main(args.gro, args.printgraph)
