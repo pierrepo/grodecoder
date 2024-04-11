@@ -16,6 +16,7 @@ from pathlib import Path
 import re
 
 import argparse
+import argcomplete
 from loguru import logger
 import MDAnalysis as mda
 from MDAnalysis.analysis.distances import contact_matrix
@@ -141,7 +142,7 @@ def get_atom_pairs(molecular_system, threshold):
     return atom_pairs
 
 
-def relabel_node(graph, mol_system):
+def add_attributes_to_nodes(graph, mol_system):
     """Iterate each connected subgraph, and relabel their node by [atom_name]_[index].
 
     Parameters
@@ -187,12 +188,12 @@ def get_graph_components(graph):
     Parameters
     ----------
         graph: networkx.Graph
-            The input graph from which to extract connected components.
+            The input graph.
 
     Returns
     -------
         list
-            A list containing subgraphs, each representing a connected component of the input graph.
+            A list of subgraphs, each subgraph representing a connected component of the input graph.
     """
     logger.info("Extracting graph components...")
     graph_components = connected_components(graph)
@@ -231,11 +232,11 @@ def get_graph_fingerprint(graph):
     nodes = graph.number_of_nodes()
     edges = graph.number_of_edges()
     atom_names = " ".join(sorted(nx.get_node_attributes(graph, "atom_name").values()))
-    resnames = " ".join(sorted(set((nx.get_node_attributes(graph, "residue_name").values()))))
+    res_names = " ".join(sorted(set((nx.get_node_attributes(graph, "residue_name").values()))))
 
     graph_degrees = Counter(dict(graph.degree).values())
-    degrees_dist = " ".join([f"{key}:{value}" for key, value in sorted(graph_degrees.items())])
-    return (nodes, edges, atom_names, resnames, degrees_dist)
+    degree_dist = " ".join([f"{key}:{value}" for key, value in sorted(graph_degrees.items())])
+    return (nodes, edges, atom_names, res_names, degree_dist)
 
 
 def print_graph_fingerprint(graph):
@@ -248,11 +249,11 @@ def print_graph_fingerprint(graph):
     """
     logger.debug("print groupby ... ")
     fingerprint = get_graph_fingerprint(graph)
-    logger.debug("Graph fingerprint:")
+    logger.debug("Graph fingerprint-----------------")
     logger.debug(f"- Number of nodes: {fingerprint[0]}")
     logger.debug(f"- Number of edges: {fingerprint[1]}")
-    logger.debug(f"- Sorted atom names: {fingerprint[2]}")
-    logger.debug(f"- Set of residue names: {fingerprint[3]}")
+    logger.debug(f"- Sorted atom names (first 50 char.): {fingerprint[2][:50]}")
+    logger.debug(f"- Sorted set of residue names: {fingerprint[3]}")
     logger.debug(f"- Node degrees dist: {fingerprint[4]}")
 
 
@@ -408,33 +409,42 @@ def read_gro_files_remove_hydrogens(gro_file_path):
     return molecule_without_h
 
 
-def control_quality (graph_list):
-    """Check the quality of the molecular graphs.
+def check_overlapping_residue_between_graphs(graph_list):
+    """Check there is no overlapping residue between graphs.
 
-    This function checks the quality of the molecular graphs to ensure that 
-    there are no overlapping atoms between different molecules. It extracts 
-    the set of residue IDs for each molecule and performs an intersection 
+    This function checks that there are no overlapping residue between different graphs/molecules.
+    It extracts  the set of residue IDs for each graph/molecule and performs an intersection 
     operation between these sets. If any intersection is found, it indicates
-    that there are overlapping atoms between molecules.
+    that there are overlapping residue between graph/molecules.
 
     Parameters
     ----------
         graph_list: list
             A list of NetworkX graph objects representing different molecules.
     """
-    logger.info("Quality control ...")
-    list_set = []
-    for component in graph_list:
-        atom_id = set((nx.get_node_attributes(component, "res_id").values()))
-        list_set.append(atom_id)
+    logger.info("Verifying residue overlapping...")
+    res_id_set_all = set()
+    res_id_common = []
 
-    for index_i in range(len(list_set)-1):
-        for index_j in range(index_i+1, len(list_set)):
-            intersect = list_set[index_i].intersection(list_set[index_j])
-            if intersect != set():
-                logger.warning(f"Intersection between molecules {index_i} and {index_j} with the atom {intersect}")
-    logger.success("No intersection between atom of different molecule")
+    for graph in graph_list:
+        res_id_set = set((nx.get_node_attributes(graph, "residue_id").values()))
+        res_id_intersect = res_id_set_all.intersection(res_id_set)
+        res_id_set_all.update( res_id_set )
+        if res_id_intersect:
+            for res_id in res_id_intersect:
+                logger.critical(f"Residue id {res_id} is found in multiple graphs")
+                res_id_common.append(res_id)
 
+    if not res_id_common:
+        logger.success("No overlapping residue found")
+    else:
+        for res_id in res_id_common:
+            for graph_id, graph in enumerate(graph_list):
+                res_id_set = set((nx.get_node_attributes(graph, "residue_id").values()))
+                if res_id in res_id_set:
+                    logger.error(f"Residue id {res_id} is found in graph id {graph_id}")
+        raise Exception("Some residue id are found in multiple graphs")
+    
 
 def main(filepath_gro, print_graph=False):
     """Excute the main function for analyzing a .gro file.
@@ -453,26 +463,26 @@ def main(filepath_gro, print_graph=False):
 
     molecular_system = read_gro_files_remove_hydrogens(filepath_gro)
 
-    atom_pair = get_atom_pairs(molecular_system, threshold)
+    atom_pairs = get_atom_pairs(molecular_system, threshold)
 
-    graph_return = convert_atom_pairs_to_graph(atom_pair, len(molecular_system.atoms))
+    graph_return = convert_atom_pairs_to_graph(atom_pairs, len(molecular_system.atoms))
 
-    graph_relabel = relabel_node(graph_return, molecular_system)
-    graph_connex_list = get_graph_components(graph_relabel)
+    graph_with_node_attributes = add_attributes_to_nodes(graph_return, molecular_system)
+    graph_list = get_graph_components(graph_with_node_attributes)
 
-    graph_count_dict = count_molecule(graph_connex_list)
+    check_overlapping_residue_between_graphs(graph_list)
+
+    graph_count_dict = count_molecule(graph_list)
 
     # Print fingerprint for each graph/molecule
     for graph in graph_count_dict.keys():
         print_graph_fingerprint(graph)
 
-    control_quality(graph_connex_list)
 
     logger.info("Printing molecules inventory...")
     print_graph_inventory(graph_count_dict)
     if print_graph:
         print_graph(graph_count_dict)
-
 
 
 def is_an_existing_gro_file(filepath):
@@ -531,6 +541,8 @@ def parse_arg():
     parser.add_argument('-pg', "--printgraph",
                         help="Either we want to print the graph of each molecule (with the option True) or not. By default it's False.",
                         default=False)
+    
+    argcomplete.autocomplete(parser)
     return parser.parse_args()
 
 
