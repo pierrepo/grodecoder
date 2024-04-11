@@ -360,7 +360,6 @@ def print_graph(graph, filepath_name, option_color=False):
             with_labels=True, labels=nx.get_node_attributes(graph, "atom_name"),
             edge_color = "grey")    
     plt.savefig(filepath_name)
-    plt.show()
 
 
 def print_first_atoms(mda_universe, number_of_atoms=10):
