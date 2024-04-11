@@ -299,26 +299,24 @@ def count_molecule(graph_list):
     return dict_count
 
 
-def print_count(count, option):
-    """Print the count of molecules.
+def print_graph_inventory(graph_dict):
+    """Print graph inventory.
 
     Parameters
     ----------
-        count: dict
-            A dictionary containing information about the molecules.
-        option: str
-            Either we want to print the composition of each molecule (with the option True) or not
+        graph_dict: dict
+            A dictionary with graphs as keys and counts (numbers of graphs) as values.
     """
     logger.info("File content:")
     total_molecules_count = 0
-    for mol_idx, (mol_graph, mol_count) in enumerate(count.items(), start=1):
-        logger.success(f"Molecule {mol_idx:,} ----------------")
-        logger.success(f"- number of atoms: {mol_graph.number_of_nodes():,}")
-        logger.success(f"- number of molecules: {mol_count:,}")
-        if option:
-            atom_names = " ".join(nx.get_node_attributes(mol_graph, "atom_name").values())
-            logger.success(f"- atom names: {atom_names}")
-        total_molecules_count += mol_count
+    for graph_idx, (graph, count) in enumerate(graph_dict.items(), start=1):
+        logger.info(f"Molecule {graph_idx:,} ----------------")
+        logger.info(f"- number of atoms: {graph.number_of_nodes():,}")
+        logger.info(f"- number of molecules: {count:,}")
+        atom_names = list(nx.get_node_attributes(graph, "atom_name").values())
+        atom_names_str = " ".join( atom_names[:20] )
+        logger.debug(f"- 20 first atom names: {atom_names_str}")
+        total_molecules_count += count
     logger.success(f"{total_molecules_count:,} molecules in total")
 
 
@@ -448,7 +446,7 @@ def check_overlapping_residue_between_graphs(graph_list):
         raise Exception("Some residue id are found in multiple graphs")
     
 
-def main(filepath_gro, print_molecule_option, print_graph_option):
+def main(filepath_gro, print_graph=False):
     """Excute the main function for analyzing a .gro file.
 
     Parameters
@@ -474,17 +472,17 @@ def main(filepath_gro, print_molecule_option, print_graph_option):
 
     check_overlapping_residue_between_graphs(graph_list)
 
-    dict_count = count_molecule(graph_list)
+    graph_count_dict = count_molecule(graph_list)
 
     # Print fingerprint for each graph/molecule
-    for graph in dict_count.keys():
+    for graph in graph_count_dict.keys():
         print_graph_fingerprint(graph)
 
-    logger.info("Print dictionnary count and graph...")
-    print_count(dict_count, print_molecule_option)
-    if print_graph_option:
-        print_graph(dict_count)
 
+    logger.info("Printing molecules inventory...")
+    print_graph_inventory(graph_count_dict)
+    if print_graph:
+        print_graph(graph_count_dict)
 
 
 def is_an_existing_gro_file(filepath):
@@ -540,10 +538,6 @@ def parse_arg():
                         help="a GRO filepath in input to this programm",
                         required=True)
 
-    parser.add_argument('-pm', "--printmolecule",
-                        help="Either we want to print the composition of each molecule (with the option True) or not. By default it's False.",
-                        default=False)
-
     parser.add_argument('-pg', "--printgraph",
                         help="Either we want to print the graph of each molecule (with the option True) or not. By default it's False.",
                         default=False)
@@ -554,4 +548,4 @@ def parse_arg():
 
 if __name__=="__main__":
     args = parse_arg()
-    main(args.gro, args.printmolecule, args.printgraph)
+    main(args.gro, print_graph=args.printgraph)
