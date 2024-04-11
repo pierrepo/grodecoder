@@ -13,6 +13,7 @@ __date__ = "2024-03-18"
 from collections import Counter
 from itertools import groupby
 from pathlib import Path
+import re
 
 import argparse
 from loguru import logger
@@ -322,7 +323,7 @@ def print_count(count, option):
     logger.success(f"{total_molecules_count:,} molecules in total")
 
 
-def print_graph(dict_graph_count):
+def print_graph(dict_graph_count, option_color=False):
     """Display each graph in a dictionary along with its count.
 
     This function takes a dictionary where the keys are graph objects and the values
@@ -333,10 +334,33 @@ def print_graph(dict_graph_count):
     ----------
         dict_graph_count: dict
             A dictionary where the keys are graph objects and the values are their respective counts.
+        option_color: str
+            Either we want to display the nodes of the graph colored. By default, it's False.
+
     """
     for graph in dict_graph_count.keys():
         plt.figure()
-        nx.draw(graph, node_color="green", with_labels=True, labels=nx.get_node_attributes(graph, "atom_name"))
+
+        if option_color:
+            node_colors = []
+            for node in graph.nodes:
+                atom_name = re.sub(r'\d', '', graph.nodes[node]['atom_name'])
+                if atom_name == 'C' or atom_name == 'CA' or atom_name == 'CB' or atom_name == 'CD' or atom_name == 'CE' or atom_name == 'CZ' or atom_name == 'CG':
+                    node_colors.append('black')
+                elif atom_name == 'O' or atom_name == 'OE' or atom_name == 'OH' or atom_name == 'OD' or atom_name == 'OG':
+                    node_colors.append('red')
+                elif atom_name == 'N' or atom_name == 'ND' or atom_name == 'NE' or atom_name == 'NH' or atom_name == 'NZ':
+                    node_colors.append('blue')
+                else:
+                    node_colors.append('green')  # Default color for other labels
+
+            nx.draw(graph, node_color=node_colors, node_size = 75,
+                    with_labels=True, labels=nx.get_node_attributes(graph, "atom_name"), 
+                    edge_color = "grey")
+        else:
+            nx.draw(graph, node_color="green", node_size = 75,
+                with_labels=True, labels=nx.get_node_attributes(graph, "atom_name"), 
+                edge_color = "grey")    
         plt.show()
 
 
