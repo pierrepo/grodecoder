@@ -343,9 +343,9 @@ def print_graph(graph, filepath_name, option_color=False):
         node_colors = []
         for node in graph.nodes:
             atom_name = re.sub(r'\d', '', graph.nodes[node]['atom_name'])
-            if atom_name == 'C' or atom_name == 'CA' or atom_name == 'CB' or atom_name == 'CD' or atom_name == 'CE' or atom_name == 'CZ' or atom_name == 'CG':
+            if atom_name == 'C' or atom_name == 'CA' or atom_name == 'CB' or atom_name == 'CD' or atom_name == 'CE' or atom_name == 'CG' or atom_name == 'CZ':
                 node_colors.append('black')
-            elif atom_name == 'O' or atom_name == 'OE' or atom_name == 'OH' or atom_name == 'OD' or atom_name == 'OG':
+            elif atom_name == 'O' or atom_name == 'OE' or atom_name == 'OH' or atom_name == 'OD' or atom_name == 'OT' or atom_name == 'OG':
                 node_colors.append('red')
             elif atom_name == 'N' or atom_name == 'ND' or atom_name == 'NE' or atom_name == 'NH' or atom_name == 'NZ':
                 node_colors.append('blue')
@@ -353,11 +353,11 @@ def print_graph(graph, filepath_name, option_color=False):
                 node_colors.append('green')  # Default color for other labels
 
         nx.draw(graph, node_color=node_colors, node_size = 75,
-                with_labels=True, labels=nx.get_node_attributes(graph, "atom_name"), 
+                with_labels=True, labels=nx.get_node_attributes(graph, "atom_name"),
                 edge_color = "grey")
     else:
         nx.draw(graph, node_color="green", node_size = 75,
-            with_labels=True, labels=nx.get_node_attributes(graph, "atom_name"), 
+            with_labels=True, labels=nx.get_node_attributes(graph, "atom_name"),
             edge_color = "grey")    
     plt.savefig(filepath_name)
     plt.show()
@@ -455,8 +455,6 @@ def main(filepath_gro, print_graph_option=False):
     ----------
         filepath_gro: str
             Filepath of the .gro file we want to analyzed
-        print_molecule_option: boolean
-            Either we want to print the composition of each molecule (with the option True) or not
         print_graph_option: boolean
             Either we want to print the graph of each molecule (with the option True) or not
     """
@@ -488,66 +486,65 @@ def main(filepath_gro, print_graph_option=False):
             print_graph(graph_count, f"./{filename}_{index_graph}.png")
 
 
+def is_an_existing_gro_file(filepath):
+    """Check if the given filepath points to an existing GRO file.
 
-# def is_an_existing_gro_file(filepath):
-#     """Check if the given filepath points to an existing GRO file.
+    Parameters
+    ----------
+        filepath : str
+            The path to be checked.
 
-#     Parameters
-#     ----------
-#         filepath : str
-#             The path to be checked.
+    Raises
+    ------
+        argparse.ArgumentTypeError
+            If the given filepath is not a file or does not exist, or if it does not have '.gro' extension
 
-#     Raises
-#     ------
-#         argparse.ArgumentTypeError
-#             If the given filepath is not a file or does not exist, or if it does not have '.gro' extension
+    Returns
+    -------
+        str
+            The validated path.
+    """
+    source = Path(filepath)
+    if not Path.is_file(source):
+        raise argparse.ArgumentTypeError(f"{filepath} not exist")
 
-#     Returns
-#     -------
-#         str
-#             The validated path.
-#     """
-#     source = Path(filepath)
-#     if not Path.is_file(source):
-#         raise argparse.ArgumentTypeError(f"{filepath} not exist")
-
-#     if source.suffix != ".gro":
-#         raise argparse.ArgumentTypeError(f"{filepath} is not a GRO file.")
-#     return filepath
-
-
-# def parse_arg():
-#     """Parse command-line arguments.
-
-#     This function uses the argparse module to parse the command-line arguments
-#     provided by the user. It sets up the argument parser with information about
-#     the program, its usage, and the available options.
-
-#     Ressources
-#     ----------
-#     - https://docs.python.org/3/library/argparse.html
-
-#     Return
-#     ------
-#         argparse.Namespace
-#             An object containing the parsed arguments as attributes.
-
-#     """
-#     parser = argparse.ArgumentParser(prog="grodecoder",
-#                                      description="Programm to extract each molecule of a GRO file and print their occurence.",
-#                                      usage="grodecoder.py [-h] -g GRO [-pm PRINTMOLECULE] [-pg PRINTGRAPH]")
-
-#     parser.add_argument("-g", "--gro",
-#                         type=is_an_existing_gro_file,
-#                         help="a GRO filepath in input to this programm",
-#                         required=True)
-
-#     parser.add_argument('-pg', "--printgraph",
-#                         help="Either we want to print the graph of each molecule (with the option True) or not. By default it's False.",
-#                         default=False)
-#     return parser.parse_args()
+    if source.suffix != ".gro":
+        raise argparse.ArgumentTypeError(f"{filepath} is not a GRO file.")
+    return filepath
 
 
-# if __name__ == "__main__":
-#     args = parse_arg()
-#     main(args.gro, args.printgraph)
+def parse_arg():
+    """Parse command-line arguments.
+
+    This function uses the argparse module to parse the command-line arguments
+    provided by the user. It sets up the argument parser with information about
+    the program, its usage, and the available options.
+
+    Ressources
+    ----------
+    - https://docs.python.org/3/library/argparse.html
+
+    Return
+    ------
+        argparse.Namespace
+            An object containing the parsed arguments as attributes.
+
+    """
+    parser = argparse.ArgumentParser(prog="grodecoder",
+                                     description="Programm to extract each molecule of a GRO file and print their occurence.",
+                                     usage="grodecoder.py [-h] -g GRO [-pm PRINTMOLECULE] [-pg PRINTGRAPH]")
+
+    parser.add_argument("-g", "--gro",
+                        type=is_an_existing_gro_file,
+                        help="a GRO filepath in input to this programm",
+                        required=True)
+
+    parser.add_argument('-pg', "--printgraph",
+                        help="Either we want to print the graph of each molecule (with the option True) or not. By default it's False.",
+                        default=False)
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    args = parse_arg()
+    main(args.gro, args.printgraph)
