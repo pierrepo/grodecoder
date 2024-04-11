@@ -231,7 +231,7 @@ def get_graph_fingerprint(graph):
     nodes = graph.number_of_nodes()
     edges = graph.number_of_edges()
     atom_names = " ".join(sorted(nx.get_node_attributes(graph, "atom_name").values()))
-    resnames = " ".join(sorted(set((nx.get_node_attributes(graph, "res_name").values()))))
+    resnames = " ".join(sorted(set((nx.get_node_attributes(graph, "residue_name").values()))))
 
     graph_degrees = Counter(dict(graph.degree).values())
     degrees_dist = " ".join([f"{key}:{value}" for key, value in sorted(graph_degrees.items())])
@@ -298,26 +298,24 @@ def count_molecule(graph_list):
     return dict_count
 
 
-def print_count(count, option):
-    """Print the count of molecules.
+def print_graph_inventory(graph_dict):
+    """Print graph inventory.
 
     Parameters
     ----------
-        count: dict
-            A dictionary containing information about the molecules.
-        option: str
-            Either we want to print the composition of each molecule (with the option True) or not
+        graph_dict: dict
+            A dictionary with graphs as keys and counts (numbers of graphs) as values.
     """
     logger.info("File content:")
     total_molecules_count = 0
-    for mol_idx, (mol_graph, mol_count) in enumerate(count.items(), start=1):
-        logger.success(f"Molecule {mol_idx:,} ----------------")
-        logger.success(f"- number of atoms: {mol_graph.number_of_nodes():,}")
-        logger.success(f"- number of molecules: {mol_count:,}")
-        if option:
-            atom_names = " ".join(nx.get_node_attributes(mol_graph, "atom_name").values())
-            logger.success(f"- atom names: {atom_names}")
-        total_molecules_count += mol_count
+    for graph_idx, (graph, count) in enumerate(graph_dict.items(), start=1):
+        logger.info(f"Molecule {graph_idx:,} ----------------")
+        logger.info(f"- number of atoms: {graph.number_of_nodes():,}")
+        logger.info(f"- number of molecules: {count:,}")
+        atom_names = list(nx.get_node_attributes(graph, "atom_name").values())
+        atom_names_str = " ".join( atom_names[:20] )
+        logger.debug(f"- 20 first atom names: {atom_names_str}")
+        total_molecules_count += count
     logger.success(f"{total_molecules_count:,} molecules in total")
 
 
@@ -438,7 +436,7 @@ def control_quality (graph_list):
     logger.success("No intersection between atom of different molecule")
 
 
-def main(filepath_gro, print_molecule_option, print_graph_option):
+def main(filepath_gro, print_graph=False):
     """Excute the main function for analyzing a .gro file.
 
     Parameters
@@ -462,18 +460,18 @@ def main(filepath_gro, print_molecule_option, print_graph_option):
     graph_relabel = relabel_node(graph_return, molecular_system)
     graph_connex_list = get_graph_components(graph_relabel)
 
-    dict_count = count_molecule(graph_connex_list)
+    graph_count_dict = count_molecule(graph_connex_list)
 
     # Print fingerprint for each graph/molecule
-    for graph in dict_count.keys():
+    for graph in graph_count_dict.keys():
         print_graph_fingerprint(graph)
 
     control_quality(graph_connex_list)
 
-    logger.info("Print dictionnary count and graph...")
-    print_count(dict_count, print_molecule_option)
-    if print_graph_option:
-        print_graph(dict_count)
+    logger.info("Printing molecules inventory...")
+    print_graph_inventory(graph_count_dict)
+    if print_graph:
+        print_graph(graph_count_dict)
 
 
 
@@ -530,10 +528,6 @@ def parse_arg():
                         help="a GRO filepath in input to this programm",
                         required=True)
 
-    parser.add_argument('-pm', "--printmolecule",
-                        help="Either we want to print the composition of each molecule (with the option True) or not. By default it's False.",
-                        default=False)
-
     parser.add_argument('-pg', "--printgraph",
                         help="Either we want to print the graph of each molecule (with the option True) or not. By default it's False.",
                         default=False)
@@ -542,4 +536,4 @@ def parse_arg():
 
 if __name__=="__main__":
     args = parse_arg()
-    main(args.gro, args.printmolecule, args.printgraph)
+    main(args.gro, print_graph=args.printgraph)
