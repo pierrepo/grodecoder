@@ -305,7 +305,7 @@ def print_graph_inventory(graph_dict):
         graph_dict: dict
             A dictionary with graphs as keys and counts (numbers of graphs) as values.
     """
-    logger.info("File content:")
+    logger.info("Molecules inventory:")
     total_molecules_count = 0
     for graph_idx, (graph, count) in enumerate(graph_dict.items(), start=1):
         logger.info(f"Molecule {graph_idx:,} ----------------")
@@ -446,14 +446,14 @@ def check_overlapping_residue_between_graphs(graph_list):
         raise Exception("Some residue id are found in multiple graphs")
 
 
-def main(filepath_gro, print_graph_option=False):
+def main(filepath_gro, draw_graph_option=False):
     """Excute the main function for analyzing a .gro file.
 
     Parameters
     ----------
         filepath_gro: str
             Filepath of the .gro file we want to analyzed
-        print_graph_option: boolean
+        draw_graph_option: boolean
             Either we want to print the graph of each molecule (with the option True) or not
     """
     threshold = max(BOND_LENGTH.values())
@@ -476,9 +476,11 @@ def main(filepath_gro, print_graph_option=False):
     for graph in graph_count_dict.keys():
         print_graph_fingerprint(graph)
 
-    logger.info("Printing molecules inventory...")
+    
     print_graph_inventory(graph_count_dict)
-    if print_graph_option:
+
+    if draw_graph_option:
+        logger.info("Drawing graphs...")
         filename = Path(filepath_gro).stem
         for index_graph, graph_count in enumerate(graph_count_dict.keys()):
             print_graph(graph_count, f"./{filename}_{index_graph}.png")
@@ -530,19 +532,20 @@ def parse_arg():
     """
     parser = argparse.ArgumentParser(prog="grodecoder",
                                      description="Programm to extract each molecule of a GRO file and print their occurence.",
-                                     usage="grodecoder.py [-h] -g GRO [-pm PRINTMOLECULE] [-pg PRINTGRAPH]")
+                                     usage="grodecoder.py [-h] --gro gro_file [--drawgraph]")
 
-    parser.add_argument("-g", "--gro",
+    parser.add_argument("--gro",
                         type=is_an_existing_gro_file,
-                        help="a GRO filepath in input to this programm",
+                        help="GRO file path",
                         required=True)
 
-    parser.add_argument('-pg', "--printgraph",
-                        help="Either we want to print the graph of each molecule (with the option True) or not. By default it's False.",
-                        default=False)
+    parser.add_argument("--drawgraph",
+                        help="Draw graph of each molecule. Default: False.",
+                        default=False,
+                        action="store_true")
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_arg()
-    main(args.gro, args.printgraph)
+    main(args.gro, draw_graph_option=args.drawgraph)

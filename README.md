@@ -23,7 +23,13 @@ conda activate grodecoder-env
 Run GROdecoder on a test file:
 
 ```bash
-python grodecoder.py -g data/examples/barstar.gro
+python grodecoder.py --gro data/examples/barstar.gro
+```
+
+Draw graphs corresponding to the molecules found in the .gro file:
+
+```bash
+python grodecoder.py --gro data/examples/barstar.gro --drawgraph
 ```
 
 
