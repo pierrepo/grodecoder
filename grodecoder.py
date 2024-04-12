@@ -44,29 +44,6 @@ BOND_LENGTH = {'C-C': 1.54,
 # https://www.umass.edu/microbio/chime/find-ncb/help_gb.htm
 
 
-AMINO_ACIDS= {"ALA":'A', 
-              "ARG":'R', 
-              "ASN":'N',
-              "ASP":'D',
-              "CYS":'C',
-              "GLU":'E',
-              "GLN":'Q',
-              "GLY":'G',
-              "HIS":'H',
-              "HSD":'H',
-              "ILE":'I',
-              "LEU":'L',
-              "LYS":'K',
-              "MET":'M',
-              "PHE":'F',
-              "PRO":'P',
-              "SER":'S',
-              "THR":'T',
-              "TRP":'W',
-              "TYR":'Y',
-              "VAL": 'V'}
-
-
 def get_distance_matrix_between_atom(file_gro):
     """Calculate interatomic distances between all atoms in the GRO file \
     https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html \
@@ -485,20 +462,23 @@ def is_protein(graph):
         bool
             True if the molecule is a protein, False otherwise.
     """
-    logger.info("Check if this molecule is a protein...")
+    logger.info("Checking if the molecule is a protein...")
+    atom_names = ""
     if graph.number_of_nodes() > 1:
         atom_names = " ".join(sorted(nx.get_node_attributes(graph, "atom_name").values()))
-        if "CA" in atom_names:
-            return True
-    return False
+    return ("CA" in atom_names)
 
 
 def extract_protein_sequence(graph):
-    """Extract the protein sequence from the molecule represented by the graph.
+    """Extract the protein sequence from a graph.
 
     This function extracts the protein sequence from the molecule represented 
     by the input graph. It looks for the residue names corresponding to the C-alpha 
     (CA) atoms in each node and converts them to single-letter amino acid codes.
+
+    The correspondence between 3-letter code and 1-letter code
+    is taken from MDAnalysis:
+    https://docs.mdanalysis.org/1.0.1/_modules/MDAnalysis/lib/util.html#convert_aa_code
 
     Parameters
     ----------
@@ -508,16 +488,20 @@ def extract_protein_sequence(graph):
     Returns
     -------
         str
-            The protein sequence extracted from the molecule.
+            Protein sequence.
     """
-    #Extract each residue_name where the atom_name is CA from each node
-    logger.info("Extract the protein_sequence of this molecule...")
-    res_seq = []
-    for node in sorted(graph.nodes(), key=lambda x: int(x)):
-        if nx.get_node_attributes(graph, "atom_name")[node] == 'CA':
-            res_seq.append(AMINO_ACIDS[nx.get_node_attributes(graph, "residue_name")[node][:3]])
-    return "".join(res_seq)
-
+    logger.info("Extractig protein sequence...")
+    AMINO_ACID_DICT = mda.lib.util.inverse_aa_codes
+    protein_sequence = []
+    # graph.nodes.items() returns an iterable of tuples (node_id, node_attributes).
+    # Examples:
+    # (0, {'atom_name': 'N', 'residue_id': 1, 'residue_name': 'MET', 'label': 1})
+    # (1, {'atom_name': 'CA', 'residue_id': 1, 'residue_name': 'MET', 'label': 5})
+    # (2, {'atom_name': 'CB', 'residue_id': 1, 'residue_name': 'MET', 'label': 7})
+    for _, node_attr in sorted(graph.nodes.items(), key=lambda x: x[0]):
+        if node_attr["atom_name"] == "CA":
+            protein_sequence.append( AMINO_ACID_DICT.get(node_attr["residue_name"], "?") )
+    return "".join(protein_sequence)
 
 
 def main(input_file_path, draw_graph_option=False, check_overlapping_residue=False):
