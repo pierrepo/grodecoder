@@ -517,7 +517,8 @@ def extract_protein_sequence(graph):
     return "".join(res_seq)
 
 
-def main(filepath_gro, draw_graph_option=False):
+
+def main(filepath_gro, draw_graph_option=False, check_overlapping_residue=False):
     """Excute the main function for analyzing a .gro file.
 
     Parameters
@@ -525,7 +526,9 @@ def main(filepath_gro, draw_graph_option=False):
         filepath_gro: str
             Filepath of the .gro file we want to analyzed
         draw_graph_option: boolean
-            Either we want to print the graph of each molecule (with the option True) or not
+            Draw the graph of each molecule and save it as a PNG file. Default: False.
+        check_overlapping_residue: boolean
+            Check of some residues are overlapping between graphs / molecules. Default: False.
     """
     threshold = max(BOND_LENGTH.values())
     logger.success(f"Threshold: {threshold} Angstrom")
@@ -539,7 +542,8 @@ def main(filepath_gro, draw_graph_option=False):
     graph_with_node_attributes = add_attributes_to_nodes(graph_return, molecular_system)
     graph_list = get_graph_components(graph_with_node_attributes)
 
-    check_overlapping_residue_between_graphs(graph_list)
+    if check_overlapping_residue:
+        check_overlapping_residue_between_graphs(graph_list)
 
     graph_count_dict = count_molecule(graph_list)
 
@@ -612,14 +616,16 @@ def parse_arg():
     parser = argparse.ArgumentParser(prog="grodecoder",
                                      description="Programm to extract each molecule of a GRO file and print their occurence.",
                                      usage="grodecoder.py [-h] --gro gro_file [--drawgraph]")
-
     parser.add_argument("--gro",
                         type=is_an_existing_gro_file,
                         help="GRO file path",
                         required=True)
-
     parser.add_argument("--drawgraph",
                         help="Draw graph of each molecule. Default: False.",
+                        default=False,
+                        action="store_true")
+    parser.add_argument("--checkoverlapping",
+                        help="Check if some residues are overlapping between residues. Default: False.",
                         default=False,
                         action="store_true")
     return parser.parse_args()
@@ -627,4 +633,4 @@ def parse_arg():
 
 if __name__ == "__main__":
     args = parse_arg()
-    main(args.gro, draw_graph_option=args.drawgraph)
+    main(args.gro, draw_graph_option=args.drawgraph, check_overlapping_residue=args.checkoverlapping)
