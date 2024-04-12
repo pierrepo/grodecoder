@@ -404,21 +404,21 @@ def print_first_atoms(mda_universe, number_of_atoms=10):
         )
 
 
-def read_gro_files_remove_hydrogens(gro_file_path):
+def read_structure_file_remove_hydrogens(file_path):
     """Read Groamacs .gro file and remove hydrogen atoms.
 
     Parameters
     ----------
         filepath: str
-            The filepath of the .gro file containing hydrogen atoms.
+            The filepath of the structure file (.gro, .pdb)..
 
     Returns
     -------
-        molecule_without_H
-            A modified MDA Universe object containing only non-hydrogen atoms.
+        MDAnalysis.core.universe.Universe
+            A MDAnalysis universe object containing only non-hydrogen atoms.
     """
-    logger.info(f"Reading file: {gro_file_path}")
-    molecule = mda.Universe(gro_file_path)
+    logger.info(f"Reading file: {file_path}")
+    molecule = mda.Universe(file_path)
     logger.success(f"Found {len(molecule.atoms):,} atoms")
     # Print 10 first atoms for debugging.  
     print_first_atoms(molecule)
@@ -427,7 +427,7 @@ def read_gro_files_remove_hydrogens(gro_file_path):
     logger.success(f"{len(molecule_without_h.atoms):,} atoms remaining")
     # Print 10 first atoms for debugging.  
     print_first_atoms(molecule_without_h)
-    without_h_file_path = Path(gro_file_path).stem + "_without_H.gro"
+    without_h_file_path = Path(file_path).stem + "_without_H.gro"
     molecule_without_h.write(without_h_file_path)
     return molecule_without_h
 
@@ -520,12 +520,12 @@ def extract_protein_sequence(graph):
 
 
 
-def main(filepath_gro, draw_graph_option=False, check_overlapping_residue=False):
+def main(input_file_path, draw_graph_option=False, check_overlapping_residue=False):
     """Excute the main function for analyzing a .gro file.
 
     Parameters
     ----------
-        filepath_gro: str
+        input_file_path: str
             Filepath of the .gro file we want to analyzed
         draw_graph_option: boolean
             Draw the graph of each molecule and save it as a PNG file. Default: False.
@@ -533,9 +533,9 @@ def main(filepath_gro, draw_graph_option=False, check_overlapping_residue=False)
             Check of some residues are overlapping between graphs / molecules. Default: False.
     """
     threshold = max(BOND_LENGTH.values())
-    logger.success(f"Threshold: {threshold} Angstrom")
+    logger.success(f"Bond threshold: {threshold} Angstrom")
 
-    molecular_system = read_gro_files_remove_hydrogens(filepath_gro)
+    molecular_system = read_structure_file_remove_hydrogens(input_file_path)
 
     atom_pairs = get_atom_pairs(molecular_system, threshold)
 
@@ -571,30 +571,31 @@ def main(filepath_gro, draw_graph_option=False, check_overlapping_residue=False)
         print(f"{index_graph}: {seq}")
 
 
-def is_an_existing_gro_file(filepath):
-    """Check if the given filepath points to an existing GRO file.
+def is_a_structure_file(filepath):
+    """Check if the given filepath points to an existing structure file (.gro, .pdb).
 
     Parameters
     ----------
         filepath : str
-            The path to be checked.
+            Path of the file.
 
     Raises
     ------
         argparse.ArgumentTypeError
-            If the given filepath is not a file or does not exist, or if it does not have '.gro' extension
+            If the given filepath is not an existing file,
+            or if it does not have a '.gro' or '.pdb' extension.
 
     Returns
     -------
         str
             The validated path.
     """
-    source = Path(filepath)
-    if not Path.is_file(source):
-        raise argparse.ArgumentTypeError(f"{filepath} not exist")
+    filename = Path(filepath)
+    if not Path.is_file(filename):
+        raise argparse.ArgumentTypeError(f"{filepath} does not exist")
 
-    if source.suffix != ".gro":
-        raise argparse.ArgumentTypeError(f"{filepath} is not a GRO file.")
+    if filename.suffix not in [".gro", ".pdb"]:
+        raise argparse.ArgumentTypeError(f"{filepath} is not a .gro or .pdb file.")
     return filepath
 
 
@@ -616,11 +617,11 @@ def parse_arg():
 
     """
     parser = argparse.ArgumentParser(prog="grodecoder",
-                                     description="Programm to extract each molecule of a GRO file and print their occurence.",
-                                     usage="grodecoder.py [-h] --gro gro_file [--drawgraph]")
-    parser.add_argument("--gro",
-                        type=is_an_existing_gro_file,
-                        help="GRO file path",
+                                     description="Extract molecules from a structure file (.gro, .pdb).",
+                                     usage="grodecoder.py [-h] --input structure_file [--drawgraph]")
+    parser.add_argument("--input",
+                        type=is_a_structure_file,
+                        help="structure file path (.gro, .pdb)",
                         required=True)
     parser.add_argument("--drawgraph",
                         help="Draw graph of each molecule. Default: False.",
@@ -635,4 +636,4 @@ def parse_arg():
 
 if __name__ == "__main__":
     args = parse_arg()
-    main(args.gro, draw_graph_option=args.drawgraph, check_overlapping_residue=args.checkoverlapping)
+    main(args.input, draw_graph_option=args.drawgraph, check_overlapping_residue=args.checkoverlapping)
