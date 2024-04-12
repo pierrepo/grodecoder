@@ -44,7 +44,7 @@ BOND_LENGTH = {'C-C': 1.54,
 # https://www.umass.edu/microbio/chime/find-ncb/help_gb.htm
 
 
-def matrice(file_gro):
+def get_distance_matrix_between_atom(file_gro):
     """Calculate interatomic distances between all atoms in the GRO file \
     https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html \
     https://stackoverflow.com/questions/72701992/convert-a-matrix-of-distance-to-adjacency-list/72702534#72702534 .
@@ -280,7 +280,6 @@ def count_molecule(graph_list):
     logger.info("Counting molecules...")
     dict_count = {}
     sorted_graphs = sorted(graph_list, key=get_graph_fingerprint)
-    # print_groupby(groupby(sorted_graphs, key=get_graph_fingerprint))
 
     for fingerprint, graph in groupby(sorted_graphs, key=get_graph_fingerprint):
         # fingerprint : (nb_node, nb_edge, atom_name, resname, degree)
@@ -445,7 +444,7 @@ def check_overlapping_residue_between_graphs(graph_list):
                 if res_id in res_id_set:
                     logger.error(f"Residue id {res_id} is found in graph id {graph_id}")
         raise Exception("Some residue id are found in multiple graphs")
-    
+
 
 def main(filepath_gro, print_graph_option=False):
     """Excute the main function for analyzing a .gro file.
