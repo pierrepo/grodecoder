@@ -44,6 +44,29 @@ BOND_LENGTH = {'C-C': 1.54,
 # https://www.umass.edu/microbio/chime/find-ncb/help_gb.htm
 
 
+AMINO_ACIDS= {"ALA":'A', 
+              "ARG":'R', 
+              "ASN":'N',
+              "ASP":'D',
+              "CYS":'C',
+              "GLU":'E',
+              "GLN":'Q',
+              "GLY":'G',
+              "HIS":'H',
+              "HSD":'H',
+              "ILE":'I',
+              "LEU":'L',
+              "LYS":'K',
+              "MET":'M',
+              "PHE":'F',
+              "PRO":'P',
+              "SER":'S',
+              "THR":'T',
+              "TRP":'W',
+              "TYR":'Y',
+              "VAL": 'V'}
+
+
 def get_distance_matrix_between_atom(file_gro):
     """Calculate interatomic distances between all atoms in the GRO file \
     https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html \
@@ -446,6 +469,55 @@ def check_overlapping_residue_between_graphs(graph_list):
         raise Exception("Some residue id are found in multiple graphs")
 
 
+def is_protein(graph):
+    """Check if the molecule represented by the graph is a protein.
+
+    This function checks whether the graph represents a protein molecule by 
+    verifying the presence of C-alpha (CA) atoms and their corresponding amino acids.
+
+    Parameters
+    ----------
+        graph: networkx.Graph
+            The input graph representing the molecule.
+
+    Returns
+    -------
+        bool
+            True if the molecule is a protein, False otherwise.
+    """
+    logger.info("Check if this molecule is a protein...")
+    atom_names = " ".join(sorted(nx.get_node_attributes(graph, "atom_name").values()))
+    if "CA" in atom_names:
+        return True
+    return False
+
+
+def extract_protein_sequence(graph):
+    """Extract the protein sequence from the molecule represented by the graph.
+
+    This function extracts the protein sequence from the molecule represented 
+    by the input graph. It looks for the residue names corresponding to the C-alpha 
+    (CA) atoms in each node and converts them to single-letter amino acid codes.
+
+    Parameters
+    ----------
+        graph: networkx.Graph
+            The input graph representing the molecule.
+
+    Returns
+    -------
+        str
+            The protein sequence extracted from the molecule.
+    """
+    #Extract each residue_name where the atom_name is CA from each node
+    logger.info("Extract the protein_sequence of this molecule...")
+    res_seq = [AMINO_ACIDS[nx.get_node_attributes(graph, "residue_name")[node][:3]] 
+               for node in sorted(graph.nodes(), key=lambda x: int(x))
+               if nx.get_node_attributes(graph, "atom_name")[node] == 'CA']
+    return "".join(res_seq)
+
+
+
 def main(filepath_gro, draw_graph_option=False, check_overlapping_residue=False):
     """Excute the main function for analyzing a .gro file.
 
@@ -478,7 +550,7 @@ def main(filepath_gro, draw_graph_option=False, check_overlapping_residue=False)
     # Print fingerprint for each graph/molecule
     for graph in graph_count_dict.keys():
         print_graph_fingerprint(graph)
-    
+
     print_graph_inventory(graph_count_dict)
 
     if draw_graph_option:
@@ -486,6 +558,15 @@ def main(filepath_gro, draw_graph_option=False, check_overlapping_residue=False)
         filename = Path(filepath_gro).stem
         for index_graph, graph_count in enumerate(graph_count_dict.keys()):
             print_graph(graph_count, f"./{filename}_{index_graph}.png")
+
+    protein_sequence = {}
+    for index_graph, graph in enumerate(graph_count_dict.keys()):
+        if is_protein(graph):
+            protein_sequence[index_graph] = extract_protein_sequence(graph)
+    
+    logger.info("Print the protein sequence...")
+    for index_graph, seq in protein_sequence.items():
+        print(f"{index_graph}: {seq}")
 
 
 def is_an_existing_gro_file(filepath):
