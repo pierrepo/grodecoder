@@ -486,9 +486,10 @@ def is_protein(graph):
             True if the molecule is a protein, False otherwise.
     """
     logger.info("Check if this molecule is a protein...")
-    atom_names = " ".join(sorted(nx.get_node_attributes(graph, "atom_name").values()))
-    if "CA" in atom_names:
-        return True
+    if graph.number_of_nodes() > 1:
+        atom_names = " ".join(sorted(nx.get_node_attributes(graph, "atom_name").values()))
+        if "CA" in atom_names:
+            return True
     return False
 
 
@@ -511,9 +512,10 @@ def extract_protein_sequence(graph):
     """
     #Extract each residue_name where the atom_name is CA from each node
     logger.info("Extract the protein_sequence of this molecule...")
-    res_seq = [AMINO_ACIDS[nx.get_node_attributes(graph, "residue_name")[node][:3]] 
-               for node in sorted(graph.nodes(), key=lambda x: int(x))
-               if nx.get_node_attributes(graph, "atom_name")[node] == 'CA']
+    res_seq = []
+    for node in sorted(graph.nodes(), key=lambda x: int(x)):
+        if nx.get_node_attributes(graph, "atom_name")[node] == 'CA':
+            res_seq.append(AMINO_ACIDS[nx.get_node_attributes(graph, "residue_name")[node][:3]])
     return "".join(res_seq)
 
 
