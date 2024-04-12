@@ -543,9 +543,9 @@ def main(input_file_path, draw_graph_option=False, check_overlapping_residue=Fal
 
     if draw_graph_option:
         logger.info("Drawing graphs...")
-        filename = Path(filepath_gro).stem
+        filename = Path(input_file_path).stem
         for index_graph, graph_count in enumerate(graph_count_dict.keys()):
-            print_graph(graph_count, f"./{filename}_{index_graph}.png")
+            print_graph(graph_count, f"{filename}_{index_graph}.png")
 
     protein_sequence = {}
     for index_graph, graph in enumerate(graph_count_dict.keys()):
