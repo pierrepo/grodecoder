@@ -479,6 +479,8 @@ def extract_protein_sequence(graph):
     The correspondence between 3-letter code and 1-letter code
     is taken from MDAnalysis:
     https://docs.mdanalysis.org/1.0.1/_modules/MDAnalysis/lib/util.html#convert_aa_code
+    See also the list of known residue names in MDAnalysis:
+    https://userguide.mdanalysis.org/stable/standard_selections.html#proteins
 
     Parameters
     ----------
