@@ -492,7 +492,7 @@ def extract_protein_sequence(graph):
         str
             Protein sequence.
     """
-    logger.info("Extractig protein sequence...")
+    logger.info("Extractigg protein sequence...")
     AMINO_ACID_DICT = mda.lib.util.inverse_aa_codes
     protein_sequence = []
     # graph.nodes.items() returns an iterable of tuples (node_id, node_attributes).
