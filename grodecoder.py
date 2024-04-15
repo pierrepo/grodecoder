@@ -27,19 +27,20 @@ from scipy.sparse import triu
 from scipy.spatial.distance import cdist
 
 
-BOND_LENGTH = {'C-C': 1.54,
-               'C=C': 1.34,
-               'C=O': 1.20,
-               'O-H': 0.97,
-               'C-H': 1.09,
-               'N-H': 1.00,
-               'C-S': 1.81,
-               'S-H': 1.32,
-               'N-C': 1.47,
-               'C=N': 1.27,
-               'S-S': 2.04,
-               'C-O': 1.43
-               }  # in Angstrom
+BOND_LENGTH = {
+    "C-C": 1.54,
+    "C=C": 1.34,
+    "C=O": 1.20,
+    "O-H": 0.97,
+    "C-H": 1.09,
+    "N-H": 1.00,
+    "C-S": 1.81,
+    "S-H": 1.32,
+    "N-C": 1.47,
+    "C=N": 1.27,
+    "S-S": 2.04,
+    "C-O": 1.43,
+}  # in Angstrom
 # hydrogenBond = 2.7-3.3 A <--> 0.2-0.3 nm
 # https://www.umass.edu/microbio/chime/find-ncb/help_gb.htm
 
@@ -70,7 +71,7 @@ def get_distance_matrix_between_atom(file_gro):
     taille = len(file_gro.atoms)
     tmp = np.full((taille, taille), 100.0)
     for index_i, pos_i in enumerate(position):
-        for index_j, pos_j in enumerate(position[index_i+1:], start=index_j+1):
+        for index_j, pos_j in enumerate(position[index_i + 1 :], start=index_j + 1):
             tmp[index_i][index_j] = cdist([pos_i], [pos_j])
     return tmp
 
@@ -129,7 +130,9 @@ def get_atom_pairs(molecular_system, threshold):
             An array containing pairs of atom indices representing atom contacts.
     """
     logger.info("Creating contact_matrix...")
-    matrix = contact_matrix(molecular_system.atoms.positions, cutoff=threshold, returntype="sparse")
+    matrix = contact_matrix(
+        molecular_system.atoms.positions, cutoff=threshold, returntype="sparse"
+    )
     # Output matrix is sparse matrix of type: scipy.sparse.lil_matrix
     # Keep only the upper triangular part of the sparse matrix (without the diagonal)
     # https://docs.scipy.org/doc/scipy-1.13.0/reference/generated/scipy.sparse.triu.html
@@ -150,13 +153,13 @@ def add_attributes_to_nodes(graph, mol_system):
             The graph for this file
         mol_system: MDAnalysis.core.groups.AtomGroup
             The molecular system object containing information about atoms.
-            
+
     Returns
     -------
         list
             list where each node is relabel
     """
-    logger.info("Relabeling nodes in graph...") 
+    logger.info("Relabeling nodes in graph...")
     logger.success(f"Old graph: {graph.number_of_nodes():,} nodes")
 
     # Create a replacement dictionary for the new attributes for each node
@@ -206,9 +209,9 @@ def get_graph_fingerprint(graph):
     """Generate a fingerprint for a given graph.
 
     This function calculates a fingerprint for a given graph based on its properties, including
-    the number of nodes, the number of edges, and sorted concatenations of atom names, residue 
+    the number of nodes, the number of edges, and sorted concatenations of atom names, residue
     names and their degree.
-    
+
     Reference
     ---------
     - https://stackoverflow.com/questions/46999771/comparing-a-large-number-of-graphs-for-isomorphism
@@ -231,10 +234,14 @@ def get_graph_fingerprint(graph):
     nodes = graph.number_of_nodes()
     edges = graph.number_of_edges()
     atom_names = " ".join(sorted(nx.get_node_attributes(graph, "atom_name").values()))
-    res_names = " ".join(sorted(set((nx.get_node_attributes(graph, "residue_name").values()))))
+    res_names = " ".join(
+        sorted(set((nx.get_node_attributes(graph, "residue_name").values())))
+    )
 
     graph_degrees = Counter(dict(graph.degree).values())
-    degree_dist = " ".join([f"{key}:{value}" for key, value in sorted(graph_degrees.items())])
+    degree_dist = " ".join(
+        [f"{key}:{value}" for key, value in sorted(graph_degrees.items())]
+    )
     return (nodes, edges, atom_names, res_names, degree_dist)
 
 
@@ -284,13 +291,17 @@ def count_molecule(graph_list):
     for fingerprint, graph in groupby(sorted_graphs, key=get_graph_fingerprint):
         # fingerprint : (nb_node, nb_edge, atom_name, resname, degree)
         # graph : objet itertools that group all graph with the same fingerprint
-        similar_graphs = list(graph)  # A list that contain all graph with the same fingerprint
+        similar_graphs = list(
+            graph
+        )  # A list that contain all graph with the same fingerprint
         nb_graph = len(similar_graphs)  # Number of graph for this fingerprint
 
         if nb_graph == 1:  # For this fingerprint, there is only one graph
             dict_count[similar_graphs[0]] = nb_graph
         else:
-            if fingerprint[0] == 1:  # For this fingerprint, all the graph only have one node
+            if (
+                fingerprint[0] == 1
+            ):  # For this fingerprint, all the graph only have one node
                 dict_count[similar_graphs[0]] = nb_graph
             else:
                 dict_count[similar_graphs[0]] = nb_graph
@@ -312,7 +323,7 @@ def print_graph_inventory(graph_dict):
         logger.info(f"- number of atoms: {graph.number_of_nodes():,}")
         logger.info(f"- number of molecules: {count:,}")
         atom_names = list(nx.get_node_attributes(graph, "atom_name").values())
-        atom_names_str = " ".join( atom_names[:20] )
+        atom_names_str = " ".join(atom_names[:20])
         logger.debug(f"- 20 first atom names: {atom_names_str}")
         total_molecules_count += count
     logger.success(f"{total_molecules_count:,} molecules in total")
@@ -323,14 +334,14 @@ def print_graph(graph, filepath_name, option_color=False):
 
     Ressources
     ----------
-    - Ressources to explore to increase node spacing with networkx-spring-layout 
+    - Ressources to explore to increase node spacing with networkx-spring-layout
     https://stackoverflow.com/questions/14283341/how-to-increase-node-spacing-for-networkx-spring-layout
 
     Parameters
     ----------
         graph : networkx.classes.graph.Graph
             A NetworkX graph object.
-        filepath_name : str 
+        filepath_name : str
             Filepath to where I want to save the output graph
         option_color: str
             Either we want to display the nodes of the graph colored. By default, it's False.
@@ -341,23 +352,32 @@ def print_graph(graph, filepath_name, option_color=False):
     if option_color:
         node_colors = []
         for node in graph.nodes:
-            atom_name = re.sub(r'\d', '', graph.nodes[node]['atom_name'])
-            if atom_name == 'C' or atom_name == 'CA' or atom_name == 'CB' or atom_name == 'CD' or atom_name == 'CE' or atom_name == 'CG' or atom_name == 'CZ':
-                node_colors.append('black')
-            elif atom_name == 'O' or atom_name == 'OE' or atom_name == 'OH' or atom_name == 'OD' or atom_name == 'OT' or atom_name == 'OG':
-                node_colors.append('red')
-            elif atom_name == 'N' or atom_name == 'ND' or atom_name == 'NE' or atom_name == 'NH' or atom_name == 'NZ':
-                node_colors.append('blue')
+            atom_name = re.sub(r"\d", "", graph.nodes[node]["atom_name"])
+            if atom_name in ("C", "CA", "CB", "CD", "CE", "CG", "CG", "CZ"):
+                node_colors.append("black")
+            elif atom_name in ("O", "OD", "OE", "OG", "OH", "OT"):
+                node_colors.append("red")
+            elif atom_name in ("N", "ND", "NE", "NH", "NZ"):
+                node_colors.append("blue")
             else:
-                node_colors.append('green')  # Default color for other labels
-
-        nx.draw(graph, node_color=node_colors, node_size = 75,
-                with_labels=True, labels=nx.get_node_attributes(graph, "atom_name"),
-                edge_color = "grey")
+                node_colors.append("green")  # Default color for other labels
+        nx.draw(
+            graph,
+            node_color=node_colors,
+            node_size=75,
+            with_labels=True,
+            labels=nx.get_node_attributes(graph, "atom_name"),
+            edge_color="grey",
+        )
     else:
-        nx.draw(graph, node_color="green", node_size = 75,
-            with_labels=True, labels=nx.get_node_attributes(graph, "atom_name"),
-            edge_color = "grey")    
+        nx.draw(
+            graph,
+            node_color="green",
+            node_size=75,
+            with_labels=True,
+            labels=nx.get_node_attributes(graph, "atom_name"),
+            edge_color="grey",
+        )
     plt.savefig(filepath_name)
 
 
@@ -371,13 +391,14 @@ def print_first_atoms(mda_universe, number_of_atoms=10):
         mda_universe: MDAnalysis.core.universe.Universe
             An object representing the molecular structure.
         number_of_atoms: int
-            The number of atoms to be printed. Default is 10.   
+            The number of atoms to be printed. Default is 10.
     """
     for atom in mda_universe.atoms[:number_of_atoms]:
         string_coords = " ".join([f"{coord:.2f}" for coord in atom.position])
-        logger.debug(f"Res. id: {atom.residue.resid} | res. name: {atom.residue.resname} | "
-                     f"at. name: {atom.name} | at. id: {atom.id} | "
-                     f"at. coord.: {string_coords}"
+        logger.debug(
+            f"Res. id: {atom.residue.resid} | res. name: {atom.residue.resname} | "
+            f"at. name: {atom.name} | at. id: {atom.id} | "
+            f"at. coord.: {string_coords}"
         )
 
 
@@ -397,12 +418,12 @@ def read_structure_file_remove_hydrogens(file_path):
     logger.info(f"Reading file: {file_path}")
     molecule = mda.Universe(file_path)
     logger.success(f"Found {len(molecule.atoms):,} atoms")
-    # Print 10 first atoms for debugging.  
+    # Print 10 first atoms for debugging.
     print_first_atoms(molecule)
     logger.info("Removing H atoms...")
     molecule_without_h = molecule.select_atoms("not (name H*)")
     logger.success(f"{len(molecule_without_h.atoms):,} atoms remaining")
-    # Print 10 first atoms for debugging.  
+    # Print 10 first atoms for debugging.
     print_first_atoms(molecule_without_h)
     without_h_file_path = Path(file_path).stem + "_without_H.gro"
     molecule_without_h.write(without_h_file_path)
@@ -413,7 +434,7 @@ def check_overlapping_residue_between_graphs(graph_list):
     """Check there is no overlapping residue between graphs.
 
     This function checks that there are no overlapping residue between different graphs/molecules.
-    It extracts  the set of residue IDs for each graph/molecule and performs an intersection 
+    It extracts  the set of residue IDs for each graph/molecule and performs an intersection
     operation between these sets. If any intersection is found, it indicates
     that there are overlapping residue between graph/molecules.
 
@@ -429,7 +450,7 @@ def check_overlapping_residue_between_graphs(graph_list):
     for graph in graph_list:
         res_id_set = set((nx.get_node_attributes(graph, "residue_id").values()))
         res_id_intersect = res_id_set_all.intersection(res_id_set)
-        res_id_set_all.update( res_id_set )
+        res_id_set_all.update(res_id_set)
         if res_id_intersect:
             for res_id in res_id_intersect:
                 logger.critical(f"Residue id {res_id} is found in multiple graphs")
@@ -449,7 +470,7 @@ def check_overlapping_residue_between_graphs(graph_list):
 def is_protein(graph):
     """Check if the molecule represented by the graph is a protein.
 
-    This function checks whether the graph represents a protein molecule by 
+    This function checks whether the graph represents a protein molecule by
     verifying the presence of C-alpha (CA) atoms and their corresponding amino acids.
 
     Parameters
@@ -465,15 +486,17 @@ def is_protein(graph):
     logger.info("Checking if the molecule is a protein...")
     atom_names = ""
     if graph.number_of_nodes() > 1:
-        atom_names = " ".join(sorted(nx.get_node_attributes(graph, "atom_name").values()))
-    return ("CA" in atom_names)
+        atom_names = " ".join(
+            sorted(nx.get_node_attributes(graph, "atom_name").values())
+        )
+    return "CA" in atom_names
 
 
 def extract_protein_sequence(graph):
     """Extract the protein sequence from a graph.
 
-    This function extracts the protein sequence from the molecule represented 
-    by the input graph. It looks for the residue names corresponding to the C-alpha 
+    This function extracts the protein sequence from the molecule represented
+    by the input graph. It looks for the residue names corresponding to the C-alpha
     (CA) atoms in each node and converts them to single-letter amino acid codes.
 
     The correspondence between 3-letter code and 1-letter code
@@ -508,10 +531,10 @@ def extract_protein_sequence(graph):
     # (2, {'atom_name': 'CB', 'residue_id': 1, 'residue_name': 'MET', 'label': 7})
     for _, node_attr in sorted(graph.nodes.items(), key=lambda x: x[0]):
         if node_attr["atom_name"] == "CA":
-            protein_sequence.append( AMINO_ACID_DICT.get(node_attr["residue_name"], "?") )
-    info_seq['sequence'] = "".join(protein_sequence)
-    info_seq['nb_atom'] = graph.number_of_nodes()
-    info_seq['nb_res'] = len(protein_sequence)
+            protein_sequence.append(AMINO_ACID_DICT.get(node_attr["residue_name"], "?"))
+    info_seq["sequence"] = "".join(protein_sequence)
+    info_seq["nb_atom"] = graph.number_of_nodes()
+    info_seq["nb_res"] = len(protein_sequence)
     return info_seq
 
 
@@ -521,7 +544,7 @@ def export_protein_sequence_into_FASTA(protein_sequence_dict, filepath_name):
     Parameters
     ----------
         protein_sequence_dict : dict
-            A dictionary containing the protein sequences, where the keys are 
+            A dictionary containing the protein sequences, where the keys are
             identifiers and the values are dictionaries with the following keys:
                 - 'sequence': str
                     The protein sequence.
@@ -532,10 +555,12 @@ def export_protein_sequence_into_FASTA(protein_sequence_dict, filepath_name):
         filepath_name : str
             The filepath for the output FASTA file.
     """
-    with open(filepath_name, 'w') as file:
+    with open(filepath_name, "w") as file:
         for info_seq in protein_sequence_dict.values():
-            seq, nb_atom, nb_res = info_seq.values()
-            file.write(f">{nb_atom} | {nb_res}\n{seq}\n")
+            seq, _, nb_res = info_seq.values()
+            seq = [seq[i:i+80] for i in range(0, len(seq), 80)]
+            content = f"> Protein: {nb_res} residues\n" + "\n".join(seq)
+            file.write(content)
 
 
 def main(input_file_path, draw_graph_option=False, check_overlapping_residue=False):
@@ -572,7 +597,7 @@ def main(input_file_path, draw_graph_option=False, check_overlapping_residue=Fal
         print_graph_fingerprint(graph)
 
     print_graph_inventory(graph_count_dict)
-    
+
     filename = Path(input_file_path).stem
     if draw_graph_option:
         logger.info("Drawing graphs...")
@@ -633,24 +658,36 @@ def parse_arg():
             An object containing the parsed arguments as attributes.
 
     """
-    parser = argparse.ArgumentParser(prog="grodecoder",
-                                     description="Extract molecules from a structure file (.gro, .pdb).",
-                                     usage="grodecoder.py [-h] --input structure_file [--drawgraph]")
-    parser.add_argument("--input",
-                        type=is_a_structure_file,
-                        help="structure file path (.gro, .pdb)",
-                        required=True)
-    parser.add_argument("--drawgraph",
-                        help="Draw graph of each molecule. Default: False.",
-                        default=False,
-                        action="store_true")
-    parser.add_argument("--checkoverlapping",
-                        help="Check if some residues are overlapping between residues. Default: False.",
-                        default=False,
-                        action="store_true")
+    parser = argparse.ArgumentParser(
+        prog="grodecoder",
+        description="Extract molecules from a structure file (.gro, .pdb).",
+        usage="grodecoder.py [-h] --input structure_file [--drawgraph]",
+    )
+    parser.add_argument(
+        "--input",
+        type=is_a_structure_file,
+        help="structure file path (.gro, .pdb)",
+        required=True,
+    )
+    parser.add_argument(
+        "--drawgraph",
+        help="Draw graph of each molecule. Default: False.",
+        default=False,
+        action="store_true",
+    )
+    parser.add_argument(
+        "--checkoverlapping",
+        help="Check if some residues are overlapping between residues. Default: False.",
+        default=False,
+        action="store_true",
+    )
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_arg()
-    main(args.input, draw_graph_option=args.drawgraph, check_overlapping_residue=args.checkoverlapping)
+    main(
+        args.input,
+        draw_graph_option=args.drawgraph,
+        check_overlapping_residue=args.checkoverlapping,
+    )
