@@ -489,11 +489,17 @@ def extract_protein_sequence(graph):
 
     Returns
     -------
-        str
-            Protein sequence.
+        dict
+            A dictionary containing the following keys:
+                - 'sequence': str
+                    The protein sequence extracted from the molecule.
+                - 'nb_atom': int
+                    The total number of atoms in the molecule.
+                - 'nb_res': int
     """
-    logger.info("Extractigg protein sequence...")
+    logger.info("Extracting protein sequence...")
     AMINO_ACID_DICT = mda.lib.util.inverse_aa_codes
+    info_seq = {}
     protein_sequence = []
     # graph.nodes.items() returns an iterable of tuples (node_id, node_attributes).
     # Examples:
@@ -503,7 +509,33 @@ def extract_protein_sequence(graph):
     for _, node_attr in sorted(graph.nodes.items(), key=lambda x: x[0]):
         if node_attr["atom_name"] == "CA":
             protein_sequence.append( AMINO_ACID_DICT.get(node_attr["residue_name"], "?") )
-    return "".join(protein_sequence)
+    info_seq['sequence'] = "".join(protein_sequence)
+    info_seq['nb_atom'] = graph.number_of_nodes()
+    info_seq['nb_res'] = len(protein_sequence)
+    return info_seq
+
+
+def export_protein_sequence_into_FASTA(protein_sequence_dict, filepath_name):
+    """Export the protein sequences into a FASTA file.
+
+    Parameters
+    ----------
+        protein_sequence_dict : dict
+            A dictionary containing the protein sequences, where the keys are 
+            identifiers and the values are dictionaries with the following keys:
+                - 'sequence': str
+                    The protein sequence.
+                - 'nb_atom': int
+                    The total number of atoms in the molecule.
+                - 'nb_res': int
+                    The number of residues in the protein sequence.
+        filepath_name : str
+            The filepath for the output FASTA file.
+    """
+    with open(filepath_name, 'w') as file:
+        for info_seq in protein_sequence_dict.values():
+            seq, nb_atom, nb_res = info_seq.values()
+            file.write(f">{nb_atom} | {nb_res}\n{seq}\n")
 
 
 def main(input_file_path, draw_graph_option=False, check_overlapping_residue=False):
@@ -540,21 +572,20 @@ def main(input_file_path, draw_graph_option=False, check_overlapping_residue=Fal
         print_graph_fingerprint(graph)
 
     print_graph_inventory(graph_count_dict)
-
+    
+    filename = Path(input_file_path).stem
     if draw_graph_option:
         logger.info("Drawing graphs...")
         filename = Path(input_file_path).stem
         for index_graph, graph_count in enumerate(graph_count_dict.keys()):
             print_graph(graph_count, f"{filename}_{index_graph}.png")
 
-    protein_sequence = {}
-    for index_graph, graph in enumerate(graph_count_dict.keys()):
+    protein_sequence_dict = {}
+    for index_graph, graph in enumerate(graph_count_dict.keys(), start=1):
         if is_protein(graph):
-            protein_sequence[index_graph] = extract_protein_sequence(graph)
-    
-    logger.info("Print the protein sequence...")
-    for index_graph, seq in protein_sequence.items():
-        print(f"{index_graph}: {seq}")
+            protein_sequence_dict[index_graph] = extract_protein_sequence(graph)
+
+    export_protein_sequence_into_FASTA(protein_sequence_dict, f"./{filename}.fasta")
 
 
 def is_a_structure_file(filepath):
