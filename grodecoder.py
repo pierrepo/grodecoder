@@ -517,9 +517,8 @@ def extract_protein_sequence(graph):
             A dictionary containing the following keys:
                 - 'sequence': str
                     The protein sequence extracted from the molecule.
-                - 'nb_atom': int
-                    The total number of atoms in the molecule.
                 - 'nb_res': int
+                    The number of residue in this protein.
     """
     logger.info("Extracting protein sequence...")
     AMINO_ACID_DICT = mda.lib.util.inverse_aa_codes
@@ -534,7 +533,6 @@ def extract_protein_sequence(graph):
         if node_attr["atom_name"] == "CA":
             protein_sequence.append(AMINO_ACID_DICT.get(node_attr["residue_name"], "?"))
     info_seq["sequence"] = "".join(protein_sequence)
-    info_seq["nb_atom"] = graph.number_of_nodes()
     info_seq["nb_res"] = len(protein_sequence)
     return info_seq
 
@@ -558,7 +556,7 @@ def export_protein_sequence_into_FASTA(protein_sequence_dict, filepath_name):
     """
     with open(filepath_name, "w") as file:
         for info_seq in protein_sequence_dict.values():
-            seq, _, nb_res = info_seq.values()
+            seq, nb_res = info_seq.values()
             seq = [seq[i:i+80] for i in range(0, len(seq), 80)]
             content = f"> Protein: {nb_res} residues\n" + "\n".join(seq)
             file.write(content)
