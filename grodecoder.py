@@ -142,42 +142,39 @@ def get_atom_pairs(molecular_system, threshold):
 
 
 def add_attributes_to_nodes(graph, mol_system):
-    """Iterate each connected subgraph, and relabel their node by [atom_name]_[index].
+    """Add molecular attributes to graph nodes.
+
+    Attributes are taken from the molecular system (MDAnalysis universe).
+    Attributes are: atom id, atom name, residue id, and residue name.
 
     Parameters
     ----------
-        old_graph: networkx.classes.graph.Graph
-            The graph for this file
+        graph: networkx.classes.graph.Graph
+            The NetworkX graph representing the molecular system.
         mol_system: MDAnalysis.core.groups.AtomGroup
-            The molecular system object containing information about atoms.
+            The MDAanalysis universe representing the molecular system 
             
     Returns
     -------
-        list
-            list where each node is relabel
+        networkx.classes.graph.Graph
+            The NetworkX graph representing the updated molecular system.
     """
-    logger.info("Relabeling nodes in graph...") 
-    logger.success(f"Old graph: {graph.number_of_nodes():,} nodes")
-
-    # Create a replacement dictionary for the new attributes for each node
-    atoms_to_matrix_ids = {}
-    for node_id in graph.nodes():
-        atoms = {}
-        atoms["atom_id"] = mol_system.atoms.ids[node_id]
-        atoms["atom_name"] = mol_system.atoms.names[node_id]
-        atoms["res_id"] = mol_system.resids[node_id]
-        atoms["res_name"] = mol_system.resnames[node_id]
-
-        atoms_to_matrix_ids[node_id] = atoms
-
-    for node_id, atom in atoms_to_matrix_ids.items():
-        # Change properties first.
-        nx.set_node_attributes(graph, {node_id: atom["atom_name"]}, name="atom_name")
-        nx.set_node_attributes(graph, {node_id: atom["res_id"]}, name="residue_id")
-        nx.set_node_attributes(graph, {node_id: atom["res_name"]}, name="residue_name")
-        # Then node id.
-        nx.set_node_attributes(graph, {node_id: atom["atom_id"]}, "label")
-    logger.success(f"New graph: {graph.number_of_nodes():,} nodes")
+    logger.info(f"Adding attributes to {graph.number_of_nodes():,} nodes...") 
+    # Define attributes in batch: one attribute for all nodes at once.
+    # This is possible because the order of nodes in the graph
+    # is the same as the order of atoms in the universe.
+    # Examples for note attributes after the graph is updates:
+    # {'atom_id': 47, 'atom_name': 'N', 'residue_id': 3, 'residue_name': 'ALA'}
+    # {'atom_id': 49, 'atom_name': 'CA', 'residue_id': 3, 'residue_name': 'ALA'}
+    # {'atom_id': 51, 'atom_name': 'CB', 'residue_id': 3, 'residue_name': 'ALA'}
+    nx.set_node_attributes(graph, dict(zip(graph.nodes, mol_system.atoms.ids)), "atom_id")
+    nx.set_node_attributes(graph, dict(zip(graph.nodes, mol_system.atoms.names)), "atom_name")
+    nx.set_node_attributes(graph, dict(zip(graph.nodes, mol_system.resids)), "residue_id")
+    nx.set_node_attributes(graph, dict(zip(graph.nodes, mol_system.resnames)), "residue_name")
+    logger.opt(lazy=True).debug("Updated 10 first nodes with attributes:")
+    for node_id, node_attr in sorted(graph.nodes.items())[:10]:
+        logger.opt(lazy=True).debug(f"Node id: {node_id}")
+        logger.opt(lazy=True).debug(f"attributes: {node_attr}")
     return graph
 
 
