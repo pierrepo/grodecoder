@@ -159,11 +159,15 @@ def add_attributes_to_nodes(graph, mol_system):
         networkx.classes.graph.Graph
             The NetworkX graph representing the updated molecular system.
     """
-    logger.info(f"Adding attributes to {graph.number_of_nodes():,} nodes...") 
+    logger.info(f"Adding attributes to {graph.number_of_nodes():,} nodes...")
+    logger.opt(lazy=True).debug("10 first nodes:")
+    for node_id, node_attr in sorted(graph.nodes.items())[:10]:
+        logger.opt(lazy=True).debug(f"Node id: {node_id}")
+        logger.opt(lazy=True).debug(f"attributes: {node_attr}")
     # Define attributes in batch: one attribute for all nodes at once.
-    # This is possible because the order of nodes in the graph
-    # is the same as the order of atoms in the universe.
-    # Examples for note attributes after the graph is updates:
+    # This is possible because the order of nodes in the NetworkX graph
+    # is the same as the order of atoms in the MDAnalysis universe.
+    # Examples for note attributes after the graph is updated:
     # {'atom_id': 47, 'atom_name': 'N', 'residue_id': 3, 'residue_name': 'ALA'}
     # {'atom_id': 49, 'atom_name': 'CA', 'residue_id': 3, 'residue_name': 'ALA'}
     # {'atom_id': 51, 'atom_name': 'CB', 'residue_id': 3, 'residue_name': 'ALA'}
@@ -171,7 +175,7 @@ def add_attributes_to_nodes(graph, mol_system):
     nx.set_node_attributes(graph, dict(zip(graph.nodes, mol_system.atoms.names)), "atom_name")
     nx.set_node_attributes(graph, dict(zip(graph.nodes, mol_system.resids)), "residue_id")
     nx.set_node_attributes(graph, dict(zip(graph.nodes, mol_system.resnames)), "residue_name")
-    logger.opt(lazy=True).debug("Updated 10 first nodes with attributes:")
+    logger.opt(lazy=True).debug("10 first nodes with updated attributes:")
     for node_id, node_attr in sorted(graph.nodes.items())[:10]:
         logger.opt(lazy=True).debug(f"Node id: {node_id}")
         logger.opt(lazy=True).debug(f"attributes: {node_attr}")
