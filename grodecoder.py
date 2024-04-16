@@ -449,15 +449,17 @@ def read_structure_file_remove_hydrogens(file_path):
     logger.info(f"Reading file: {file_path}")
     molecule = mda.Universe(file_path)
     logger.success(f"Found {len(molecule.atoms):,} atoms")
+    
     # Print 10 first atoms for debugging.
     print_first_atoms(molecule)
     logger.info("Removing H atoms...")
     molecule_without_h = molecule.select_atoms("not (name H*)")
     logger.success(f"{len(molecule_without_h.atoms):,} atoms remaining")
+    
     # Print 10 first atoms for debugging.
     print_first_atoms(molecule_without_h)
     without_h_file_path = Path(file_path).stem + "_without_H.gro"
-    molecule_without_h.write(without_h_file_path)
+    molecule_without_h.write(without_h_file_path, reindex=False)
     return molecule_without_h
 
 
