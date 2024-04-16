@@ -76,36 +76,6 @@ def get_distance_matrix_between_atom(file_gro):
     return tmp
 
 
-def convert_atom_pairs_to_graph(atom_pairs, total_number_of_atoms):
-    """Convert a list of pairs to a graph and its connected components.
-
-    Reference
-    ---------
-    - https://stackoverflow.com/questions/4842613/merge-lists-that-share-common-elements
-
-    Parameters
-    ----------
-        atom_pairs: list
-            A list of pairs representing edges in the graph.
-        number_of_atoms: int
-            The total number of atoms in the graph.
-
-    Returns
-    -------
-        tuple
-            A tuple containing two elements:
-               1. A generator object that iterates over the connected components of the graph.
-               2. A graph object representing the molecular system.
-    """
-    logger.info("Converting atom pairs to graph...")
-    graph = nx.Graph()
-    # Add all atoms as single nodes.
-    graph.add_nodes_from(list(range(0, total_number_of_atoms)))
-    # Add atom pairs as edges.
-    graph.add_edges_from(atom_pairs)
-    return graph
-
-
 def get_atom_pairs(molecular_system, threshold):
     """Create a list of atom pairs based on the contact matrix (which based on the input system and threshold).
 
@@ -144,11 +114,45 @@ def get_atom_pairs(molecular_system, threshold):
     return atom_pairs
 
 
+def convert_atom_pairs_to_graph(atom_pairs, total_number_of_atoms):
+    """Convert a list of pairs to a graph and its connected components.
+
+    Reference
+    ---------
+    - https://stackoverflow.com/questions/4842613/merge-lists-that-share-common-elements
+
+    Parameters
+    ----------
+        atom_pairs: list
+            A list of pairs representing edges in the graph.
+        number_of_atoms: int
+            The total number of atoms in the graph.
+
+    Returns
+    -------
+        tuple
+            A tuple containing two elements:
+               1. A generator object that iterates over the connected components of the graph.
+               2. A graph object representing the molecular system.
+    """
+    logger.info("Converting atom pairs to graph...")
+    graph = nx.Graph()
+    # Add all atoms as single nodes.
+    graph.add_nodes_from(list(range(0, total_number_of_atoms)))
+    # Add atom pairs as edges.
+    graph.add_edges_from(atom_pairs)
+    return graph
+
+
 def add_attributes_to_nodes(graph, mol_system):
     """Add molecular attributes to graph nodes.
 
     Attributes are taken from the molecular system (MDAnalysis universe).
     Attributes are: atom id, atom name, residue id, and residue name.
+
+    References
+    ----------
+    - https://networkx.org/documentation/stable/reference/generated/networkx.classes.function.set_node_attributes.html
 
     Parameters
     ----------
@@ -292,20 +296,31 @@ def count_molecule(graph_list):
     for fingerprint, graph in groupby(sorted_graphs, key=get_graph_fingerprint):
         # fingerprint : (nb_node, nb_edge, atom_name, resname, degree)
         # graph : objet itertools that group all graph with the same fingerprint
-        similar_graphs = list(
-            graph
-        )  # A list that contain all graph with the same fingerprint
+
+        # A list that contain all graph with the same fingerprint
+        similar_graphs = list(graph)
         nb_graph = len(similar_graphs)  # Number of graph for this fingerprint
 
+        atom_start, atom_end = [], []
+        for graph in similar_graphs:
+            atom_start.append(min(nx.get_node_attributes(graph, "atom_id").values()))
+            atom_end.append(max(nx.get_node_attributes(graph, "atom_id").values()))
+
         if nb_graph == 1:  # For this fingerprint, there is only one graph
-            dict_count[similar_graphs[0]] = nb_graph
+            dict_count[similar_graphs[0]] = {"atom_start": atom_start, 
+                                             "atom_end": atom_end,
+                                             "graph" : nb_graph}
         else:
-            if (
-                fingerprint[0] == 1
-            ):  # For this fingerprint, all the graph only have one node
-                dict_count[similar_graphs[0]] = nb_graph
+            # For this fingerprint, all the graph only have one node
+            if (fingerprint[0] == 1):
+                dict_count[similar_graphs[0]] = {"atom_start": atom_start,
+                                                 "atom_end": atom_end,
+                                                 "graph" : nb_graph}
             else:
-                dict_count[similar_graphs[0]] = nb_graph
+                dict_count[similar_graphs[0]] = {"atom_start": atom_start, 
+                                                 "atom_end": atom_end,
+                                                 "graph" : nb_graph}
+    logger.info(dict_count)
     return dict_count
 
 
@@ -319,15 +334,29 @@ def print_graph_inventory(graph_dict):
     """
     logger.info("Molecules inventory:")
     total_molecules_count = 0
-    for graph_idx, (graph, count) in enumerate(graph_dict.items(), start=1):
+    for graph_idx, (graph, key) in enumerate(graph_dict.items(), start=1):
+        atom_start, atom_end, count = key.values()
+        
         logger.info(f"Molecule {graph_idx:,} ----------------")
         logger.info(f"- number of atoms: {graph.number_of_nodes():,}")
         logger.info(f"- number of molecules: {count:,}")
+
+        logger.info(f"- tuple of min and max atom_id for each graph:")
+        for i in range(min(20, len(atom_start))):
+            logger.info(f"\t({atom_start[i]:,} -- {atom_end[i]:,})")
+
         atom_names = list(nx.get_node_attributes(graph, "atom_name").values())
         atom_names_str = " ".join(atom_names[:20])
         logger.debug(f"- 20 first atom names: {atom_names_str}")
+
+        res_names = set(nx.get_node_attributes(graph, "residue_name").values())
+        logger.debug(f"- res names: {res_names}")
+
         total_molecules_count += count
     logger.success(f"{total_molecules_count:,} molecules in total")
+
+
+
 
 
 def print_graph(graph, filepath_name, option_color=False):
@@ -353,10 +382,11 @@ def print_graph(graph, filepath_name, option_color=False):
     if option_color:
         node_colors = []
         for node in graph.nodes:
+            #To replace number by empty space, for only keep atom name
             atom_name = re.sub(r"\d", "", graph.nodes[node]["atom_name"])
-            if atom_name in ("C", "CA", "CB", "CD", "CE", "CG", "CG", "CZ"):
+            if atom_name in ("C", "CA", "CB", "CD", "CE", "CG", "CH", "CZ"):
                 node_colors.append("black")
-            elif atom_name in ("O", "OD", "OE", "OG", "OH", "OT"):
+            elif atom_name in ("O", "OD", "OE", "OG", "OH", "OT", "OW"):
                 node_colors.append("red")
             elif atom_name in ("N", "ND", "NE", "NH", "NZ"):
                 node_colors.append("blue")
@@ -547,19 +577,19 @@ def export_protein_sequence_into_FASTA(protein_sequence_dict, filepath_name):
             identifiers and the values are dictionaries with the following keys:
                 - 'sequence': str
                     The protein sequence.
-                - 'nb_atom': int
-                    The total number of atoms in the molecule.
                 - 'nb_res': int
                     The number of residues in the protein sequence.
         filepath_name : str
             The filepath for the output FASTA file.
     """
+    logger.info("Converting into FASTA file...")
     with open(filepath_name, "w") as file:
         for info_seq in protein_sequence_dict.values():
             seq, nb_res = info_seq.values()
+            #For only have 80 residues for each line 
             seq = [seq[i:i+80] for i in range(0, len(seq), 80)]
             content = f"> Protein: {nb_res} residues\n" + "\n".join(seq)
-            file.write(content)
+            file.write(f"{content}\n")
 
 
 def main(input_file_path, draw_graph_option=False, check_overlapping_residue=False):
@@ -609,7 +639,7 @@ def main(input_file_path, draw_graph_option=False, check_overlapping_residue=Fal
         if is_protein(graph):
             protein_sequence_dict[index_graph] = extract_protein_sequence(graph)
 
-    export_protein_sequence_into_FASTA(protein_sequence_dict, f"./{filename}.fasta")
+    export_protein_sequence_into_FASTA(protein_sequence_dict, f"{filename}.fasta")
 
 
 def is_a_structure_file(filepath):
@@ -635,7 +665,7 @@ def is_a_structure_file(filepath):
     if not Path.is_file(filename):
         raise argparse.ArgumentTypeError(f"{filepath} does not exist")
 
-    if filename.suffix not in [".gro", ".pdb"]:
+    if filename.suffix not in (".gro", ".pdb"):
         raise argparse.ArgumentTypeError(f"{filepath} is not a .gro or .pdb file.")
     return filepath
 
