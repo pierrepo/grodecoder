@@ -11,6 +11,7 @@ __date__ = "2024-03-18"
 
 
 from collections import Counter
+import itertools
 from itertools import groupby
 from pathlib import Path
 import re
@@ -18,7 +19,7 @@ import re
 import argparse
 from loguru import logger
 import MDAnalysis as mda
-from MDAnalysis.analysis.distances import contact_matrix
+from MDAnalysis.analysis.distances import contact_matrix, self_distance_array
 import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
@@ -43,6 +44,15 @@ BOND_LENGTH = {
 }  # in Angstrom
 # hydrogenBond = 2.7-3.3 A <--> 0.2-0.3 nm
 # https://www.umass.edu/microbio/chime/find-ncb/help_gb.htm
+
+
+# The correspondence between 3-letter code and 1-letter code
+# is taken from MDAnalysis:
+# https://docs.mdanalysis.org/1.0.1/_modules/MDAnalysis/lib/util.html#convert_aa_code
+# See also the list of known residue names in MDAnalysis:
+# https://userguide.mdanalysis.org/stable/standard_selections.html#proteins
+AMINO_ACID_DICT = mda.lib.util.inverse_aa_codes
+AMINO_ACID_DICT["HSP"] = "H"
 
 
 def get_distance_matrix_between_atom(file_gro):
@@ -114,7 +124,47 @@ def get_atom_pairs(molecular_system, threshold):
     return atom_pairs
 
 
-def convert_atom_pairs_to_graph(atom_pairs, total_number_of_atoms):
+def get_atom_pairs2(mol, threshold):
+    contacts_list = []
+
+    # Get the list of all residues.
+    # A residue is identified by its name and its id.
+    residues_list = list(mol.residues)
+
+    # Compare residues side-by-side, between 0 and N-1 and between 1 and N
+    for residue_1, residue_2 in zip(residues_list[:-1], residues_list[1:]):
+        #print(f"Finding contacts for {residue_1.resid}-{residue_1.resname} and {residue_2.resid}-{residue_2.resname}")
+        # Concatenate atom coordinates from both residues.
+        coords = np.concatenate((residue_1.atoms.positions, residue_2.atoms.positions), axis=0)
+
+        # Get distance between all atoms (upper-left matrix)
+        # https://docs.mdanalysis.org/stable/_modules/MDAnalysis/lib/distances.html#self_distance_array
+        # Result is output as a vector with (N)(N-1)/2 values.
+        distances = self_distance_array(coords)
+
+        # Cocatenates the list of atoms ids from both residues
+        atom_ids = np.concatenate((residue_1.atoms.ids, residue_2.atoms.ids))
+        # Create all possible combinations between atom ids.
+        pairs = np.array(list(itertools.combinations(atom_ids, 2)))
+        # Create a mask for distances below a given threshold.
+        # And select only atom pairs below the threshold.
+        atom_pairs = pairs[distances < threshold]
+
+        # Append atom pairs to a bigger list.
+        contacts_list.append(atom_pairs)
+
+    # Concatenate all atom pairs.
+    contacts_array2 = np.concatenate(contacts_list, axis=0)
+
+    # Remove redundant contacts
+    # We have quite a lot of redundancy since we are calculating inter-contacts
+    # twice for each residue: residue_1-residue_2, residue_2-residue_3, residue_3-residue_4....
+    # contacts_array2 is a pair list
+    contacts_array2 = np.unique(contacts_array2, axis=0)
+    return contacts_array2
+
+
+def convert_atom_pairs_to_graph(atom_pairs, mol):
     """Convert a list of pairs to a graph and its connected components.
 
     Reference
@@ -138,7 +188,9 @@ def convert_atom_pairs_to_graph(atom_pairs, total_number_of_atoms):
     logger.info("Converting atom pairs to graph...")
     graph = nx.Graph()
     # Add all atoms as single nodes.
-    graph.add_nodes_from(list(range(0, total_number_of_atoms)))
+    # graph.add_nodes_from(list(range(0, total_number_of_atoms)))
+    graph.add_nodes_from(mol.atoms.ids)
+
     # Add atom pairs as edges.
     graph.add_edges_from(atom_pairs)
     return graph
@@ -180,8 +232,8 @@ def add_attributes_to_nodes(graph, mol_system):
     # {'atom_id': 51, 'atom_name': 'CB', 'residue_id': 3, 'residue_name': 'ALA'}
     nx.set_node_attributes(graph, dict(zip(graph.nodes, mol_system.atoms.ids)), "atom_id")
     nx.set_node_attributes(graph, dict(zip(graph.nodes, mol_system.atoms.names)), "atom_name")
-    nx.set_node_attributes(graph, dict(zip(graph.nodes, mol_system.resids)), "residue_id")
-    nx.set_node_attributes(graph, dict(zip(graph.nodes, mol_system.resnames)), "residue_name")
+    nx.set_node_attributes(graph, dict(zip(graph.nodes, mol_system.atoms.resids)), "residue_id")
+    nx.set_node_attributes(graph, dict(zip(graph.nodes, mol_system.atoms.resnames)), "residue_name")
     logger.opt(lazy=True).debug("10 first nodes with updated attributes:")
     for node_id, node_attr in sorted(graph.nodes.items())[:10]:
         logger.opt(lazy=True).debug(f"Node id: {node_id}")
@@ -239,18 +291,24 @@ def get_graph_fingerprint(graph):
     nodes = graph.number_of_nodes()
     edges = graph.number_of_edges()
     atom_names = " ".join(sorted(nx.get_node_attributes(graph, "atom_name").values()))
-    res_names = " ".join(
-        sorted(set((nx.get_node_attributes(graph, "residue_name").values())))
-    )
+    # res_names = " ".join(
+    #     sorted(set((nx.get_node_attributes(graph, "residue_name").values())))
+    # )
+    res_names = set()
+    for res_name in set((nx.get_node_attributes(graph, "residue_name").values())):
+        res_names.add(AMINO_ACID_DICT.get(res_name, res_name))
 
     graph_degrees = Counter(dict(graph.degree).values())
     degree_dist = " ".join(
         [f"{key}:{value}" for key, value in sorted(graph_degrees.items())]
     )
+    
     return (nodes, edges, atom_names, res_names, degree_dist)
+    # return (nodes, edges, atom_names, res_names)
+    # return (nodes, atom_names, res_names)
 
 
-def print_graph_fingerprint(graph):
+def print_graph_fingerprint(graph, index_graph):
     """Print a graph fingerprint.
 
     Parameters
@@ -260,7 +318,7 @@ def print_graph_fingerprint(graph):
     """
     logger.debug("print groupby ... ")
     fingerprint = get_graph_fingerprint(graph)
-    logger.debug("Graph fingerprint-----------------")
+    logger.debug(f"Graph {index_graph} fingerprint-----------------")
     logger.debug(f"- Number of nodes: {fingerprint[0]}")
     logger.debug(f"- Number of edges: {fingerprint[1]}")
     logger.debug(f"- Sorted atom names (first 50 char.): {fingerprint[2][:50]}")
@@ -320,7 +378,6 @@ def count_molecule(graph_list):
                 dict_count[similar_graphs[0]] = {"atom_start": atom_start, 
                                                  "atom_end": atom_end,
                                                  "graph" : nb_graph}
-    logger.info(dict_count)
     return dict_count
 
 
@@ -345,18 +402,15 @@ def print_graph_inventory(graph_dict):
         for i in range(min(20, len(atom_start))):
             logger.info(f"\t({atom_start[i]:,} -- {atom_end[i]:,})")
 
-        atom_names = list(nx.get_node_attributes(graph, "atom_name").values())
+        atom_names = list(sorted(nx.get_node_attributes(graph, "atom_name").values()))
         atom_names_str = " ".join(atom_names[:20])
         logger.debug(f"- 20 first atom names: {atom_names_str}")
 
-        res_names = set(nx.get_node_attributes(graph, "residue_name").values())
+        res_names = set(sorted(nx.get_node_attributes(graph, "residue_name").values()))
         logger.debug(f"- res names: {res_names}")
 
         total_molecules_count += count
     logger.success(f"{total_molecules_count:,} molecules in total")
-
-
-
 
 
 def print_graph(graph, filepath_name, option_color=False):
@@ -463,6 +517,22 @@ def read_structure_file_remove_hydrogens(file_path):
     return molecule_without_h
 
 
+def remove_hydrogene(filename):
+    molecule = mda.Universe(filename)
+    print(f"Found1 {len(molecule.atoms):,} atoms")
+
+    # supp H du sys 
+    mol = molecule.select_atoms("not (name H*)")
+    filename_tmp = f"tmp{Path(filename).suffix}"  # tmp.pdb
+    # Ecrit le new sys sans H dans un nouveau fichier 
+    mol.write(filename_tmp, reindex=False)
+
+    # We need to read structure from disk to be extra sure hydrogen atoms are removed.
+    mol = mda.Universe(filename_tmp)
+    print(f"Found2 {len(mol.atoms):,} atoms")
+    return mol
+
+
 def check_overlapping_residue_between_graphs(graph_list):
     """Check there is no overlapping residue between graphs.
 
@@ -532,12 +602,6 @@ def extract_protein_sequence(graph):
     by the input graph. It looks for the residue names corresponding to the C-alpha
     (CA) atoms in each node and converts them to single-letter amino acid codes.
 
-    The correspondence between 3-letter code and 1-letter code
-    is taken from MDAnalysis:
-    https://docs.mdanalysis.org/1.0.1/_modules/MDAnalysis/lib/util.html#convert_aa_code
-    See also the list of known residue names in MDAnalysis:
-    https://userguide.mdanalysis.org/stable/standard_selections.html#proteins
-
     Parameters
     ----------
         graph: networkx.Graph
@@ -553,7 +617,6 @@ def extract_protein_sequence(graph):
                     The number of residue in this protein.
     """
     logger.info("Extracting protein sequence...")
-    AMINO_ACID_DICT = mda.lib.util.inverse_aa_codes
     info_seq = {}
     protein_sequence = []
     # graph.nodes.items() returns an iterable of tuples (node_id, node_attributes).
@@ -607,13 +670,16 @@ def main(input_file_path, draw_graph_option=False, check_overlapping_residue=Fal
             Check of some residues are overlapping between graphs / molecules. Default: False.
     """
     threshold = max(BOND_LENGTH.values())
+    # threshold=2.1
     logger.success(f"Bond threshold: {threshold} Angstrom")
 
-    molecular_system = read_structure_file_remove_hydrogens(input_file_path)
+    # molecular_system = read_structure_file_remove_hydrogens(input_file_path)
+    molecular_system = remove_hydrogene(input_file_path)
 
-    atom_pairs = get_atom_pairs(molecular_system, threshold)
+    atom_pairs = get_atom_pairs2(molecular_system, threshold)
 
-    graph_return = convert_atom_pairs_to_graph(atom_pairs, len(molecular_system.atoms))
+    # graph_return = convert_atom_pairs_to_graph(atom_pairs, len(molecular_system.atoms))
+    graph_return = convert_atom_pairs_to_graph(atom_pairs, molecular_system)
 
     graph_with_node_attributes = add_attributes_to_nodes(graph_return, molecular_system)
     graph_list = get_graph_components(graph_with_node_attributes)
@@ -623,9 +689,8 @@ def main(input_file_path, draw_graph_option=False, check_overlapping_residue=Fal
 
     graph_count_dict = count_molecule(graph_list)
 
-    # Print fingerprint for each graph/molecule
-    for graph in graph_count_dict.keys():
-        print_graph_fingerprint(graph)
+    for index_graph, graph in enumerate(graph_count_dict.keys(), start=1):
+        print_graph_fingerprint(graph, index_graph)
 
     print_graph_inventory(graph_count_dict)
 
