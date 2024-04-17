@@ -55,6 +55,31 @@ AMINO_ACID_DICT = mda.lib.util.inverse_aa_codes
 AMINO_ACID_DICT["HSP"] = "H"
 
 
+IONS_LIST = [{"res_name":"CU1+", "atom_name":"CU1+"}, 
+            {"res_name":"CU2+", "atom_name":"CU"}, 
+            {"res_name":"ZN2+", "atom_name":"ZN"}, 
+            {"res_name":"CA2+", "atom_name":"CA"}, 
+            {"res_name":"NA+", "atom_name":"NA"},
+            {"res_name":"CL-", "atom_name":"CL"},
+            {"res_name":"MG2+", "atom_name":"MG"},
+            {"res_name":"MG", "atom_name":"MG"},
+            {"res_name":"LI+", "atom_name":"LI"},
+            {"res_name":"K+", "atom_name":"K"},
+            {"res_name":"Rb+", "atom_name":"Rb"},
+            {"res_name":"Cs+", "atom_name":"Cs"},
+            {"res_name":"F-", "atom_name":"F"},
+            {"res_name":"BR-", "atom_name":"BR"},
+            {"res_name":"I-", "atom_name":"I"},
+            {"res_name":"OH", "atom_name":"O1"},
+            {"res_name":"AL3P", "atom_name":"AL3P"},
+            {"res_name":"POT", "atom_name":"POT"}, 
+            {"res_name":"CLA", "atom_name":"CLA"}
+            ]
+
+
+SOLVANTS_LIST = [{"res_name":"TIP3", "atom_name":"OH2"}]
+
+
 def get_distance_matrix_between_atom(file_gro):
     """Calculate interatomic distances between all atoms in the GRO file \
     https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html \
@@ -392,23 +417,31 @@ def print_graph_inventory(graph_dict):
     logger.info("Molecules inventory:")
     total_molecules_count = 0
     for graph_idx, (graph, key) in enumerate(graph_dict.items(), start=1):
-        atom_start, atom_end, count = key.values()
-        
         logger.info(f"Molecule {graph_idx:,} ----------------")
-        logger.info(f"- number of atoms: {graph.number_of_nodes():,}")
-        logger.info(f"- number of molecules: {count:,}")
+        
+        if isinstance(graph, str):
+            count = key
+            logger.info(f"{graph} and {count}")
+            logger.info(f"- number of atoms: 1")
+            logger.info(f"- number of molecules: {count:,}")
+            logger.debug(f"- 20 first atom names: {graph}")
+            logger.debug(f"- res names: {graph}")
+        else: 
+            atom_start, atom_end, count = key.values()
+            logger.info(f"- number of atoms: {graph.number_of_nodes():,}")
+            logger.info(f"- number of molecules: {count:,}")
 
-        logger.info(f"- tuple of min and max atom_id for each graph:")
-        for i in range(min(20, len(atom_start))):
-            logger.info(f"\t({atom_start[i]:,} -- {atom_end[i]:,})")
+            logger.info(f"- tuple of min and max atom_id for each graph:")
+            for i in range(min(20, len(atom_start))):
+                logger.info(f"\t({atom_start[i]:,} -- {atom_end[i]:,})")
 
-        atom_names = list(sorted(nx.get_node_attributes(graph, "atom_name").values()))
-        atom_names_str = " ".join(atom_names[:20])
-        logger.debug(f"- 20 first atom names: {atom_names_str}")
+            atom_names = list(sorted(nx.get_node_attributes(graph, "atom_name").values()))
+            atom_names_str = " ".join(atom_names[:20])
+            logger.debug(f"- 20 first atom names: {atom_names_str}")
 
-        res_names = set(sorted(nx.get_node_attributes(graph, "residue_name").values()))
-        logger.debug(f"- res names: {res_names}")
-
+            res_names = set(sorted(nx.get_node_attributes(graph, "residue_name").values()))
+            logger.debug(f"- res names: {res_names}")
+            
         total_molecules_count += count
     logger.success(f"{total_molecules_count:,} molecules in total")
 
@@ -432,7 +465,6 @@ def print_graph(graph, filepath_name, option_color=False):
 
     """
     plt.figure()
-
     if option_color:
         node_colors = []
         for node in graph.nodes:
@@ -519,18 +551,86 @@ def read_structure_file_remove_hydrogens(file_path):
 
 def remove_hydrogene(filename):
     molecule = mda.Universe(filename)
-    print(f"Found1 {len(molecule.atoms):,} atoms")
+    logger.info(f"Found {len(molecule.atoms):,} atoms")
 
-    # supp H du sys 
+    # Remove hydrogene from the system 
+    logger.info("Removing H atoms...")
     mol = molecule.select_atoms("not (name H*)")
-    filename_tmp = f"tmp{Path(filename).suffix}"  # tmp.pdb
-    # Ecrit le new sys sans H dans un nouveau fichier 
+    filename_tmp = f"{Path(filename).stem}_without_H{Path(filename).suffix}"
+    # Write the new system in a new file
     mol.write(filename_tmp, reindex=False)
 
     # We need to read structure from disk to be extra sure hydrogen atoms are removed.
     mol = mda.Universe(filename_tmp)
-    print(f"Found2 {len(mol.atoms):,} atoms")
+    logger.info(f"Found {len(mol.atoms):,} atoms remaining")
     return mol
+
+
+def count_remove_ion_solvant_aux(atoms, universe, counts):
+    """Counts and removes ions or solvents from the MDAnalysis Universe.
+
+    Parameters
+    ----------
+        atoms : dict
+            Dictionary containing information about the atoms to be removed (res_name and atom_name).
+        universe : MDAnalysis.core.universe.Universe
+            MDAnalysis Universe object representing the system.
+        counts : dict
+            Dictionary to store the counts of ions or solvents.
+
+    Returns
+    -------
+        dict
+            Dictionary containing the counts of removed atoms.
+        MDAnalysis.core.universe.Universe
+            MDAnalysis Universe object containing only non-ion or non-solvent atoms.
+    """
+    selection = f"resname {atoms['res_name']} and name {atoms['atom_name']}"
+    selected_atoms = universe.select_atoms(selection)
+    count = len(selected_atoms)
+
+    if count > 0:
+        counts[atoms['res_name']] = count
+        # Remove ions from the universe
+        universe = universe.select_atoms(f"not ({selection})")
+    return (counts, universe)
+
+
+def count_remove_ion_solvant(universe, input_filepath):
+    """Count and remove ions and solvents from the MDAnalysis Universe return by
+    the function count_remove_ion_solvant_aux().
+
+    Parameters
+    ----------
+        universe : MDAnalysis.core.universe.Universe
+            MDAnalysis Universe object representing the system.
+        input_filepath : str
+            Path to the input file.
+
+    Returns
+    -------
+        tuple
+            Containing : 
+                - the counts of removed ions
+                - solvents, and the new Universe without ions and solvents.
+    """
+    counts = {}
+
+    logger.info("Removing ions...")
+    for ion in IONS_LIST:
+        counts, universe = count_remove_ion_solvant_aux(ion, universe, counts)
+
+    logger.info("Removing solvants...")
+    for solvant in SOLVANTS_LIST:
+        counts, universe = count_remove_ion_solvant_aux(solvant, universe, counts)
+
+    # Write the new universe without ions and solvant into a new file
+    output_file = f"{Path(input_filepath).stem}_without_ions_and_H{Path(input_filepath).suffix}"
+    universe.atoms.write(output_file, reindex=False)
+    logger.success(f"Counts of ions and solvants: {counts}")
+
+    mol = mda.Universe(output_file)
+    return (counts, mol)
 
 
 def check_overlapping_residue_between_graphs(graph_list):
@@ -588,6 +688,7 @@ def is_protein(graph):
     """
     logger.info("Checking if the molecule is a protein...")
     atom_names = ""
+
     if graph.number_of_nodes() > 1:
         atom_names = " ".join(
             sorted(nx.get_node_attributes(graph, "atom_name").values())
@@ -670,11 +771,11 @@ def main(input_file_path, draw_graph_option=False, check_overlapping_residue=Fal
             Check of some residues are overlapping between graphs / molecules. Default: False.
     """
     threshold = max(BOND_LENGTH.values())
-    # threshold=2.1
     logger.success(f"Bond threshold: {threshold} Angstrom")
 
     # molecular_system = read_structure_file_remove_hydrogens(input_file_path)
     molecular_system = remove_hydrogene(input_file_path)
+    count_ion_solvant, molecular_system = count_remove_ion_solvant(molecular_system, input_file_path)
 
     atom_pairs = get_atom_pairs2(molecular_system, threshold)
 
@@ -692,6 +793,7 @@ def main(input_file_path, draw_graph_option=False, check_overlapping_residue=Fal
     for index_graph, graph in enumerate(graph_count_dict.keys(), start=1):
         print_graph_fingerprint(graph, index_graph)
 
+    graph_count_dict.update(count_ion_solvant)
     print_graph_inventory(graph_count_dict)
 
     filename = Path(input_file_path).stem
@@ -699,11 +801,12 @@ def main(input_file_path, draw_graph_option=False, check_overlapping_residue=Fal
         logger.info("Drawing graphs...")
         filename = Path(input_file_path).stem
         for index_graph, graph_count in enumerate(graph_count_dict.keys()):
-            print_graph(graph_count, f"{filename}_{index_graph}.png")
+            if isinstance(graph_count, nx.Graph):
+                print_graph(graph_count, f"{filename}_{index_graph}.png")
 
     protein_sequence_dict = {}
     for index_graph, graph in enumerate(graph_count_dict.keys(), start=1):
-        if is_protein(graph):
+        if isinstance(graph, nx.Graph) and is_protein(graph):
             protein_sequence_dict[index_graph] = extract_protein_sequence(graph)
 
     export_protein_sequence_into_FASTA(protein_sequence_dict, f"{filename}.fasta")
