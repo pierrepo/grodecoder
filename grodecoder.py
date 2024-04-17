@@ -56,6 +56,8 @@ AMINO_ACID_DICT["HSP"] = "H"
 
 # The reference for each res_name and atom_name in IONS_LIST: 
 # https://github.com/CurtinIDS/gromacs/blob/master/share/top/gromos43a2.ff/ions.itp
+# List of all the possibility of ions : 
+# https://www.unamur.be/sciences/enligne/transition/chimie/fichesderevision/revision3/listeions.htm 
 IONS_LIST = [{"res_name":"CU1+", "atom_name":"CU1+"}, 
             {"res_name":"CU2+", "atom_name":"CU"}, 
             {"res_name":"ZN2+", "atom_name":"ZN"}, 
