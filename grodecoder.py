@@ -27,75 +27,7 @@ from networkx.algorithms.components.connected import connected_components
 from scipy.sparse import triu
 from scipy.spatial.distance import cdist
 
-
-BOND_LENGTH = {
-    "C-C": 1.54,
-    "C=C": 1.34,
-    "C=O": 1.20,
-    "O-H": 0.97,
-    "C-H": 1.09,
-    "N-H": 1.00,
-    "C-S": 1.81,
-    "S-H": 1.32,
-    "N-C": 1.47,
-    "C=N": 1.27,
-    "S-S": 2.04,
-    "C-O": 1.43,
-}  # in Angstrom
-# hydrogenBond = 2.7-3.3 A <--> 0.2-0.3 nm
-# https://www.umass.edu/microbio/chime/find-ncb/help_gb.htm
-
-
-# The correspondence between 3-letter code and 1-letter code
-# is taken from MDAnalysis:
-# https://docs.mdanalysis.org/1.0.1/_modules/MDAnalysis/lib/util.html#convert_aa_code
-# See also the list of known residue names in MDAnalysis:
-# https://userguide.mdanalysis.org/stable/standard_selections.html#proteins
-AMINO_ACID_DICT = mda.lib.util.inverse_aa_codes
-AMINO_ACID_DICT["HSP"] = "H"
-
-# The reference for each res_name and atom_name in IONS_LIST:
-# https://github.com/CurtinIDS/gromacs/blob/master/share/top/gromos43a2.ff/ions.itp
-# List of all the possibility of ions :
-# https://www.unamur.be/sciences/enligne/transition/chimie/fichesderevision/revision3/listeions.htm
-IONS_LIST = [
-    {"res_name": "AL3P", "atom_name": ["AL3P"]},
-    {"res_name": "BR", "atom_name": ["BR"]},
-    {"res_name": "BR-", "atom_name": ["BR"]},
-    {"res_name": "CA", "atom_name": ["CA"]},
-    {"res_name": "CA2+", "atom_name": ["CA"]},
-    {"res_name": "CU", "atom_name": ["CU"]},
-    {"res_name": "CU1", "atom_name": ["CU"]},
-    {"res_name": "CU1+", "atom_name": ["CU1+"]},
-    {"res_name": "CU2+", "atom_name": ["CU"]},
-    {"res_name": "CLA", "atom_name": ["CLA"]},
-    {"res_name": "CL", "atom_name": ["CL"]},
-    {"res_name": "CL-", "atom_name": ["CL"]},
-    {"res_name": "CS", "atom_name": ["CS"]},
-    {"res_name": "Cs+", "atom_name": ["Cs"]},
-    {"res_name": "F", "atom_name": ["F"]},
-    {"res_name": "F-", "atom_name": ["F"]},
-    {"res_name": "I", "atom_name": ["I"]},
-    {"res_name": "I-", "atom_name": ["I"]},
-    {"res_name": "K", "atom_name": ["K"]},
-    {"res_name": "K+", "atom_name": ["K"]},
-    {"res_name": "LI", "atom_name": ["LI"]},
-    {"res_name": "LI+", "atom_name": ["LI"]},
-    {"res_name": "MG", "atom_name": ["MG"]},
-    {"res_name": "MG2+", "atom_name": ["MG"]},
-    {"res_name": "NA", "atom_name": ["NA"]},
-    {"res_name": "NA+", "atom_name": ["NA"]},
-    {"res_name": "OH", "atom_name": ["O1"]},
-    {"res_name": "POT", "atom_name": ["POT"]},
-    {"res_name": "RB", "atom_name": ["RB"]},
-    {"res_name": "Rb+", "atom_name": ["Rb"]},
-    {"res_name": "ZN", "atom_name": ["ZN"]},
-    {"res_name": "ZN2+", "atom_name": ["ZN"]}
-]
-
-
-SOLVANTS_LIST = [{"res_name": "TIP3", "atom_name": ["OH2"]}, 
-                 {"res_name": "SOL", "atom_name": ["OW"]}]
+import mol_def
 
 
 def get_distance_matrix_between_atom(file_gro):
@@ -349,7 +281,7 @@ def get_graph_fingerprint(graph):
     # )
     res_names = set()
     for res_name in set((nx.get_node_attributes(graph, "residue_name").values())):
-        res_names.add(AMINO_ACID_DICT.get(res_name, res_name))
+        res_names.add(mol_def.AMINO_ACID_DICT.get(res_name, res_name))
 
     graph_degrees = Counter(dict(graph.degree).values())
     degree_dist = " ".join(
@@ -465,9 +397,9 @@ def print_graph_inventory(graph_dict):
             logger.info(f"- number of atoms: {graph.number_of_nodes():,}")
             logger.info(f"- number of molecules: {count:,}")
 
-            logger.info(f"- tuple of min and max atom_id for each graph:")
-            for i in range(min(20, len(atom_start))):
-                logger.info(f"\t({atom_start[i]:,} -- {atom_end[i]:,})")
+            # logger.info(f"- tuple of min and max atom_id for each graph:")
+            # for i in range(min(20, len(atom_start))):
+            #     logger.info(f"\t({atom_start[i]:,} -- {atom_end[i]:,})")
 
             atom_names = list(
                 sorted(nx.get_node_attributes(graph, "atom_name").values())
@@ -624,12 +556,12 @@ def find_ion_solvant(atoms, universe, counts):
             MDAnalysis Universe object containing only non-ion or non-solvent atoms.
     """
     res_name = atoms['res_name']
-    atom_names = atoms['atom_name']
+    atom_names = atoms['atom_names']
 
     #To select the ion (or solvant) by their res_name and all their atom_name (if there are multiple)
-    selection = f"resname {res_name} and (name {' or '.join(atom_names)})"
+    selection = f"resname {res_name} and (name {' or name '.join(atom_names)})"
     selected_atoms = universe.select_atoms(selection)
-    count = len(selected_atoms)
+    count = len(selected_atoms.residues)
 
     if count > 0:
         counts[res_name] = count
@@ -658,23 +590,24 @@ def count_remove_ion_solvant(universe, input_filepath):
     """
     counts = {}
 
-    logger.info("Removing ions...")
-    for ion in IONS_LIST:
+    logger.info("Searching ions...")
+    for ion in mol_def.IONS_LIST:
         counts, universe = find_ion_solvant(ion, universe, counts)
 
-    logger.info("Removing solvants...")
-    for solvant in SOLVANTS_LIST:
+    logger.info("Searching solvant molecules...")
+    for solvant in mol_def.SOLVANTS_LIST:
         counts, universe = find_ion_solvant(solvant, universe, counts)
 
     # Write the new universe without ions and solvant into a new file
     output_file = (
-        f"{Path(input_filepath).stem}_without_ions_and_H{Path(input_filepath).suffix}"
+        f"{Path(input_filepath).stem}_without_H_ions_solvant{Path(input_filepath).suffix}"
     )
     universe.atoms.write(output_file, reindex=False)
-    logger.success(f"Counts of ions and solvants: {counts}")
+    for molecule, count in counts.items():
+        logger.success(f"Found: {count} {molecule}")
 
-    mol = mda.Universe(output_file)
-    return (counts, mol)
+    universe_clean = mda.Universe(output_file)
+    return (counts, universe_clean)
 
 
 def check_overlapping_residue_between_graphs(graph_list):
@@ -771,7 +704,7 @@ def extract_protein_sequence(graph):
     # (2, {'atom_name': 'CB', 'residue_id': 1, 'residue_name': 'MET', 'label': 7})
     for _, node_attr in sorted(graph.nodes.items(), key=lambda x: x[0]):
         if node_attr["atom_name"] == "CA":
-            protein_sequence.append(AMINO_ACID_DICT.get(node_attr["residue_name"], "?"))
+            protein_sequence.append(mol_def.AMINO_ACID_DICT.get(node_attr["residue_name"], "?"))
     info_seq["sequence"] = "".join(protein_sequence)
     info_seq["nb_res"] = len(protein_sequence)
     return info_seq
@@ -814,7 +747,7 @@ def main(input_file_path, draw_graph_option=False, check_overlapping_residue=Fal
         check_overlapping_residue: boolean
             Check of some residues are overlapping between graphs / molecules. Default: False.
     """
-    threshold = max(BOND_LENGTH.values())
+    threshold = max(mol_def.BOND_LENGTH.values())
     logger.success(f"Bond threshold: {threshold} Angstrom")
 
     # molecular_system = read_structure_file_remove_hydrogens(input_file_path)
@@ -825,7 +758,6 @@ def main(input_file_path, draw_graph_option=False, check_overlapping_residue=Fal
 
     atom_pairs = get_atom_pairs2(molecular_system, threshold)
 
-    # graph_return = convert_atom_pairs_to_graph(atom_pairs, len(molecular_system.atoms))
     graph_return = convert_atom_pairs_to_graph(atom_pairs, molecular_system)
 
     graph_with_node_attributes = add_attributes_to_nodes(graph_return, molecular_system)
