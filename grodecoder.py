@@ -604,7 +604,19 @@ def count_remove_ion_solvant(universe, input_filepath):
     )
     universe.atoms.write(output_file, reindex=False)
     for molecule, count in counts.items():
-        logger.success(f"Found: {count} {molecule}")
+        res_name = None
+        for ion in mol_def.IONS_LIST:
+            if ion['res_name'] == molecule:
+                res_name = ion['name']
+                break
+
+        if res_name is None:
+            for solvant in mol_def.SOLVANTS_LIST:
+                if solvant['res_name'] == molecule:
+                    res_name = solvant['name']
+                    break
+
+        logger.success(f"Found: {count} {res_name} ({molecule})")
 
     universe_clean = mda.Universe(output_file)
     return (counts, universe_clean)

@@ -33,38 +33,38 @@ AMINO_ACID_DICT["HSP"] = "H"
 # https://www.unamur.be/sciences/enligne/transition/chimie/fichesderevision/revision3/listeions.htm
 IONS_LIST = [
     {"name": "ion ", "res_name": "AL3P", "atom_names": ["AL3P"]},
-    {"name": "ion bromide", "res_name": "BR", "atom_names": ["BR"]},
-    {"name": "ion bromide", "res_name": "BR-", "atom_names": ["BR"]},
-    {"name": "ion calcium", "res_name": "CA", "atom_names": ["CA"]},
-    {"name": "ion calcium", "res_name": "CA2+", "atom_names": ["CA"]},
-    {"name": "ion calcium", "res_name": "CAL", "atom_names": ["CAL"]},  # CA
-    {"name": "ion copper", "res_name": "CU", "atom_names": ["CU"]},
-    {"name": "ion copper", "res_name": "CU1", "atom_names": ["CU"]},
-    {"name": "ion copper", "res_name": "CU1+", "atom_names": ["CU1+"]},
-    {"name": "ion copper", "res_name": "CU2+", "atom_names": ["CU"]},
-    {"name": "ion chlorine", "res_name": "CLA", "atom_names": ["CLA"]},  # CL
-    {"name": "ion chlorine", "res_name": "CL", "atom_names": ["CL"]},
-    {"name": "ion chlorine", "res_name": "CL-", "atom_names": ["CL"]},
+    {"name": "ion Bromide", "res_name": "BR", "atom_names": ["BR"]},
+    {"name": "ion Bromide", "res_name": "BR-", "atom_names": ["BR"]},
+    {"name": "ion Calcium", "res_name": "CA", "atom_names": ["CA"]},
+    {"name": "ion Calcium", "res_name": "CA2+", "atom_names": ["CA"]},
+    {"name": "ion Calcium", "res_name": "CAL", "atom_names": ["CAL"]},  # CA
+    {"name": "ion Copper", "res_name": "CU", "atom_names": ["CU"]},
+    {"name": "ion Copper", "res_name": "CU1", "atom_names": ["CU"]},
+    {"name": "ion Copper", "res_name": "CU1+", "atom_names": ["CU1+"]},
+    {"name": "ion Copper", "res_name": "CU2+", "atom_names": ["CU"]},
+    {"name": "ion Chlorine", "res_name": "CLA", "atom_names": ["CLA"]},  # CL
+    {"name": "ion Chlorine", "res_name": "CL", "atom_names": ["CL"]},
+    {"name": "ion Chlorine", "res_name": "CL-", "atom_names": ["CL"]},
     {"name": "ion Caesium", "res_name": "CS", "atom_names": ["CS"]},
     {"name": "ion Caesium", "res_name": "Cs+", "atom_names": ["Cs"]},
     {"name": "ion Fluoride", "res_name": "F", "atom_names": ["F"]},
     {"name": "ion Fluoride", "res_name": "F-", "atom_names": ["F"]},
-    {"name": "ion iodide", "res_name": "I", "atom_names": ["I"]},
-    {"name": "ion iodide", "res_name": "I-", "atom_names": ["I"]},
+    {"name": "ion Iodide", "res_name": "I", "atom_names": ["I"]},
+    {"name": "ion Iodide", "res_name": "I-", "atom_names": ["I"]},
     {"name": "ion ", "res_name": "IB+", "atom_names": ["IB"]},
-    {"name": "ion K", "res_name": "K", "atom_names": ["K"]},
-    {"name": "ion K", "res_name": "K+", "atom_names": ["K"]},
+    {"name": "ion Potassium", "res_name": "K", "atom_names": ["K"]},
+    {"name": "ion Potassium ", "res_name": "K+", "atom_names": ["K"]},
     {"name": "ion Lithium", "res_name": "LI", "atom_names": ["LI"]},
     {"name": "ion Lithium", "res_name": "LI+", "atom_names": ["LI"]},
     {"name": "ion Magnesium", "res_name": "MG", "atom_names": ["MG"]},
     {"name": "ion Magnesium", "res_name": "MG2+", "atom_names": ["MG"]},
-    {"name": "ion sodium", "res_name": "NA", "atom_names": ["NA"]},
-    {"name": "ion sodium", "res_name": "NA+", "atom_names": ["NA"]},
+    {"name": "ion Sodium", "res_name": "NA", "atom_names": ["NA"]},
+    {"name": "ion Sodium", "res_name": "NA+", "atom_names": ["NA"]},
     {"name": "ion Hydroxide", "res_name": "OH", "atom_names": ["O1"]},
-    {"name": "ion K", "res_name": "POT", "atom_names": ["POT"]},  # K
+    {"name": "ion Potassium", "res_name": "POT", "atom_names": ["POT"]},  # K
     {"name": "ion Rubidium", "res_name": "RB", "atom_names": ["RB"]},
     {"name": "ion Rubidium", "res_name": "Rb+", "atom_names": ["Rb"]},
-    {"name": "ion sodium", "res_name": "SOD", "atom_names": ["SOD"]},  # NA
+    {"name": "ion Sodium", "res_name": "SOD", "atom_names": ["SOD"]},  # NA
     {"name": "ion Zinc", "res_name": "ZN", "atom_names": ["ZN"]},
     {"name": "ion Zinc", "res_name": "ZN2+", "atom_names": ["ZN"]}
 ]
@@ -73,5 +73,6 @@ IONS_LIST = [
 SOLVANTS_LIST = [{"name": "solvant water TIP3P", "res_name": "TIP3", "atom_names": ["OH2"]}, 
                  {"name": "solvant water TIP3P", "res_name": "SOL", "atom_names": ["OW", "HW1", "HW2"]},  # TIP3
                  {"name": "solvant water TIP4P", "res_name": "SOL", "atom_names": ["OW", "HW1", "HW2", "MW"]},  # TIP4
-                 {"name": "solvant water TIP5P", "res_name": "SOL", "atom_names": ["OW", "HW1", "HW2", "LP1", "LP2"]}  # TIP5
+                 {"name": "solvant water TIP5P", "res_name": "SOL", "atom_names": ["OW", "HW1", "HW2", "LP1", "LP2"]},  # TIP5
+                 {"name": "solvant urea", "res_name": "URE", "atom_names": ["C", "O", "N1", "H11", "H12", "N2", "H21", "H22"]},
                  ]
