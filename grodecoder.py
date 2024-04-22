@@ -619,6 +619,10 @@ def count_remove_ion_solvant(universe, input_filepath):
         logger.success(f"Found: {count} {res_name} ({molecule})")
 
     universe_clean = mda.Universe(output_file)
+    selected_atoms = universe.select_atoms("resname SOL")
+    count = len(selected_atoms.residues)
+    logger.info(f"{count} residues SOL remaining")
+
     return (counts, universe_clean)
 
 
