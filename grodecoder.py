@@ -59,29 +59,43 @@ AMINO_ACID_DICT["HSP"] = "H"
 # List of all the possibility of ions :
 # https://www.unamur.be/sciences/enligne/transition/chimie/fichesderevision/revision3/listeions.htm
 IONS_LIST = [
-    {"res_name": "CU1+", "atom_name": "CU1+"},
-    {"res_name": "CU2+", "atom_name": "CU"},
-    {"res_name": "ZN2+", "atom_name": "ZN"},
-    {"res_name": "CA2+", "atom_name": "CA"},
-    {"res_name": "NA+", "atom_name": "NA"},
-    {"res_name": "CL-", "atom_name": "CL"},
-    {"res_name": "MG2+", "atom_name": "MG"},
-    {"res_name": "MG", "atom_name": "MG"},
-    {"res_name": "LI+", "atom_name": "LI"},
-    {"res_name": "K+", "atom_name": "K"},
-    {"res_name": "Rb+", "atom_name": "Rb"},
-    {"res_name": "Cs+", "atom_name": "Cs"},
-    {"res_name": "F-", "atom_name": "F"},
-    {"res_name": "BR-", "atom_name": "BR"},
-    {"res_name": "I-", "atom_name": "I"},
-    {"res_name": "OH", "atom_name": "O1"},
-    {"res_name": "AL3P", "atom_name": "AL3P"},
-    {"res_name": "POT", "atom_name": "POT"},
-    {"res_name": "CLA", "atom_name": "CLA"},
+    {"res_name": "AL3P", "atom_name": ["AL3P"]},
+    {"res_name": "BR", "atom_name": ["BR"]},
+    {"res_name": "BR-", "atom_name": ["BR"]},
+    {"res_name": "CA", "atom_name": ["CA"]},
+    {"res_name": "CA2+", "atom_name": ["CA"]},
+    {"res_name": "CU", "atom_name": ["CU"]},
+    {"res_name": "CU1", "atom_name": ["CU"]},
+    {"res_name": "CU1+", "atom_name": ["CU1+"]},
+    {"res_name": "CU2+", "atom_name": ["CU"]},
+    {"res_name": "CLA", "atom_name": ["CLA"]},
+    {"res_name": "CL", "atom_name": ["CL"]},
+    {"res_name": "CL-", "atom_name": ["CL"]},
+    {"res_name": "CS", "atom_name": ["CS"]},
+    {"res_name": "Cs+", "atom_name": ["Cs"]},
+    {"res_name": "F", "atom_name": ["F"]},
+    {"res_name": "F-", "atom_name": ["F"]},
+    {"res_name": "I", "atom_name": ["I"]},
+    {"res_name": "I-", "atom_name": ["I"]},
+    {"res_name": "K", "atom_name": ["K"]},
+    {"res_name": "K+", "atom_name": ["K"]},
+    {"res_name": "LI", "atom_name": ["LI"]},
+    {"res_name": "LI+", "atom_name": ["LI"]},
+    {"res_name": "MG", "atom_name": ["MG"]},
+    {"res_name": "MG2+", "atom_name": ["MG"]},
+    {"res_name": "NA", "atom_name": ["NA"]},
+    {"res_name": "NA+", "atom_name": ["NA"]},
+    {"res_name": "OH", "atom_name": ["O1"]},
+    {"res_name": "POT", "atom_name": ["POT"]},
+    {"res_name": "RB", "atom_name": ["RB"]},
+    {"res_name": "Rb+", "atom_name": ["Rb"]},
+    {"res_name": "ZN", "atom_name": ["ZN"]},
+    {"res_name": "ZN2+", "atom_name": ["ZN"]}
 ]
 
 
-SOLVANTS_LIST = [{"res_name": "TIP3", "atom_name": "OH2"}]
+SOLVANTS_LIST = [{"res_name": "TIP3", "atom_name": ["OH2"]}, 
+                 {"res_name": "SOL", "atom_name": ["OW"]}]
 
 
 def get_distance_matrix_between_atom(file_gro):
@@ -609,13 +623,17 @@ def find_ion_solvant(atoms, universe, counts):
         MDAnalysis.core.universe.Universe
             MDAnalysis Universe object containing only non-ion or non-solvent atoms.
     """
-    selection = f"resname {atoms['res_name']} and name {atoms['atom_name']}"
+    res_name = atoms['res_name']
+    atom_names = atoms['atom_name']
+
+    #To select the ion (or solvant) by their res_name and all their atom_name (if there are multiple)
+    selection = f"resname {res_name} and (name {' or '.join(atom_names)})"
     selected_atoms = universe.select_atoms(selection)
     count = len(selected_atoms)
 
     if count > 0:
-        counts[atoms["res_name"]] = count
-        # Remove ions or solvant from the universe
+        counts[res_name] = count
+        # Remove these ions or solvents from the universe
         universe = universe.select_atoms(f"not ({selection})")
     return (counts, universe)
 
