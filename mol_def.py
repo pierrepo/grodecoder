@@ -32,41 +32,41 @@ AMINO_ACID_DICT["HSP"] = "H"
 # List of all the possibility of ions :
 # https://www.unamur.be/sciences/enligne/transition/chimie/fichesderevision/revision3/listeions.htm
 IONS_LIST = [
-    {"res_name": "AL3P", "atom_names": ["AL3P"]},
-    {"res_name": "BR", "atom_names": ["BR"]},
-    {"res_name": "BR-", "atom_names": ["BR"]},
-    {"res_name": "CA", "atom_names": ["CA"]},
-    {"res_name": "CA2+", "atom_names": ["CA"]},
-    {"res_name": "CAL", "atom_names": ["CAL"]},  # CA
-    {"res_name": "CU", "atom_names": ["CU"]},
-    {"res_name": "CU1", "atom_names": ["CU"]},
-    {"res_name": "CU1+", "atom_names": ["CU1+"]},
-    {"res_name": "CU2+", "atom_names": ["CU"]},
-    {"res_name": "CLA", "atom_names": ["CLA"]},  # CL
-    {"res_name": "CL", "atom_names": ["CL"]},
-    {"res_name": "CL-", "atom_names": ["CL"]},
-    {"res_name": "CS", "atom_names": ["CS"]},
-    {"res_name": "Cs+", "atom_names": ["Cs"]},
-    {"res_name": "F", "atom_names": ["F"]},
-    {"res_name": "F-", "atom_names": ["F"]},
-    {"res_name": "I", "atom_names": ["I"]},
-    {"res_name": "I-", "atom_names": ["I"]},
-    {"res_name": "IB+", "atom_names": ["IB"]},
+    {"name": "ion ", "res_name": "AL3P", "atom_names": ["AL3P"]},
+    {"name": "ion bromide", "res_name": "BR", "atom_names": ["BR"]},
+    {"name": "ion bromide", "res_name": "BR-", "atom_names": ["BR"]},
+    {"name": "ion calcium", "res_name": "CA", "atom_names": ["CA"]},
+    {"name": "ion calcium", "res_name": "CA2+", "atom_names": ["CA"]},
+    {"name": "ion calcium", "res_name": "CAL", "atom_names": ["CAL"]},  # CA
+    {"name": "ion copper", "res_name": "CU", "atom_names": ["CU"]},
+    {"name": "ion copper", "res_name": "CU1", "atom_names": ["CU"]},
+    {"name": "ion copper", "res_name": "CU1+", "atom_names": ["CU1+"]},
+    {"name": "ion copper", "res_name": "CU2+", "atom_names": ["CU"]},
+    {"name": "ion chlorine", "res_name": "CLA", "atom_names": ["CLA"]},  # CL
+    {"name": "ion chlorine", "res_name": "CL", "atom_names": ["CL"]},
+    {"name": "ion chlorine", "res_name": "CL-", "atom_names": ["CL"]},
+    {"name": "ion Caesium", "res_name": "CS", "atom_names": ["CS"]},
+    {"name": "ion Caesium", "res_name": "Cs+", "atom_names": ["Cs"]},
+    {"name": "ion Fluoride", "res_name": "F", "atom_names": ["F"]},
+    {"name": "ion Fluoride", "res_name": "F-", "atom_names": ["F"]},
+    {"name": "ion iodide", "res_name": "I", "atom_names": ["I"]},
+    {"name": "ion iodide", "res_name": "I-", "atom_names": ["I"]},
+    {"name": "ion ", "res_name": "IB+", "atom_names": ["IB"]},
     {"name": "ion K", "res_name": "K", "atom_names": ["K"]},
     {"name": "ion K", "res_name": "K+", "atom_names": ["K"]},
-    {"res_name": "LI", "atom_names": ["LI"]},
-    {"res_name": "LI+", "atom_names": ["LI"]},
-    {"res_name": "MG", "atom_names": ["MG"]},
-    {"res_name": "MG2+", "atom_names": ["MG"]},
-    {"res_name": "NA", "atom_names": ["NA"]},
-    {"res_name": "NA+", "atom_names": ["NA"]},
-    {"res_name": "OH", "atom_names": ["O1"]},
+    {"name": "ion Lithium", "res_name": "LI", "atom_names": ["LI"]},
+    {"name": "ion Lithium", "res_name": "LI+", "atom_names": ["LI"]},
+    {"name": "ion Magnesium", "res_name": "MG", "atom_names": ["MG"]},
+    {"name": "ion Magnesium", "res_name": "MG2+", "atom_names": ["MG"]},
+    {"name": "ion sodium", "res_name": "NA", "atom_names": ["NA"]},
+    {"name": "ion sodium", "res_name": "NA+", "atom_names": ["NA"]},
+    {"name": "ion Hydroxide", "res_name": "OH", "atom_names": ["O1"]},
     {"name": "ion K", "res_name": "POT", "atom_names": ["POT"]},  # K
-    {"res_name": "RB", "atom_names": ["RB"]},
-    {"res_name": "Rb+", "atom_names": ["Rb"]},
-    {"res_name": "SOD", "atom_names": ["SOD"]},  # NA
-    {"res_name": "ZN", "atom_names": ["ZN"]},
-    {"res_name": "ZN2+", "atom_names": ["ZN"]}
+    {"name": "ion Rubidium", "res_name": "RB", "atom_names": ["RB"]},
+    {"name": "ion Rubidium", "res_name": "Rb+", "atom_names": ["Rb"]},
+    {"name": "ion sodium", "res_name": "SOD", "atom_names": ["SOD"]},  # NA
+    {"name": "ion Zinc", "res_name": "ZN", "atom_names": ["ZN"]},
+    {"name": "ion Zinc", "res_name": "ZN2+", "atom_names": ["ZN"]}
 ]
 
 
