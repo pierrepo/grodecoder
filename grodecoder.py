@@ -372,6 +372,35 @@ def count_molecule(graph_list):
     return dict_count
 
 
+def get_ion_solvant_info(molecule, reseach_term):
+    """Get information about the specified molecule from the list of ions or solvants.
+
+    Parameters
+    ----------
+        molecule: str
+            The name of the molecule to search for.
+        reseach_term: str
+            The information to retrieve for the molecule, such as 'name' or 'atom_names'.
+
+    Returns
+    -------
+        str
+            The value of the specified `reseach_term` for the molecule, if found. 
+    """
+    res_name = None
+    for ion in mol_def.IONS_LIST:
+        if ion['res_name'] == molecule:
+            res_name = ion[reseach_term]
+            break
+
+    if res_name is None:
+        for solvant in mol_def.SOLVANTS_LIST:
+            if solvant['res_name'] == molecule:
+                res_name = solvant[reseach_term]
+                break
+    return res_name
+
+
 def print_graph_inventory(graph_dict):
     """Print graph inventory.
 
@@ -388,7 +417,7 @@ def print_graph_inventory(graph_dict):
         if isinstance(graph, str):
             count = key
             logger.info(f"{graph} and {count}")
-            logger.info(f"- number of atoms: 1")
+            logger.info(f"- number of atoms: {len(get_ion_solvant_info(graph, "atom_names"))}")
             logger.info(f"- number of molecules: {count:,}")
             logger.debug(f"- 20 first atom names: {graph}")
             logger.debug(f"- res names: {graph}")
@@ -604,18 +633,18 @@ def count_remove_ion_solvant(universe, input_filepath):
     )
     universe.atoms.write(output_file, reindex=False)
     for molecule, count in counts.items():
-        res_name = None
-        for ion in mol_def.IONS_LIST:
-            if ion['res_name'] == molecule:
-                res_name = ion['name']
-                break
+        # res_name = None
+        # for ion in mol_def.IONS_LIST:
+        #     if ion['res_name'] == molecule:
+        #         res_name = ion['name']
+        #         break
 
-        if res_name is None:
-            for solvant in mol_def.SOLVANTS_LIST:
-                if solvant['res_name'] == molecule:
-                    res_name = solvant['name']
-                    break
-
+        # if res_name is None:
+        #     for solvant in mol_def.SOLVANTS_LIST:
+        #         if solvant['res_name'] == molecule:
+        #             res_name = solvant['name']
+        #             break
+        res_name = get_ion_solvant_info(molecule, "name")
         logger.success(f"Found: {count} {res_name} ({molecule})")
 
     universe_clean = mda.Universe(output_file)
@@ -623,6 +652,7 @@ def count_remove_ion_solvant(universe, input_filepath):
     count = len(selected_atoms.residues)
     logger.info(f"{count} residues SOL remaining")
 
+    logger.info(f"Found {len(universe_clean.atoms):,} atoms remaining")
     return (counts, universe_clean)
 
 
