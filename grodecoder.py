@@ -416,8 +416,7 @@ def print_graph_inventory(graph_dict):
 
         if isinstance(graph, str):
             count = key
-            logger.info(f"{graph} and {count}")
-            logger.info(f"- number of atoms: {len(get_ion_solvant_info(graph, "atom_names"))}")
+            logger.info(f"- number of atoms: {len(get_ion_solvant_info(graph, 'atom_names'))}")
             logger.info(f"- number of molecules: {count:,}")
             logger.debug(f"- 20 first atom names: {graph}")
             logger.debug(f"- res names: {graph}")
@@ -777,7 +776,7 @@ def export_protein_sequence_into_FASTA(protein_sequence_dict, filepath_name):
             seq, nb_res = info_seq.values()
             # For only have 80 residues for each line
             seq = [seq[i : i + 80] for i in range(0, len(seq), 80)]
-            content = f"> Protein: {nb_res} residues\n" + "\n".join(seq)
+            content = f">Protein: {nb_res} residues\n" + "\n".join(seq)
             file.write(f"{content}\n")
 
 
