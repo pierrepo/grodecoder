@@ -590,7 +590,7 @@ def remove_hydrogene(filename):
     return mol
 
 
-def count_remove_ion_solvant_aux(atoms, universe, counts):
+def find_ion_solvant(atoms, universe, counts):
     """Counts and removes ions or solvents from the MDAnalysis Universe.
 
     Parameters
@@ -642,11 +642,11 @@ def count_remove_ion_solvant(universe, input_filepath):
 
     logger.info("Removing ions...")
     for ion in IONS_LIST:
-        counts, universe = count_remove_ion_solvant_aux(ion, universe, counts)
+        counts, universe = find_ion_solvant(ion, universe, counts)
 
     logger.info("Removing solvants...")
     for solvant in SOLVANTS_LIST:
-        counts, universe = count_remove_ion_solvant_aux(solvant, universe, counts)
+        counts, universe = find_ion_solvant(solvant, universe, counts)
 
     # Write the new universe without ions and solvant into a new file
     output_file = (
