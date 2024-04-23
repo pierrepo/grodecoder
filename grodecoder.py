@@ -644,7 +644,7 @@ def count_remove_ion_solvant(universe, input_filepath):
     logger.info(f"{count} residues SOL remaining")
 
     logger.info(f"Found {len(universe_clean.atoms):,} atoms remaining")
-    return (counts, universe_clean)
+    return (universe_clean, counts)
 
 
 def check_overlapping_residue_between_graphs(graph_list):
