@@ -32,7 +32,7 @@ AMINO_ACID_DICT["HSP"] = "H"
 # List of all the possibility of ions :
 # https://www.unamur.be/sciences/enligne/transition/chimie/fichesderevision/revision3/listeions.htm
 IONS_LIST = [
-    {"name": "ion ", "res_name": "AL3P", "atom_names": ["AL3P"]},
+    {"name": "ion Aluminium", "res_name": "AL3P", "atom_names": ["AL3P"]},
     {"name": "ion Bromide", "res_name": "BR", "atom_names": ["BR"]},
     {"name": "ion Bromide", "res_name": "BR-", "atom_names": ["BR"]},
     {"name": "ion Calcium", "res_name": "CA", "atom_names": ["CA"]},
@@ -51,7 +51,7 @@ IONS_LIST = [
     {"name": "ion Fluoride", "res_name": "F-", "atom_names": ["F"]},
     {"name": "ion Iodide", "res_name": "I", "atom_names": ["I"]},
     {"name": "ion Iodide", "res_name": "I-", "atom_names": ["I"]},
-    {"name": "ion ", "res_name": "IB+", "atom_names": ["IB"]},
+    {"name": "ion big positive", "res_name": "IB+", "atom_names": ["IB"]},
     {"name": "ion Potassium", "res_name": "K", "atom_names": ["K"]},
     {"name": "ion Potassium ", "res_name": "K+", "atom_names": ["K"]},
     {"name": "ion Lithium", "res_name": "LI", "atom_names": ["LI"]},
