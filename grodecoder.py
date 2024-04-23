@@ -412,7 +412,7 @@ def print_graph_inventory(graph_dict):
             logger.info(f"- number of molecules: {count:,}")
             logger.debug(f"- 20 first atom names: {graph}")
             logger.debug(f"- res names: {graph}")
-        else:
+        elif isinstance(graph, nx.Graph):
             atom_start, atom_end, count = key.values()
             logger.info(f"- number of atoms: {graph.number_of_nodes():,}")
             logger.info(f"- number of molecules: {count:,}")
@@ -431,7 +431,9 @@ def print_graph_inventory(graph_dict):
                 sorted(nx.get_node_attributes(graph, "residue_name").values())
             )
             logger.debug(f"- res names: {res_names}")
-
+        else: 
+            raise Exception("graph is neither str or nx.Graph")
+            
         total_molecules_count += count
     logger.success(f"{total_molecules_count:,} molecules in total")
 
