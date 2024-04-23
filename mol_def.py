@@ -69,7 +69,10 @@ IONS_LIST = [
     {"name": "ion Zinc", "res_name": "ZN2+", "atom_names": ["ZN"]}
 ]
 
-
+# References : 
+    # https://github.com/gromacs/gromacs/blob/main/share/top/oplsaa.ff/tip5pe.itp
+    # https://github.com/gromacs/gromacs/blob/main/share/top/oplsaa.ff/tip4pew.itp
+    # https://github.com/gromacs/gromacs/blob/main/share/top/oplsaa.ff/spce.itp
 SOLVANTS_LIST = [{"name": "solvant water TIP3P", "res_name": "TIP3", "atom_names": ["OH2"]}, 
                  {"name": "solvant water TIP3P", "res_name": "SOL", "atom_names": ["OW", "HW1", "HW2"]},  # TIP3
                  {"name": "solvant water TIP4P", "res_name": "SOL", "atom_names": ["OW", "HW1", "HW2", "MW"]},  # TIP4
