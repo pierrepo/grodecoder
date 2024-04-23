@@ -41,10 +41,10 @@ IONS_LIST = [
     {"name": "ion Copper", "res_name": "CU", "atom_names": ["CU"]},
     {"name": "ion Copper", "res_name": "CU1", "atom_names": ["CU"]},
     {"name": "ion Copper", "res_name": "CU1+", "atom_names": ["CU1+"]},
-    {"name": "ion Copper", "res_name": "CU2+", "atom_names": ["CU"]},
-    {"name": "ion Chlorine", "res_name": "CLA", "atom_names": ["CLA"]},  # CL
-    {"name": "ion Chlorine", "res_name": "CL", "atom_names": ["CL"]},
-    {"name": "ion Chlorine", "res_name": "CL-", "atom_names": ["CL"]},
+    {"name": "ion Copper", "res_name": "CU2+", "atom_names": ["CU"]},    
+    {"name": "ion chloride", "res_name": "CLA", "atom_names": ["CLA"]},  # CL
+    {"name": "ion chloride", "res_name": "CL", "atom_names": ["CL"]},
+    {"name": "ion chloride", "res_name": "CL-", "atom_names": ["CL"]},
     {"name": "ion Caesium", "res_name": "CS", "atom_names": ["CS"]},
     {"name": "ion Caesium", "res_name": "Cs+", "atom_names": ["Cs"]},
     {"name": "ion Fluoride", "res_name": "F", "atom_names": ["F"]},
