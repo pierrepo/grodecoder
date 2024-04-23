@@ -612,11 +612,11 @@ def count_remove_ion_solvant(universe, input_filepath):
 
     logger.info("Searching ions...")
     for ion in mol_def.IONS_LIST:
-        counts, universe = find_ion_solvant(ion, universe, counts)
+        universe, counts = find_ion_solvant(ion, universe, counts)
 
     logger.info("Searching solvant molecules...")
     for solvant in mol_def.SOLVANTS_LIST:
-        counts, universe = find_ion_solvant(solvant, universe, counts)
+        universe, counts = find_ion_solvant(solvant, universe, counts)
 
     # Write the new universe without ions and solvant into a new file
     output_file = (
@@ -789,7 +789,7 @@ def main(input_file_path, draw_graph_option=False, check_overlapping_residue=Fal
 
     # molecular_system = read_structure_file_remove_hydrogens(input_file_path)
     molecular_system = remove_hydrogene(input_file_path)
-    count_ion_solvant, molecular_system = count_remove_ion_solvant(
+    molecular_system, count_ion_solvant = count_remove_ion_solvant(
         molecular_system, input_file_path
     )
 
