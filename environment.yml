@@ -22,6 +22,8 @@ dependencies:
   - pymol-open-source
   # Logging
   - loguru
+  # PDB API
+  - rcsbsearchapi
   - pip:
     # watermark: keep track of dependency versions
     - watermark
