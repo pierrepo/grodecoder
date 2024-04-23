@@ -74,8 +74,8 @@ IONS_LIST = [
     # https://github.com/gromacs/gromacs/blob/main/share/top/oplsaa.ff/tip4pew.itp
     # https://github.com/gromacs/gromacs/blob/main/share/top/oplsaa.ff/spce.itp
 SOLVANTS_LIST = [{"name": "solvant water TIP3P", "res_name": "TIP3", "atom_names": ["OH2"]}, 
-                 {"name": "solvant water TIP3P", "res_name": "SOL", "atom_names": ["OW", "HW1", "HW2"]},  # TIP3
-                 {"name": "solvant water TIP4P", "res_name": "SOL", "atom_names": ["OW", "HW1", "HW2", "MW"]},  # TIP4
-                 {"name": "solvant water TIP5P", "res_name": "SOL", "atom_names": ["OW", "HW1", "HW2", "LP1", "LP2"]},  # TIP5
+                 {"name": "solvant water TIP3P/spce", "res_name": "SOL", "atom_names": ["OW", "HW1", "HW2"]},  # TIP3
+                 {"name": "solvant water TIP4P/tip4pew", "res_name": "SOL", "atom_names": ["OW", "HW1", "HW2", "MW"]},  # TIP4
+                 {"name": "solvant water TIP5P/tip5pe", "res_name": "SOL", "atom_names": ["OW", "HW1", "HW2", "LP1", "LP2"]},  # TIP5
                  {"name": "solvant urea", "res_name": "URE", "atom_names": ["C", "O", "N1", "H11", "H12", "N2", "H21", "H22"]},
                  ]
