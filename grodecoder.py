@@ -587,7 +587,7 @@ def find_ion_solvant(atoms, universe, counts):
         counts[res_name] = count
         # Remove these ions or solvents from the universe
         universe = universe.select_atoms(f"not ({selection})")
-    return (counts, universe)
+    return (universe, counts)
 
 
 def count_remove_ion_solvant(universe, input_filepath):
