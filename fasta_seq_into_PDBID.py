@@ -1,14 +1,18 @@
 from Bio import SeqIO
 from pathlib import Path
 
-# Reference: https://rcsbsearchapi.readthedocs.io/en/latest/quickstart.html#syntax
-# Must execute "pip install rcsbsearchapi" before run this file
-from rcsbsearchapi.search import SequenceQuery
+import json
+import requests
 
 
 def API_PDB_search_based_sequence(sequence, max_element=10):
     """This function searches the Protein Data Bank (PDB) database based on a given sequence and returns a list of PDB IDs.
 
+    Ressources
+    ----------
+        https://education.molssi.org/python-scripting-biochemistry/chapters/rcsb_api.html
+        https://search.rcsb.org/index.html#return-count
+        
     Parameters
     ----------
         sequence : str
@@ -21,15 +25,31 @@ def API_PDB_search_based_sequence(sequence, max_element=10):
         list
             A list of PDB IDs corresponding to the sequences found in the PDB database.
     """
-    list_ID_PDB = []
-    # SequenceQuery(sequence, ..., sequence identity)
-    results = SequenceQuery(sequence, 1, 0.9)
-    
-    # results("polymer_entity") produces an iterator of IDs with return type - polymer entities
-    for index_result, polyid in enumerate(results("polymer_entity")):
-        if index_result == max_element: break
-        list_ID_PDB.append(polyid)
-    return list_ID_PDB
+    my_query = {
+        "query": {
+            "type": "terminal",
+            "service": "sequence",
+            "parameters": {
+                "evalue_cutoff": 0.1,
+                "identity_cutoff": 0,
+                "sequence_type": "protein",
+                "value": sequence
+            }
+        },
+        # "return_type": "polymer_entity", # Returns a list of PDB IDs appended with entity IDs in the format of a [pdb_id]_[entity_id], corresponding to polymeric molecular entities. 
+        "return_type": "entry",
+        "request_options": {
+            "results_verbosity": "compact",
+            "results_content_type": ["experimental"],
+            "scoring_strategy": "combined",
+            "sort": [{"sort_by": "score", "direction": "desc"}]
+        }
+    }
+
+    my_query = json.dumps(my_query)
+    data = requests.get(f"https://search.rcsb.org/rcsbsearch/v2/query?json={my_query}")
+    results = data.json()
+    return results["result_set"][:max_element]
 
 
 def fasta_format_IdPDB(filepath, dict_IdPDB_seq):
