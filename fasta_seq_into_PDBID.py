@@ -1,4 +1,5 @@
 # Reference: https://rcsbsearchapi.readthedocs.io/en/latest/quickstart.html#syntax
+# Must execute "pip install rcsbsearchapi" before run this file
 from rcsbsearchapi.search import SequenceQuery
 
 
