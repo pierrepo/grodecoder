@@ -1,35 +1,9 @@
+from Bio import SeqIO
+from pathlib import Path
+
 # Reference: https://rcsbsearchapi.readthedocs.io/en/latest/quickstart.html#syntax
 # Must execute "pip install rcsbsearchapi" before run this file
 from rcsbsearchapi.search import SequenceQuery
-
-
-def extract_sequence_from_fasta(filepath_input):
-    """This function extracts sequences from a FASTA file and returns them as a dictionary.
-
-    Parameters
-    ----------
-        filepath_input : str
-            The file path to the input FASTA file.
-
-    Returns
-    -------
-        dict
-            A dictionary where 
-                - the keys represent the length of the sequences
-                - the values are the sequences themselves.
-    """
-    sequences = {}
-    sequence = ""
-    with open(filepath_input, "r") as file:
-        for index, line in enumerate(file): 
-            line = line.strip()
-            if line.startswith(">") and sequence!="":
-                sequences[len(sequence)] = sequence
-                sequence = ""
-            elif not line.startswith(">"):
-                sequence += line
-        sequences[len(sequence)] = sequence
-    return sequences
 
 
 def API_PDB_search_based_sequence(sequence, max_element=10):
@@ -68,7 +42,7 @@ def fasta_format_IdPDB(filepath, dict_IdPDB_seq):
         dict_IdPDB_seq : dict
             A dictionary containing PDB IDs as keys and their corresponding sequences as values.
     """
-    with open({filepath}, "w") as file:
+    with open(f"PDB_ID_{Path(filepath).stem}.{Path(filepath).suffix}", "w") as file:
         for values in dict_IdPDB_seq.values():
             IdPDB, sequence = values.values()
             
@@ -86,10 +60,11 @@ def main(filepath):
         filepath: str
             The path to the input FASTA file.
     """
-    dict_seq = extract_sequence_from_fasta(filepath)
+    records = list(SeqIO.parse(filepath, "fasta"))
+    sequences = [str(seq.seq) for seq in records]
 
     dict_IdPDB_seq = {}
-    for index, (length, sequence) in enumerate(dict_seq.items()):
+    for index, sequence in enumerate(sequences):
         results = API_PDB_search_based_sequence(sequence)
         dict_IdPDB_seq[index] = {"IdPDB": results, 
                                 "sequence": sequence}
