@@ -582,7 +582,20 @@ def find_ion_solvant(atoms, universe, counts):
 
     #To select the ion (or solvant) by their res_name and all their atom_name (if there are multiple)
     selection = f"resname {res_name} and (name {' or name '.join(atom_names)})"
+    
     selected_atoms = universe.select_atoms(selection)
+    # Because methanol and methionine can get confuse with their res_name "MET"
+    # So if the residue in this selection don't have 6 atoms (or 2 if we remove the hydrogen), it's not a methanol
+    # So we remove this residue from the selection 
+    list_resid_methionine = set()
+    if res_name == "MET":
+        for index_res in selected_atoms.residues:
+            print(len(index_res.atoms), index_res.atoms)
+            if len(index_res.atoms) != 2:
+                list_resid_methionine.add(index_res.resid)
+        tmp_select = selection + f" and (not resid {' and not resid '.join(map(str, list_resid_methionine))})"
+        selected_atoms = universe.select_atoms(tmp_select)
+    
     count = len(selected_atoms.residues)
 
     if count > 0:
@@ -770,6 +783,7 @@ def export_protein_sequence_into_FASTA(protein_sequence_dict, filepath_name):
             seq, nb_res = info_seq.values()
             # For only have 80 residues for each line
             seq = [seq[i : i + 80] for i in range(0, len(seq), 80)]
+            logger.info(seq)
             content = f">Protein: {nb_res} residues\n" + "\n".join(seq)
             file.write(f"{content}\n")
 
