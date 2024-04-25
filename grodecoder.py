@@ -28,6 +28,7 @@ from scipy.sparse import triu
 from scipy.spatial.distance import cdist
 
 import mol_def
+import fasta_seq_into_PDBID as fsiPDB
 
 
 def get_distance_matrix_between_atom(file_gro):
@@ -385,9 +386,9 @@ def get_ion_solvant_info(residue_name, target_field):
     Returns
     -------
         str
-            The value of the specified `reseach_term` for the molecule, if found. 
+            The value of the specified `reseach_term` for the molecule, if found.
     """
-    for molecule in (mol_def.IONS_LIST + mol_def.SOLVANTS_LIST):
+    for molecule in mol_def.IONS_LIST + mol_def.SOLVANTS_LIST:
         if molecule["res_name"] == residue_name:
             return molecule[target_field]
     return None
@@ -408,7 +409,9 @@ def print_graph_inventory(graph_dict):
 
         if isinstance(graph, str):
             count = key
-            logger.info(f"- number of atoms: {len(get_ion_solvant_info(graph, 'atom_names'))}")
+            logger.info(
+                f"- number of atoms: {len(get_ion_solvant_info(graph, 'atom_names'))}"
+            )
             logger.info(f"- number of molecules: {count:,}")
             logger.debug(f"- 20 first atom names: {graph}")
             logger.debug(f"- res names: {graph}")
@@ -431,9 +434,9 @@ def print_graph_inventory(graph_dict):
                 sorted(nx.get_node_attributes(graph, "residue_name").values())
             )
             logger.debug(f"- res names: {res_names}")
-        else: 
+        else:
             raise Exception("graph is neither str or nx.Graph")
-            
+
         total_molecules_count += count
     logger.success(f"{total_molecules_count:,} molecules in total")
 
@@ -577,24 +580,25 @@ def find_ion_solvant(atoms, universe, counts):
         MDAnalysis.core.universe.Universe
             MDAnalysis Universe object containing only non-ion or non-solvent atoms.
     """
-    res_name = atoms['res_name']
-    atom_names = atoms['atom_names']
+    res_name = atoms["res_name"]
+    atom_names = atoms["atom_names"]
 
-    #To select the ion (or solvant) by their res_name and all their atom_name (if there are multiple)
+    # To select the ion (or solvant) by their res_name and all their atom_name (if there are multiple)
     selection = f"resname {res_name} and (name {' or name '.join(atom_names)})"
-    
+
     selected_atoms = universe.select_atoms(selection)
     # Because methanol and methionine can get confuse with their res_name "MET"
     # So if the residue in this selection don't have 6 atoms (or 2 if we remove the hydrogen), it's not a methanol
-    # So we remove this residue from the selection 
+    # So we remove this residue from the selection
     list_resid_methionine = set()
     if res_name == "MET":
         for index_res in selected_atoms.residues:
             if len(index_res.atoms) != 2:
                 list_resid_methionine.add(index_res.resid)
-        tmp_select = selection + f" and (not resid {' and not resid '.join(map(str, list_resid_methionine))})"
-        selected_atoms = universe.select_atoms(tmp_select)
-    
+        if len(list_resid_methionine) != 0:
+            tmp_select = f"{selection} and not resid {' and not resid '.join(map(str, list_resid_methionine))}"
+            selected_atoms = universe.select_atoms(tmp_select)
+
     count = len(selected_atoms.residues)
 
     if count > 0:
@@ -633,22 +637,9 @@ def count_remove_ion_solvant(universe, input_filepath):
         universe, counts = find_ion_solvant(solvant, universe, counts)
 
     # Write the new universe without ions and solvant into a new file
-    output_file = (
-        f"{Path(input_filepath).stem}_without_H_ions_solvant{Path(input_filepath).suffix}"
-    )
+    output_file = f"{Path(input_filepath).stem}_without_H_ions_solvant{Path(input_filepath).suffix}"
     universe.atoms.write(output_file, reindex=False)
     for molecule, count in counts.items():
-        # res_name = None
-        # for ion in mol_def.IONS_LIST:
-        #     if ion['res_name'] == molecule:
-        #         res_name = ion['name']
-        #         break
-
-        # if res_name is None:
-        #     for solvant in mol_def.SOLVANTS_LIST:
-        #         if solvant['res_name'] == molecule:
-        #             res_name = solvant['name']
-        #             break
         res_name = get_ion_solvant_info(molecule, "name")
         logger.success(f"Found: {count} {res_name} ({molecule})")
 
@@ -755,7 +746,9 @@ def extract_protein_sequence(graph):
     # (2, {'atom_name': 'CB', 'residue_id': 1, 'residue_name': 'MET', 'label': 7})
     for _, node_attr in sorted(graph.nodes.items(), key=lambda x: x[0]):
         if node_attr["atom_name"] == "CA":
-            protein_sequence.append(mol_def.AMINO_ACID_DICT.get(node_attr["residue_name"], "?"))
+            protein_sequence.append(
+                mol_def.AMINO_ACID_DICT.get(node_attr["residue_name"], "?")
+            )
     info_seq["sequence"] = "".join(protein_sequence)
     info_seq["nb_res"] = len(protein_sequence)
     return info_seq
@@ -840,6 +833,7 @@ def main(input_file_path, draw_graph_option=False, check_overlapping_residue=Fal
             protein_sequence_dict[index_graph] = extract_protein_sequence(graph)
 
     export_protein_sequence_into_FASTA(protein_sequence_dict, f"{filename}.fasta")
+    fsiPDB.main(f"{filename}.fasta")
 
 
 def is_a_structure_file(filepath):
