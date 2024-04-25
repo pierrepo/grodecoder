@@ -775,7 +775,6 @@ def export_protein_sequence_into_FASTA(protein_sequence_dict, filepath_name):
             seq, nb_res = info_seq.values()
             # For only have 80 residues for each line
             seq = [seq[i : i + 80] for i in range(0, len(seq), 80)]
-            logger.info(seq)
             content = f">Protein: {nb_res} residues\n" + "\n".join(seq)
             file.write(f"{content}\n")
 
