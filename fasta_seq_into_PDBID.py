@@ -26,6 +26,7 @@ def API_PDB_search_based_sequence(sequence, max_element=10):
         list
             A list of PDB IDs corresponding to the sequences found in the PDB database.
     """
+    logger.info("Searching PDB IDs based on a given sequence")
     my_query = {
         "query": {
             "type": "terminal",
@@ -81,6 +82,7 @@ def get_macromolecular_names(PDB_ID, polymer_entity_id, set_names):
         requests.exceptions.RequestException
             If an error occurs while making the API request.
     """
+    logger.info("Retrieving macromolecular names for one PDB ID")
     try : 
         my_query = requests.get(f"https://data.rcsb.org/rest/v1/core/polymer_entity/{PDB_ID}/{polymer_entity_id}")
         my_query.raise_for_status()
