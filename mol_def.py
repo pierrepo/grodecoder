@@ -32,41 +32,41 @@ AMINO_ACID_DICT["HSP"] = "H"
 # List of all the possibility of ions :
 # https://www.unamur.be/sciences/enligne/transition/chimie/fichesderevision/revision3/listeions.htm
 IONS_LIST = [
-    {"name": "ion Aluminium", "res_name": "AL3P", "atom_names": ["AL3P"]},
-    {"name": "ion Bromide", "res_name": "BR", "atom_names": ["BR"]},
-    {"name": "ion Bromide", "res_name": "BR-", "atom_names": ["BR"]},
-    {"name": "ion Calcium", "res_name": "CA", "atom_names": ["CA"]},
-    {"name": "ion Calcium", "res_name": "CA2+", "atom_names": ["CA"]},
-    {"name": "ion Calcium", "res_name": "CAL", "atom_names": ["CAL"]},  # CA
-    {"name": "ion Copper", "res_name": "CU", "atom_names": ["CU"]},
-    {"name": "ion Copper", "res_name": "CU1", "atom_names": ["CU"]},
-    {"name": "ion Copper", "res_name": "CU1+", "atom_names": ["CU1+"]},
-    {"name": "ion Copper", "res_name": "CU2+", "atom_names": ["CU"]},    
-    {"name": "ion chloride", "res_name": "CLA", "atom_names": ["CLA"]},  # CL
-    {"name": "ion chloride", "res_name": "CL", "atom_names": ["CL"]},
-    {"name": "ion chloride", "res_name": "CL-", "atom_names": ["CL"]},
-    {"name": "ion Caesium", "res_name": "CS", "atom_names": ["CS"]},
-    {"name": "ion Caesium", "res_name": "Cs+", "atom_names": ["Cs"]},
-    {"name": "ion Fluoride", "res_name": "F", "atom_names": ["F"]},
-    {"name": "ion Fluoride", "res_name": "F-", "atom_names": ["F"]},
-    {"name": "ion Iodide", "res_name": "I", "atom_names": ["I"]},
-    {"name": "ion Iodide", "res_name": "I-", "atom_names": ["I"]},
-    {"name": "ion big positive", "res_name": "IB+", "atom_names": ["IB"]},
-    {"name": "ion Potassium", "res_name": "K", "atom_names": ["K"]},
-    {"name": "ion Potassium ", "res_name": "K+", "atom_names": ["K"]},
-    {"name": "ion Lithium", "res_name": "LI", "atom_names": ["LI"]},
-    {"name": "ion Lithium", "res_name": "LI+", "atom_names": ["LI"]},
-    {"name": "ion Magnesium", "res_name": "MG", "atom_names": ["MG"]},
-    {"name": "ion Magnesium", "res_name": "MG2+", "atom_names": ["MG"]},
-    {"name": "ion Sodium", "res_name": "NA", "atom_names": ["NA"]},
-    {"name": "ion Sodium", "res_name": "NA+", "atom_names": ["NA"]},
-    {"name": "ion Hydroxide", "res_name": "OH", "atom_names": ["O1"]},
-    {"name": "ion Potassium", "res_name": "POT", "atom_names": ["POT"]},  # K
-    {"name": "ion Rubidium", "res_name": "RB", "atom_names": ["RB"]},
-    {"name": "ion Rubidium", "res_name": "Rb+", "atom_names": ["Rb"]},
-    {"name": "ion Sodium", "res_name": "SOD", "atom_names": ["SOD"]},  # NA
-    {"name": "ion Zinc", "res_name": "ZN", "atom_names": ["ZN"]},
-    {"name": "ion Zinc", "res_name": "ZN2+", "atom_names": ["ZN"]}
+    {"name": "Aluminium ion", "res_name": "AL3P", "atom_names": ["AL3P"]},
+    {"name": "Bromide ion", "res_name": "BR", "atom_names": ["BR"]},
+    {"name": "Bromide ion", "res_name": "BR-", "atom_names": ["BR"]},
+    {"name": "Calcium ion", "res_name": "CA", "atom_names": ["CA"]},
+    {"name": "Calcium ion", "res_name": "CA2+", "atom_names": ["CA"]},
+    {"name": "Calcium ion", "res_name": "CAL", "atom_names": ["CAL"]},  # CA
+    {"name": "Copper ion", "res_name": "CU", "atom_names": ["CU"]},
+    {"name": "Copper ion", "res_name": "CU1", "atom_names": ["CU"]},
+    {"name": "Copper ion", "res_name": "CU1+", "atom_names": ["CU1+"]},
+    {"name": "Copper ion", "res_name": "CU2+", "atom_names": ["CU"]},    
+    {"name": "chloride ion", "res_name": "CLA", "atom_names": ["CLA"]},  # CL
+    {"name": "chloride ion", "res_name": "CL", "atom_names": ["CL"]},
+    {"name": "chloride ion", "res_name": "CL-", "atom_names": ["CL"]},
+    {"name": "Caesium ion", "res_name": "CS", "atom_names": ["CS"]},
+    {"name": "Caesium ion", "res_name": "Cs+", "atom_names": ["Cs"]},
+    {"name": "Fluoride ion", "res_name": "F", "atom_names": ["F"]},
+    {"name": "Fluoride ion", "res_name": "F-", "atom_names": ["F"]},
+    {"name": "Iodide ion", "res_name": "I", "atom_names": ["I"]},
+    {"name": "Iodide ion", "res_name": "I-", "atom_names": ["I"]},
+    {"name": "big positive ion", "res_name": "IB+", "atom_names": ["IB"]},
+    {"name": "Potassium ion", "res_name": "K", "atom_names": ["K"]},
+    {"name": "Potassium ion", "res_name": "K+", "atom_names": ["K"]},
+    {"name": "Lithium ion", "res_name": "LI", "atom_names": ["LI"]},
+    {"name": "Lithium ion", "res_name": "LI+", "atom_names": ["LI"]},
+    {"name": "Magnesium ion", "res_name": "MG", "atom_names": ["MG"]},
+    {"name": "Magnesium ion", "res_name": "MG2+", "atom_names": ["MG"]},
+    {"name": "Sodium ion", "res_name": "NA", "atom_names": ["NA"]},
+    {"name": "Sodium ion", "res_name": "NA+", "atom_names": ["NA"]},
+    {"name": "Hydroxide ion", "res_name": "OH", "atom_names": ["O1"]},
+    {"name": "Potassium ion", "res_name": "POT", "atom_names": ["POT"]},  # K
+    {"name": "Rubidium ion", "res_name": "RB", "atom_names": ["RB"]},
+    {"name": "Rubidium ion", "res_name": "Rb+", "atom_names": ["Rb"]},
+    {"name": "Sodium ion", "res_name": "SOD", "atom_names": ["SOD"]},  # NA
+    {"name": "Zinc ion", "res_name": "ZN", "atom_names": ["ZN"]},
+    {"name": "Zinc ion", "res_name": "ZN2+", "atom_names": ["ZN"]}
 ]
 
 
@@ -79,13 +79,13 @@ IONS_LIST = [
     # https://github.com/gromacs/gromacs/blob/main/share/top/oplsaa.ff/ethanol.itp
     # https://github.com/gromacs/gromacs/blob/main/share/top/oplsaa.ff/1propanol.itp
     # https://github.com/gromacs/gromacs/blob/main/share/top/gromos43a1.ff/methanol.itp
-SOLVANTS_LIST = [{"name": "solvant water TIP3P", "res_name": "TIP3", "atom_names": ["OH2"]}, 
-                 {"name": "solvant water TIP3P/spce", "res_name": "SOL", "atom_names": ["OW", "HW1", "HW2"]},  # TIP3
-                 {"name": "solvant water TIP4P/tip4pew", "res_name": "SOL", "atom_names": ["OW", "HW1", "HW2", "MW"]},  # TIP4
-                 {"name": "solvant water TIP5P/tip5pe", "res_name": "SOL", "atom_names": ["OW", "HW1", "HW2", "LP1", "LP2"]},  # TIP5
-                 {"name": "solvant urea", "res_name": "URE", "atom_names": ["C", "O", "N1", "H11", "H12", "N2", "H21", "H22"]},
-                 {"name": "solvant organic methanol/opl", "res_name": "MET", "atom_names": ["C", "H", "H", "H", "OA", "HO"]},
-                 {"name": "solvant organic ethanol/opls", "res_name": "ETH", "atom_names": ["C", "H", "H", "H", "C", "H", "H", "OA", "HO"]},
-                 {"name": "solvant organic propanol/opls", "res_name": "POL", "atom_names": ["C", "H", "H", "H", "C", "H", "H", "C", "H", "H", "OA", "HO"]},
-                 {"name": "solvant organic methanol/gromos", "res_name": "MeOH", "atom_names": ["Me1", "O2", "H3"]}
+SOLVANTS_LIST = [{"name": "water TIP3P solvant", "res_name": "TIP3", "atom_names": ["OH2"]}, 
+                 {"name": "water TIP3P/spce solvant", "res_name": "SOL", "atom_names": ["OW", "HW1", "HW2"]},  # TIP3
+                 {"name": "water TIP4P/tip4pew solvant", "res_name": "SOL", "atom_names": ["OW", "HW1", "HW2", "MW"]},  # TIP4
+                 {"name": "water TIP5P/tip5pe solvant", "res_name": "SOL", "atom_names": ["OW", "HW1", "HW2", "LP1", "LP2"]},  # TIP5
+                 {"name": "urea solvant", "res_name": "URE", "atom_names": ["C", "O", "N1", "H11", "H12", "N2", "H21", "H22"]},
+                 {"name": "organic solvant methanol/OPLS", "res_name": "MET", "atom_names": ["C", "H", "H", "H", "OA", "HO"]},
+                 {"name": "organic solvant ethanol/OPLS", "res_name": "ETH", "atom_names": ["C", "H", "H", "H", "C", "H", "H", "OA", "HO"]},
+                 {"name": "organic solvant propanol/OPLS", "res_name": "POL", "atom_names": ["C", "H", "H", "H", "C", "H", "H", "C", "H", "H", "OA", "HO"]},
+                 {"name": "organic solvant methanol/GROMOS", "res_name": "MeOH", "atom_names": ["Me1", "O2", "H3"]}
                  ]
