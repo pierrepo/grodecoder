@@ -594,9 +594,9 @@ def find_ion_solvant(atoms, universe, counts):
     if res_name == "MET":
         for index_res in selected_atoms.residues:
             if len(index_res.atoms) != 2:
-                list_resid_methionine.add(index_res.resid)
+                list_resid_methionine.add(str(index_res.resid))
         if len(list_resid_methionine) != 0:
-            tmp_select = f"{selection} and not resid {' and not resid '.join(map(str, list_resid_methionine))}"
+            tmp_select = f"{selection} and not resid {' and not resid '.join(list_resid_methionine)}"
             selected_atoms = universe.select_atoms(tmp_select)
 
     count = len(selected_atoms.residues)
