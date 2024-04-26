@@ -28,7 +28,6 @@ from scipy.sparse import triu
 from scipy.spatial.distance import cdist
 
 import mol_def
-import fasta_seq_into_PDBID as fsiPDB
 
 
 def get_distance_matrix_between_atom(file_gro):
@@ -535,7 +534,7 @@ def remove_hydrogene(filename):
     return mol
 
 
-def remove_ion_solvant(universe, list_resIDs): 
+def remove_ion_solvant(universe, list_resIDs, resname, filename): 
     """Remove ion or solvants based on the list_resIDs from the MDAnalysis universe
 
     Parameters
@@ -552,12 +551,19 @@ def remove_ion_solvant(universe, list_resIDs):
 
     """
     for resID in list_resIDs:
-        selection = f"not (resid {resID})"
+        selection = f"not (resname {resname} and resid {resID})"
         universe = universe.select_atoms(f"{selection}")
+
+    # Overwrite on the clean GRO file, the Universe without the resIDs from list_resIDs
+    # To return MDAnalysis.core.universe.Universe 
+    # Otherwise it's MDAnalysis.core.groups.AtomGroup object
+    filename_tmp = f"{Path(filename).stem}_without_H_ions_solvant{Path(filename).suffix}"
+    universe.write(filename_tmp, reindex=False)
+    universe = mda.Universe(filename_tmp)
     return universe
 
 
-def find_ion_solvant(molecule, universe, counts):
+def find_ion_solvant(molecule, universe, counts, input_filepath):
     """Counts and removes ions or solvents from the MDAnalysis Universe.
 
     Parameters
@@ -583,8 +589,8 @@ def find_ion_solvant(molecule, universe, counts):
     selected_atoms = universe.select_atoms(selection)
 
     # Because methanol and methionine can get confuse with their res_name "MET"
-    # So if the residue in this selection have CA in their atom, it's not a methanol
-    # So we save his residue IDs, to remove this residue from the selection later (after reviewed all the residues)
+    # Then if the residue in this selection have CA in their atoms, it's not a methanol
+    # So we save his residue IDs, to remove it from the selection later (after reviewed all the residues)
     list_resid_methionine = set()
     if res_name == "MET":
         for index_res in selected_atoms.residues:
@@ -598,8 +604,12 @@ def find_ion_solvant(molecule, universe, counts):
     selected_res_ids = [str(residue.resid) for residue in selected_atoms.residues]
     res_count = len(selected_res_ids)
 
+    # Only change the Universe and the count dictionnary if this res_name is in this Universe
+    # Otherwise we retrun the same Universe and same count dictionnary
     if res_count > 0:
         list_graph = []
+        # For each residues in the selection, create a graph in the same format as a molecule (but added to that a key 'name')
+        # which give us direct acces of their composition
         for index_resID in selected_atoms.residues:
             graph = nx.Graph()
             graph.add_nodes_from(index_resID.atoms.ids)
@@ -615,8 +625,9 @@ def find_ion_solvant(molecule, universe, counts):
                                  "atom_end": atom_end,
                                  "name": name,
                                  "graph": res_count}
-
-        universe = remove_ion_solvant(universe, selected_res_ids)
+        
+        # Here we remove all the resIDS (from selected_res_ids) from this universe
+        universe = remove_ion_solvant(universe, selected_res_ids, res_name, input_filepath)
     return (universe, counts)
 
 
@@ -644,23 +655,26 @@ def count_remove_ion_solvant(universe, input_filepath):
 
     logger.info("Searching ions...")
     for ion in mol_def.IONS_LIST:
-        universe, counts = find_ion_solvant(ion, universe, counts)
+        universe, counts = find_ion_solvant(ion, universe, counts, input_filepath)
 
     logger.info("Searching solvant molecules...")
     for solvant in mol_def.SOLVANTS_LIST:
-        universe, counts = find_ion_solvant(solvant, universe, counts)
+        universe, counts = find_ion_solvant(solvant, universe, counts, input_filepath)
 
     # Write the new universe without ions and solvant into a new file
     output_file = f"{Path(input_filepath).stem}_without_H_ions_solvant{Path(input_filepath).suffix}"
     universe.atoms.write(output_file, reindex=False)
+    universe_clean = mda.Universe(output_file)
+
+    # Print which ion and solvant we find, and how many
     for molecule, dict_count in counts.items():
         name = dict_count.get("name")
         count = dict_count.get("graph")
         res_name = ' '.join(set(nx.get_node_attributes(molecule, 'residue_name').values()))
         logger.success(f"Found: {count} {name} ({res_name})")
 
-    universe_clean = mda.Universe(output_file)
-    selected_atoms = universe.select_atoms("resname SOL")
+    # Check if there is other residue with the resname SOL in the updated MDAnalysis.core.universe.Universe 
+    selected_atoms = universe_clean.select_atoms("resname SOL")
     count = len(selected_atoms.residues)
     logger.info(f"{count} residues SOL remaining")
 
