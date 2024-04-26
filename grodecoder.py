@@ -374,27 +374,6 @@ def count_molecule(graph_list):
     return dict_count
 
 
-def get_ion_solvant_info(residue_name, target_field):
-    """Get information about the specified molecule from the list of ions or solvants.
-
-    Parameters
-    ----------
-        residue_name: str
-            The name of the molecule to search for.
-        target_field: str
-            The information to retrieve for the molecule, such as 'name' or 'atom_names'.
-
-    Returns
-    -------
-        str
-            The value of the specified `reseach_term` for the molecule, if found.
-    """
-    for molecule in mol_def.IONS_LIST + mol_def.SOLVANTS_LIST:
-        if molecule["res_name"] == residue_name:
-            return molecule[target_field]
-    return None
-
-
 def print_graph_inventory(graph_dict):
     """Print graph inventory.
 
