@@ -196,11 +196,12 @@ def add_attributes_to_nodes(graph, mol_system):
         networkx.classes.graph.Graph
             The NetworkX graph representing the updated molecular system.
     """
-    logger.info(f"Adding attributes to {graph.number_of_nodes():,} nodes...")
-    logger.opt(lazy=True).debug("10 first nodes:")
-    for node_id, node_attr in sorted(graph.nodes.items())[:10]:
-        logger.opt(lazy=True).debug(f"Node id: {node_id}")
-        logger.opt(lazy=True).debug(f"attributes: {node_attr}")
+    # logger.info(f"Adding attributes to {graph.number_of_nodes():,} nodes...")
+    # logger.opt(lazy=True).debug("10 first nodes:")
+    # for node_id, node_attr in sorted(graph.nodes.items())[:10]:
+    #     logger.opt(lazy=True).debug(f"Node id: {node_id}")
+    #     logger.opt(lazy=True).debug(f"attributes: {node_attr}")
+
     # Define attributes in batch: one attribute for all nodes at once.
     # This is possible because the order of nodes in the NetworkX graph
     # is the same as the order of atoms in the MDAnalysis universe.
@@ -220,10 +221,10 @@ def add_attributes_to_nodes(graph, mol_system):
     nx.set_node_attributes(
         graph, dict(zip(graph.nodes, mol_system.atoms.resnames)), "residue_name"
     )
-    logger.opt(lazy=True).debug("10 first nodes with updated attributes:")
-    for node_id, node_attr in sorted(graph.nodes.items())[:10]:
-        logger.opt(lazy=True).debug(f"Node id: {node_id}")
-        logger.opt(lazy=True).debug(f"attributes: {node_attr}")
+    # logger.opt(lazy=True).debug("10 first nodes with updated attributes:")
+    # for node_id, node_attr in sorted(graph.nodes.items())[:10]:
+    #     logger.opt(lazy=True).debug(f"Node id: {node_id}")
+    #     logger.opt(lazy=True).debug(f"attributes: {node_attr}")
     return graph
 
 
@@ -407,35 +408,29 @@ def print_graph_inventory(graph_dict):
     for graph_idx, (graph, key) in enumerate(graph_dict.items(), start=1):
         logger.info(f"Molecule {graph_idx:,} ----------------")
 
-        if isinstance(graph, str):
-            count = key
-            logger.info(
-                f"- number of atoms: {len(get_ion_solvant_info(graph, 'atom_names'))}"
-            )
-            logger.info(f"- number of molecules: {count:,}")
-            logger.debug(f"- 20 first atom names: {graph}")
-            logger.debug(f"- res names: {graph}")
-        elif isinstance(graph, nx.Graph):
-            atom_start, atom_end, count = key.values()
-            logger.info(f"- number of atoms: {graph.number_of_nodes():,}")
-            logger.info(f"- number of molecules: {count:,}")
-
-            # logger.info(f"- tuple of min and max atom_id for each graph:")
-            # for i in range(min(20, len(atom_start))):
-            #     logger.info(f"\t({atom_start[i]:,} -- {atom_end[i]:,})")
-
-            atom_names = list(
-                sorted(nx.get_node_attributes(graph, "atom_name").values())
-            )
-            atom_names_str = " ".join(atom_names[:20])
-            logger.debug(f"- 20 first atom names: {atom_names_str}")
-
-            res_names = set(
-                sorted(nx.get_node_attributes(graph, "residue_name").values())
-            )
-            logger.debug(f"- res names: {res_names}")
+        if len(key) == 3: 
+            (atom_start, atom_end, count) = key.values()
         else:
-            raise Exception("graph is neither str or nx.Graph")
+            (atom_start, atom_end, name, count) = key.values()
+            logger.info(f"- name: {name}")
+
+        logger.info(f"- number of atoms: {graph.number_of_nodes():,}")
+        logger.info(f"- number of molecules: {count:,}")
+
+        logger.info(f"- tuple of atom_start and atom_end for each graph/molecule:")
+        for i in range(min(20, len(atom_start))):
+            logger.info(f"\t({atom_start[i]} -- {atom_end[i]})")
+
+        atom_names = list(
+            sorted(nx.get_node_attributes(graph, "atom_name").values())
+        )
+        atom_names_str = " ".join(atom_names[:20])
+        logger.debug(f"- 20 first atom names: {atom_names_str}")
+
+        res_names = set(
+            sorted(nx.get_node_attributes(graph, "residue_name").values())
+        )
+        logger.debug(f"- res names: {res_names}")
 
         total_molecules_count += count
     logger.success(f"{total_molecules_count:,} molecules in total")
@@ -561,13 +556,35 @@ def remove_hydrogene(filename):
     return mol
 
 
-def find_ion_solvant(atoms, universe, counts):
+def remove_ion_solvant(universe, list_resIDs): 
+    """Remove ion or solvants based on the list_resIDs from the MDAnalysis universe
+
+    Parameters
+    ----------
+        universe : MDAnalysis.core.universe.Universe
+            MDAnalysis Universe object representing the system.
+        list_resIDs: list
+            
+    Returns
+    -------
+        MDAnalysis.core.universe.Universe
+            MDAnalysis Universe object where the ion or solvants (based on the list_resIDs)
+            are removed.
+
+    """
+    for resID in list_resIDs:
+        selection = f"not (resid {resID})"
+        universe = universe.select_atoms(f"{selection}")
+    return universe
+
+
+def find_ion_solvant(molecule, universe, counts):
     """Counts and removes ions or solvents from the MDAnalysis Universe.
 
     Parameters
     ----------
-        atoms : dict
-            Dictionary containing information about the atoms (ion or solvant) to be removed (res_name and atom_name).
+        molecule : dict
+            Dictionary containing information about the atoms (ion or solvant) to be removed (name, res_name and atom_name).
         universe : MDAnalysis.core.universe.Universe
             MDAnalysis Universe object representing the system.
         counts : dict
@@ -575,42 +592,58 @@ def find_ion_solvant(atoms, universe, counts):
 
     Returns
     -------
-        dict
-            Dictionary containing the counts of removed atoms.
         MDAnalysis.core.universe.Universe
             MDAnalysis Universe object containing only non-ion or non-solvent atoms.
+        dict
+            Dictionary containing the counts of removed atoms.
     """
-    res_name = atoms["res_name"]
-    atom_names = atoms["atom_names"]
+    (name, res_name, atom_names) = molecule.values()
 
     # To select the ion (or solvant) by their res_name and all their atom_name (if there are multiple)
     selection = f"resname {res_name} and (name {' or name '.join(atom_names)})"
-
     selected_atoms = universe.select_atoms(selection)
+
     # Because methanol and methionine can get confuse with their res_name "MET"
-    # So if the residue in this selection don't have 6 atoms (or 2 if we remove the hydrogen), it's not a methanol
-    # So we remove this residue from the selection
+    # So if the residue in this selection have CA in their atom, it's not a methanol
+    # So we save his residue IDs, to remove this residue from the selection later (after reviewed all the residues)
     list_resid_methionine = set()
     if res_name == "MET":
         for index_res in selected_atoms.residues:
-            if len(index_res.atoms) != 2:
+            if "CA" in index_res.atoms.names:
                 list_resid_methionine.add(str(index_res.resid))
-        if len(list_resid_methionine) != 0:
+        if list_resid_methionine:
             tmp_select = f"{selection} and not resid {' and not resid '.join(list_resid_methionine)}"
             selected_atoms = universe.select_atoms(tmp_select)
 
-    count = len(selected_atoms.residues)
+    #Collect all resids from each residues selected, to remove it from the univers
+    selected_res_ids = [str(residue.resid) for residue in selected_atoms.residues]
+    res_count = len(selected_res_ids)
 
-    if count > 0:
-        counts[res_name] = count
-        # Remove these ions or solvents from the universe
-        universe = universe.select_atoms(f"not ({selection})")
+    if res_count > 0:
+        list_graph = []
+        for index_resID in selected_atoms.residues:
+            graph = nx.Graph()
+            graph.add_nodes_from(index_resID.atoms.ids)
+            graph = add_attributes_to_nodes(graph, index_resID)
+            list_graph.append(graph)
+
+        atom_start, atom_end = [], []
+        for subgraph in list_graph:
+            atom_start.append(min(nx.get_node_attributes(subgraph, "atom_id").values()))
+            atom_end.append(max(nx.get_node_attributes(subgraph, "atom_id").values()))
+        
+        counts[list_graph[0]] = {"atom_start": atom_start,
+                                 "atom_end": atom_end,
+                                 "name": name,
+                                 "graph": res_count}
+
+        universe = remove_ion_solvant(universe, selected_res_ids)
     return (universe, counts)
 
 
 def count_remove_ion_solvant(universe, input_filepath):
     """Count and remove ions and solvents from the MDAnalysis Universe return by
-    the function count_remove_ion_solvant_aux().
+    the function find_ion_solvant().
 
     Parameters
     ----------
@@ -623,8 +656,10 @@ def count_remove_ion_solvant(universe, input_filepath):
     -------
         tuple
             Containing :
-                - the counts of removed ions
-                - solvents, and the new Universe without ions and solvents.
+                - the new Universe without ions and solvants.
+                - a dictionary where 
+                    - the key is a graph 
+                    - and the value is an other dictionary with: atom_start, atom_end, name of the ion-solvant, the counts of removed ions-solvant
     """
     counts = {}
 
@@ -639,9 +674,11 @@ def count_remove_ion_solvant(universe, input_filepath):
     # Write the new universe without ions and solvant into a new file
     output_file = f"{Path(input_filepath).stem}_without_H_ions_solvant{Path(input_filepath).suffix}"
     universe.atoms.write(output_file, reindex=False)
-    for molecule, count in counts.items():
-        res_name = get_ion_solvant_info(molecule, "name")
-        logger.success(f"Found: {count} {res_name} ({molecule})")
+    for molecule, dict_count in counts.items():
+        name = dict_count.get("name")
+        count = dict_count.get("graph")
+        res_name = ' '.join(set(nx.get_node_attributes(molecule, 'residue_name').values()))
+        logger.success(f"Found: {count} {name} ({res_name})")
 
     universe_clean = mda.Universe(output_file)
     selected_atoms = universe.select_atoms("resname SOL")
@@ -708,7 +745,7 @@ def is_protein(graph):
     logger.info("Checking if the molecule is a protein...")
     atom_names = ""
 
-    if graph.number_of_nodes() > 1:
+    if graph.number_of_nodes() > 3:
         atom_names = " ".join(
             sorted(nx.get_node_attributes(graph, "atom_name").values())
         )
@@ -794,7 +831,7 @@ def main(input_file_path, draw_graph_option=False, check_overlapping_residue=Fal
     threshold = max(mol_def.BOND_LENGTH.values())
     logger.success(f"Bond threshold: {threshold} Angstrom")
 
-    # molecular_system = read_structure_file_remove_hydrogens(input_file_path)
+
     molecular_system = remove_hydrogene(input_file_path)
     molecular_system, count_ion_solvant = count_remove_ion_solvant(
         molecular_system, input_file_path
@@ -832,7 +869,6 @@ def main(input_file_path, draw_graph_option=False, check_overlapping_residue=Fal
             protein_sequence_dict[index_graph] = extract_protein_sequence(graph)
 
     export_protein_sequence_into_FASTA(protein_sequence_dict, f"{filename}.fasta")
-    fsiPDB.main(f"{filename}.fasta")
 
 
 def is_a_structure_file(filepath):
