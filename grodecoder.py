@@ -139,6 +139,7 @@ def get_atom_pairs2(mol, threshold):
         # twice for each residue: residue_1-residue_2, residue_2-residue_3, residue_3-residue_4....
         # contacts_array2 is a pair list
         contacts_array2 = np.unique(contacts_array2, axis=0)
+        return contacts_array2
     else:
         # It's mean there is only one residue in this molecular system
         # So we going to return the atom pairs between the atom of this residue itself
@@ -148,8 +149,7 @@ def get_atom_pairs2(mol, threshold):
         # Create a mask for distances below a given threshold.
         # And select only atom pairs below the threshold.
         atom_pairs = pairs[distances < threshold]
-        return atom_pairs
-    return contacts_array2
+        return atom_pairs 
 
 
 def convert_atom_pairs_to_graph(atom_pairs, mol):
