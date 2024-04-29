@@ -165,7 +165,6 @@ def convert_atom_pairs_to_graph(atom_pairs, mol):
     logger.info("Converting atom pairs to graph...")
     graph = nx.Graph()
     # Add all atoms as single nodes.
-    # graph.add_nodes_from(list(range(0, total_number_of_atoms)))
     graph.add_nodes_from(mol.atoms.ids)
 
     # Add atom pairs as edges.
@@ -534,35 +533,6 @@ def remove_hydrogene(filename):
     return mol
 
 
-def remove_ion_solvant(universe, list_resIDs, resname, filename): 
-    """Remove ion or solvants based on the list_resIDs from the MDAnalysis universe
-
-    Parameters
-    ----------
-        universe : MDAnalysis.core.universe.Universe
-            MDAnalysis Universe object representing the system.
-        list_resIDs: list
-            
-    Returns
-    -------
-        MDAnalysis.core.universe.Universe
-            MDAnalysis Universe object where the ion or solvants (based on the list_resIDs)
-            are removed.
-
-    """
-    for resID in list_resIDs:
-        selection = f"not (resname {resname} and resid {resID})"
-        universe = universe.select_atoms(f"{selection}")
-
-    # Overwrite on the clean GRO file, the Universe without the resIDs from list_resIDs
-    # To return MDAnalysis.core.universe.Universe 
-    # Otherwise it's MDAnalysis.core.groups.AtomGroup object
-    filename_tmp = f"{Path(filename).stem}_without_H_ions_solvant{Path(filename).suffix}"
-    universe.write(filename_tmp, reindex=False)
-    universe = mda.Universe(filename_tmp)
-    return universe
-
-
 def find_ion_solvant(molecule, universe, counts, input_filepath):
     """Counts and removes ions or solvents from the MDAnalysis Universe.
 
@@ -627,7 +597,9 @@ def find_ion_solvant(molecule, universe, counts, input_filepath):
                                  "graph": res_count}
         
         # Here we remove all the resIDS (from selected_res_ids) from this universe
-        universe = remove_ion_solvant(universe, selected_res_ids, res_name, input_filepath)
+        for resID in selected_res_ids:
+            selection = f"not (resname {res_name} and resid {resID})"
+            universe = universe.select_atoms(f"{selection}")
     return (universe, counts)
 
 
