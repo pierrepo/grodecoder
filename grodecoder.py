@@ -106,38 +106,49 @@ def get_atom_pairs2(mol, threshold):
     # A residue is identified by its name and its id.
     residues_list = list(mol.residues)
 
-    # Compare residues side-by-side, between 0 and N-1 and between 1 and N
-    for residue_1, residue_2 in zip(residues_list[:-1], residues_list[1:]):
-        # print(f"Finding contacts for {residue_1.resid}-{residue_1.resname} and {residue_2.resid}-{residue_2.resname}")
-        # Concatenate atom coordinates from both residues.
-        coords = np.concatenate(
-            (residue_1.atoms.positions, residue_2.atoms.positions), axis=0
-        )
+    if len(residues_list) > 1:
+        # Compare residues side-by-side, between 0 and N-1 and between 1 and N
+        for residue_1, residue_2 in zip(residues_list[:-1], residues_list[1:]):
+            # print(f"Finding contacts for {residue_1.resid}-{residue_1.resname} and {residue_2.resid}-{residue_2.resname}")
+            # Concatenate atom coordinates from both residues.
+            coords = np.concatenate(
+                (residue_1.atoms.positions, residue_2.atoms.positions), axis=0
+            )
 
-        # Get distance between all atoms (upper-left matrix)
-        # https://docs.mdanalysis.org/stable/_modules/MDAnalysis/lib/distances.html#self_distance_array
-        # Result is output as a vector with (N)(N-1)/2 values.
-        distances = self_distance_array(coords)
+            # Get distance between all atoms (upper-left matrix)
+            # https://docs.mdanalysis.org/stable/_modules/MDAnalysis/lib/distances.html#self_distance_array
+            # Result is output as a vector with (N)(N-1)/2 values.
+            distances = self_distance_array(coords)
 
-        # Cocatenates the list of atoms ids from both residues
-        atom_ids = np.concatenate((residue_1.atoms.ids, residue_2.atoms.ids))
+            # Cocatenates the list of atoms ids from both residues
+            atom_ids = np.concatenate((residue_1.atoms.ids, residue_2.atoms.ids))
+            # Create all possible combinations between atom ids.
+            pairs = np.array(list(itertools.combinations(atom_ids, 2)))
+            # Create a mask for distances below a given threshold.
+            # And select only atom pairs below the threshold.
+            atom_pairs = pairs[distances < threshold]
+
+            # Append atom pairs to a bigger list.
+            contacts_list.append(atom_pairs)
+
+        # Concatenate all atom pairs.
+        contacts_array2 = np.concatenate(contacts_list, axis=0)
+
+        # Remove redundant contacts
+        # We have quite a lot of redundancy since we are calculating inter-contacts
+        # twice for each residue: residue_1-residue_2, residue_2-residue_3, residue_3-residue_4....
+        # contacts_array2 is a pair list
+        contacts_array2 = np.unique(contacts_array2, axis=0)
+    else:
+        # It's mean there is only one residue in this molecular system
+        # So we going to return the atom pairs between the atom of this residue itself
+        distances = self_distance_array(residues_list[0].atoms.positions)
         # Create all possible combinations between atom ids.
-        pairs = np.array(list(itertools.combinations(atom_ids, 2)))
+        pairs = np.array(list(itertools.combinations(residues_list[0].atoms.ids, 2)))
         # Create a mask for distances below a given threshold.
         # And select only atom pairs below the threshold.
         atom_pairs = pairs[distances < threshold]
-
-        # Append atom pairs to a bigger list.
-        contacts_list.append(atom_pairs)
-
-    # Concatenate all atom pairs.
-    contacts_array2 = np.concatenate(contacts_list, axis=0)
-
-    # Remove redundant contacts
-    # We have quite a lot of redundancy since we are calculating inter-contacts
-    # twice for each residue: residue_1-residue_2, residue_2-residue_3, residue_3-residue_4....
-    # contacts_array2 is a pair list
-    contacts_array2 = np.unique(contacts_array2, axis=0)
+        return atom_pairs
     return contacts_array2
 
 
