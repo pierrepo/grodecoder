@@ -99,7 +99,21 @@ def get_atom_pairs(molecular_system, threshold):
     return atom_pairs
 
 
-def get_atom_pairs2(mol, threshold):
+def get_atom_pairs2(mol: mda.core.universe.Universe, threshold: float) -> np.ndarray:
+    """Get atom pairs within a specified distance threshold.
+
+    Parameters
+    ----------
+        mol : MDAnalysis.core.universe.Universe
+            The MDAnalysis universe object representing the molecular system.
+        threshold : float
+            The distance threshold for determining atom contacts.
+
+    Returns
+    -------
+        numpy.ndarray
+            An array containing the atom pairs that are within the specified distance threshold.
+    """
     contacts_list = []
 
     # Get the list of all residues.
@@ -152,7 +166,7 @@ def get_atom_pairs2(mol, threshold):
         return atom_pairs 
 
 
-def convert_atom_pairs_to_graph(atom_pairs, mol):
+def convert_atom_pairs_to_graph(atom_pairs: np.ndarray, mol: mda.core.universe.Universe) -> nx.classes.graph.Graph:
     """Convert a list of pairs to a graph and its connected components.
 
     Reference
@@ -168,10 +182,8 @@ def convert_atom_pairs_to_graph(atom_pairs, mol):
 
     Returns
     -------
-        tuple
-            A tuple containing two elements:
-               1. A generator object that iterates over the connected components of the graph.
-               2. A graph object representing the molecular system.
+        networkx.classes.graph.Graph
+            A graph object representing the molecular system.
     """
     logger.info("Converting atom pairs to graph...")
     graph = nx.Graph()
@@ -183,7 +195,7 @@ def convert_atom_pairs_to_graph(atom_pairs, mol):
     return graph
 
 
-def add_attributes_to_nodes(graph, mol_system):
+def add_attributes_to_nodes(graph: nx.classes.graph.Graph, mol_system: mda.core.universe.Universe) -> nx.classes.graph.Graph:
     """Add molecular attributes to graph nodes.
 
     Attributes are taken from the molecular system (MDAnalysis universe).
@@ -237,7 +249,7 @@ def add_attributes_to_nodes(graph, mol_system):
     return graph
 
 
-def get_graph_components(graph):
+def get_graph_components(graph: nx.classes.graph.Graph) -> list[nx.classes.graph.Graph]:
     """Extract the connected components of a graph.
 
     Parameters
@@ -258,7 +270,7 @@ def get_graph_components(graph):
     return graph_list
 
 
-def get_graph_fingerprint(graph):
+def get_graph_fingerprint(graph: nx.classes.graph.Graph) -> tuple[int, int, str, set, str]:
     """Generate a fingerprint for a given graph.
 
     This function calculates a fingerprint for a given graph based on its properties, including
@@ -304,7 +316,7 @@ def get_graph_fingerprint(graph):
     # return (nodes, atom_names, res_names)
 
 
-def print_graph_fingerprint(graph, index_graph):
+def print_graph_fingerprint(graph: nx.classes.graph.Graph, index_graph: int):
     """Print a graph fingerprint.
 
     Parameters
@@ -322,7 +334,7 @@ def print_graph_fingerprint(graph, index_graph):
     logger.debug(f"- Node degrees dist: {fingerprint[4]}")
 
 
-def count_molecule(graph_list):
+def count_molecule(graph_list: list[nx.classes.graph.Graph]) -> dict[nx.classes.graph.Graph, dict[str, int]]:
     """Count the occurrence of molecules in a list of graphs based on their fingerprints.
 
     This function takes a list of graphs and counts the occurrence of each unique molecule
@@ -383,7 +395,7 @@ def count_molecule(graph_list):
     return dict_count
 
 
-def print_graph_inventory(graph_dict):
+def print_graph_inventory(graph_dict: dict):
     """Print graph inventory.
 
     Parameters
@@ -424,7 +436,7 @@ def print_graph_inventory(graph_dict):
     logger.success(f"{total_molecules_count:,} molecules in total")
 
 
-def print_graph(graph, filepath_name, option_color=False):
+def print_graph(graph: nx.classes.graph.Graph, filepath_name: str, option_color=False):
     """Print and save a graph as PNG
 
     Ressources
@@ -476,7 +488,7 @@ def print_graph(graph, filepath_name, option_color=False):
     plt.savefig(filepath_name)
 
 
-def print_first_atoms(mda_universe, number_of_atoms=10):
+def print_first_atoms(mda_universe: mda.core.universe.Universe, number_of_atoms=10):
     """Print the first atoms in the MDAnalysis Universe object.
 
     For debugging purpose only.
@@ -497,7 +509,7 @@ def print_first_atoms(mda_universe, number_of_atoms=10):
         )
 
 
-def read_structure_file_remove_hydrogens(file_path):
+def read_structure_file_remove_hydrogens(file_path: str) -> mda.core.universe.Universe:
     """Read Groamacs .gro file and remove hydrogen atoms.
 
     Parameters
@@ -527,7 +539,7 @@ def read_structure_file_remove_hydrogens(file_path):
     return molecule_without_h
 
 
-def remove_hydrogene(filename):
+def remove_hydrogene(filename: str) -> mda.core.universe.Universe:
     molecule = mda.Universe(filename)
     logger.info(f"Found {len(molecule.atoms):,} atoms")
 
@@ -544,7 +556,7 @@ def remove_hydrogene(filename):
     return mol
 
 
-def find_ion_solvant(molecule, universe, counts, input_filepath):
+def find_ion_solvant(molecule: dict, universe: mda.core.universe.Universe, counts: dict, input_filepath: str) -> tuple[mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int]]]:
     """Counts and removes ions or solvents from the MDAnalysis Universe.
 
     Parameters
@@ -562,6 +574,12 @@ def find_ion_solvant(molecule, universe, counts, input_filepath):
             MDAnalysis Universe object containing only non-ion or non-solvent atoms.
         dict
             Dictionary containing the counts of removed atoms.
+            With the graph (representing this molecule) as key, 
+            and in the value : 
+                - the atom_id of the first atom (for each molecule)
+                - the atom_id of the last atom (for each molecule)
+                - the name of this molecule (collected from the dictionary in mol_def.py)
+                - the occurence if this molecule in this system
     """
     (name, res_name, atom_names) = molecule.values()
 
@@ -614,7 +632,7 @@ def find_ion_solvant(molecule, universe, counts, input_filepath):
     return (universe, counts)
 
 
-def count_remove_ion_solvant(universe, input_filepath):
+def count_remove_ion_solvant(universe: mda.core.universe.Universe, input_filepath: str) -> tuple[mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int]]]:
     """Count and remove ions and solvents from the MDAnalysis Universe return by
     the function find_ion_solvant().
 
@@ -665,7 +683,7 @@ def count_remove_ion_solvant(universe, input_filepath):
     return (universe_clean, counts)
 
 
-def check_overlapping_residue_between_graphs(graph_list):
+def check_overlapping_residue_between_graphs(graph_list: list[nx.classes.graph.Graph]):
     """Check there is no overlapping residue between graphs.
 
     This function checks that there are no overlapping residue between different graphs/molecules.
@@ -702,7 +720,7 @@ def check_overlapping_residue_between_graphs(graph_list):
         raise Exception("Some residue id are found in multiple graphs")
 
 
-def is_protein(graph):
+def is_protein(graph: nx.classes.graph.Graph) -> bool:
     """Check if the molecule represented by the graph is a protein.
 
     This function checks whether the graph represents a protein molecule by
@@ -728,7 +746,7 @@ def is_protein(graph):
     return "CA" in atom_names
 
 
-def extract_protein_sequence(graph):
+def extract_protein_sequence(graph: nx.classes.graph.Graph) -> dict[str, int]:
     """Extract the protein sequence from a graph.
 
     This function extracts the protein sequence from the molecule represented
@@ -767,7 +785,7 @@ def extract_protein_sequence(graph):
     return info_seq
 
 
-def export_protein_sequence_into_FASTA(protein_sequence_dict, filepath_name):
+def export_protein_sequence_into_FASTA(protein_sequence_dict: dict[str, int], filepath_name: str):
     """Export the protein sequences into a FASTA file.
 
     Parameters
@@ -792,7 +810,7 @@ def export_protein_sequence_into_FASTA(protein_sequence_dict, filepath_name):
             file.write(f"{content}\n")
 
 
-def main(input_file_path, draw_graph_option=False, check_overlapping_residue=False):
+def main(input_file_path: str, draw_graph_option=False, check_overlapping_residue=False):
     """Excute the main function for analyzing a .gro file.
 
     Parameters
@@ -805,6 +823,7 @@ def main(input_file_path, draw_graph_option=False, check_overlapping_residue=Fal
             Check of some residues are overlapping between graphs / molecules. Default: False.
     """
     threshold = max(mol_def.BOND_LENGTH.values())
+    threshold = 1.7
     logger.success(f"Bond threshold: {threshold} Angstrom")
 
 
@@ -847,7 +866,7 @@ def main(input_file_path, draw_graph_option=False, check_overlapping_residue=Fal
     export_protein_sequence_into_FASTA(protein_sequence_dict, f"{filename}.fasta")
 
 
-def is_a_structure_file(filepath):
+def is_a_structure_file(filepath: str) -> str:
     """Check if the given filepath points to an existing structure file (.gro, .pdb).
 
     Parameters
@@ -875,7 +894,7 @@ def is_a_structure_file(filepath):
     return filepath
 
 
-def parse_arg():
+def parse_arg() -> argparse.Namespace:
     """Parse command-line arguments.
 
     This function uses the argparse module to parse the command-line arguments
