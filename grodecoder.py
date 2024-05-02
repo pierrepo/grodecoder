@@ -185,7 +185,8 @@ def get_atom_pairs3(molecular_system: mda.core.universe.Universe) -> np.ndarray:
     References
     ----------
         https://docs.mdanalysis.org/stable/documentation_pages/core/groups.html#MDAnalysis.core.groups.AtomGroup.guess_bonds
-
+        https://docs.mdanalysis.org/stable/documentation_pages/topology/guessers.html#MDAnalysis.topology.guessers.guess_bonds
+        
     Parameters
     ----------
         molecular_system: mda.core.universe.Universe
