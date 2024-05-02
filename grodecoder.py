@@ -30,7 +30,7 @@ from scipy.spatial.distance import cdist
 import mol_def
 
 
-def get_distance_matrix_between_atom(file_gro):
+def get_distance_matrix_between_atom(file_gro: mda.core.universe.Universe) -> np.ndarray:
     """Calculate interatomic distances between all atoms in the GRO file \
     https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html \
     https://stackoverflow.com/questions/72701992/convert-a-matrix-of-distance-to-adjacency-list/72702534#72702534 .
@@ -61,7 +61,7 @@ def get_distance_matrix_between_atom(file_gro):
     return tmp
 
 
-def get_atom_pairs(molecular_system, threshold):
+def get_atom_pairs(molecular_system: mda.core.universe.Universe, threshold: float) -> np.ndarray:
     """Create a list of atom pairs based on the contact matrix (which based on the input system and threshold).
 
     This function calculates the pairs of atoms in the molecular system based on their distances.
@@ -99,7 +99,7 @@ def get_atom_pairs(molecular_system, threshold):
     return atom_pairs
 
 
-def get_atom_pairs2(mol: mda.core.universe.Universe, threshold: float) -> np.ndarray:
+def get_atom_pairs2(mol: mda.core.universe.Universe, threshold: float) -> np.ndarray[np.ndarray]:
     """Get atom pairs within a specified distance threshold.
 
     Parameters
@@ -125,6 +125,11 @@ def get_atom_pairs2(mol: mda.core.universe.Universe, threshold: float) -> np.nda
         for residue_1, residue_2 in zip(residues_list[:-1], residues_list[1:]):
             # print(f"Finding contacts for {residue_1.resid}-{residue_1.resname} and {residue_2.resid}-{residue_2.resname}")
             # Concatenate atom coordinates from both residues.
+            # Example: 
+            #   residue_1.atoms.positions = [53.05 64.78 78.47]
+            #   residue_2.atoms.positions = [54.31 65.49 78.92]
+            #   ==> coords = [[53.05 64.78 78.47]
+            #                 [54.31 65.49 78.92]]
             coords = np.concatenate(
                 (residue_1.atoms.positions, residue_2.atoms.positions), axis=0
             )
@@ -132,6 +137,14 @@ def get_atom_pairs2(mol: mda.core.universe.Universe, threshold: float) -> np.nda
             # Get distance between all atoms (upper-left matrix)
             # https://docs.mdanalysis.org/stable/_modules/MDAnalysis/lib/distances.html#self_distance_array
             # Result is output as a vector with (N)(N-1)/2 values.
+            # Example: 
+            #   coords = [[53.04999924 64.77999878 78.47000122] 
+            #             [54.31000137 65.48999786 78.91999817] 
+            #             [54.         64.         74.        ]] 
+            #   ==> distances = [1.51466212 4.63592606 5.15000742]
+            # where 1.51466212 is the distance between coords[0] and coords[1]
+            #       4.63592606 is between coords[0] and coords[2]
+            #       and 5.15000742 is between coords[1] and coords[2]
             distances = self_distance_array(coords)
 
             # Cocatenates the list of atoms ids from both residues
@@ -163,7 +176,7 @@ def get_atom_pairs2(mol: mda.core.universe.Universe, threshold: float) -> np.nda
         # Create a mask for distances below a given threshold.
         # And select only atom pairs below the threshold.
         atom_pairs = pairs[distances < threshold]
-        return atom_pairs 
+        return atom_pairs
 
 
 def convert_atom_pairs_to_graph(atom_pairs: np.ndarray, mol: mda.core.universe.Universe) -> nx.classes.graph.Graph:
