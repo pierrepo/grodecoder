@@ -436,7 +436,7 @@ def print_graph_inventory(graph_dict: dict):
     logger.success(f"{total_molecules_count:,} molecules in total")
 
 
-def print_graph(graph: nx.classes.graph.Graph, filepath_name: str, option_color=False):
+def print_graph(graph: nx.classes.graph.Graph, filepath_name: str, option_color: bool =False):
     """Print and save a graph as PNG
 
     Ressources
@@ -488,7 +488,7 @@ def print_graph(graph: nx.classes.graph.Graph, filepath_name: str, option_color=
     plt.savefig(filepath_name)
 
 
-def print_first_atoms(mda_universe: mda.core.universe.Universe, number_of_atoms=10):
+def print_first_atoms(mda_universe: mda.core.universe.Universe, number_of_atoms: int =10):
     """Print the first atoms in the MDAnalysis Universe object.
 
     For debugging purpose only.
@@ -810,7 +810,7 @@ def export_protein_sequence_into_FASTA(protein_sequence_dict: dict[str, int], fi
             file.write(f"{content}\n")
 
 
-def main(input_file_path: str, draw_graph_option=False, check_overlapping_residue=False):
+def main(input_file_path: str, draw_graph_option: bool =False, check_overlapping_residue: bool =False):
     """Excute the main function for analyzing a .gro file.
 
     Parameters
