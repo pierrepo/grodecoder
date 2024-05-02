@@ -533,7 +533,7 @@ def remove_hydrogene(filename):
 
     # Remove hydrogene from the system
     logger.info("Removing H atoms...")
-    mol = molecule.select_atoms("not (name H*)")
+    mol = molecule.select_atoms("not (name H* or name [123456789]H*)")
     filename_tmp = f"{Path(filename).stem}_without_H{Path(filename).suffix}"
     # Write the new system in a new file
     mol.write(filename_tmp, reindex=False)
@@ -718,7 +718,7 @@ def is_protein(graph):
         bool
             True if the molecule is a protein, False otherwise.
     """
-    logger.info("Checking if the molecule is a protein...")
+    # logger.info("Checking if the molecule is a protein...")
     atom_names = ""
 
     if graph.number_of_nodes() > 3:
