@@ -179,6 +179,29 @@ def get_atom_pairs2(mol: mda.core.universe.Universe, threshold: float) -> np.nda
         return atom_pairs
 
 
+def get_atom_pairs3(molecular_system: mda.core.universe.Universe) -> np.ndarray:
+    """This function retrieves atom pairs within a specified distance threshold from the given molecular system.
+    
+    References
+    ----------
+        https://docs.mdanalysis.org/stable/documentation_pages/core/groups.html#MDAnalysis.core.groups.AtomGroup.guess_bonds
+
+    Parameters
+    ----------
+        molecular_system: mda.core.universe.Universe
+            The MDAnalysis universe object representing the molecular system.
+
+    Returns
+    -------
+        numpy.ndarray
+            An array containing the atom pairs that are within the specified distance threshold.
+    """
+    molecular_system.atoms.guess_bonds()
+    bonds = molecular_system.atoms.bonds
+    atom_pairs = [[bonds[index][0].id, bonds[index][1].id] for index in range(len(bonds))]
+    return np.array(atom_pairs)
+
+
 def convert_atom_pairs_to_graph(atom_pairs: np.ndarray, mol: mda.core.universe.Universe) -> nx.classes.graph.Graph:
     """Convert a list of pairs to a graph and its connected components.
 
@@ -845,7 +868,9 @@ def main(input_file_path: str, draw_graph_option: bool =False, check_overlapping
         molecular_system, input_file_path
     )
 
-    atom_pairs = get_atom_pairs2(molecular_system, threshold)
+    # atom_pairs = get_atom_pairs2(molecular_system, threshold)
+    atom_pairs = get_atom_pairs3(molecular_system)
+
 
     graph_return = convert_atom_pairs_to_graph(atom_pairs, molecular_system)
 
