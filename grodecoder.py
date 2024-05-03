@@ -30,7 +30,9 @@ from scipy.spatial.distance import cdist
 import mol_def
 
 
-def get_distance_matrix_between_atom(file_gro: mda.core.universe.Universe) -> np.ndarray:
+def get_distance_matrix_between_atom(
+    file_gro: mda.core.universe.Universe,
+) -> np.ndarray:
     """Calculate interatomic distances between all atoms in the GRO file \
     https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html \
     https://stackoverflow.com/questions/72701992/convert-a-matrix-of-distance-to-adjacency-list/72702534#72702534 .
@@ -61,7 +63,9 @@ def get_distance_matrix_between_atom(file_gro: mda.core.universe.Universe) -> np
     return tmp
 
 
-def get_atom_pairs(molecular_system: mda.core.universe.Universe, threshold: float) -> np.ndarray:
+def get_atom_pairs(
+    molecular_system: mda.core.universe.Universe, threshold: float
+) -> np.ndarray:
     """Create a list of atom pairs based on the contact matrix (which based on the input system and threshold).
 
     This function calculates the pairs of atoms in the molecular system based on their distances.
@@ -99,7 +103,9 @@ def get_atom_pairs(molecular_system: mda.core.universe.Universe, threshold: floa
     return atom_pairs
 
 
-def get_atom_pairs2(mol: mda.core.universe.Universe, threshold: float) -> np.ndarray[np.ndarray]:
+def get_atom_pairs2(
+    mol: mda.core.universe.Universe, threshold: float
+) -> np.ndarray[np.ndarray]:
     """Get atom pairs within a specified distance threshold.
 
     Parameters
@@ -125,7 +131,7 @@ def get_atom_pairs2(mol: mda.core.universe.Universe, threshold: float) -> np.nda
         for residue_1, residue_2 in zip(residues_list[:-1], residues_list[1:]):
             # print(f"Finding contacts for {residue_1.resid}-{residue_1.resname} and {residue_2.resid}-{residue_2.resname}")
             # Concatenate atom coordinates from both residues.
-            # Example: 
+            # Example:
             #   residue_1.atoms.positions = [53.05 64.78 78.47]
             #   residue_2.atoms.positions = [54.31 65.49 78.92]
             #   ==> coords = [[53.05 64.78 78.47]
@@ -137,10 +143,10 @@ def get_atom_pairs2(mol: mda.core.universe.Universe, threshold: float) -> np.nda
             # Get distance between all atoms (upper-left matrix)
             # https://docs.mdanalysis.org/stable/_modules/MDAnalysis/lib/distances.html#self_distance_array
             # Result is output as a vector with (N)(N-1)/2 values.
-            # Example: 
-            #   coords = [[53.04999924 64.77999878 78.47000122] 
-            #             [54.31000137 65.48999786 78.91999817] 
-            #             [54.         64.         74.        ]] 
+            # Example:
+            #   coords = [[53.04999924 64.77999878 78.47000122]
+            #             [54.31000137 65.48999786 78.91999817]
+            #             [54.         64.         74.        ]]
             #   ==> distances = [1.51466212 4.63592606 5.15000742]
             # where 1.51466212 is the distance between coords[0] and coords[1]
             #       4.63592606 is between coords[0] and coords[2]
@@ -181,7 +187,7 @@ def get_atom_pairs2(mol: mda.core.universe.Universe, threshold: float) -> np.nda
 
 def get_atom_pairs3(molecular_system: mda.core.universe.Universe) -> np.ndarray:
     """This function retrieves atom pairs within a specified distance threshold from the given molecular system.
-    
+
     References
     ----------
         https://docs.mdanalysis.org/stable/documentation_pages/core/groups.html#MDAnalysis.core.groups.AtomGroup.guess_bonds
@@ -203,7 +209,9 @@ def get_atom_pairs3(molecular_system: mda.core.universe.Universe) -> np.ndarray:
     return np.array(atom_pairs)
 
 
-def convert_atom_pairs_to_graph(atom_pairs: np.ndarray, mol: mda.core.universe.Universe) -> nx.classes.graph.Graph:
+def convert_atom_pairs_to_graph(
+    atom_pairs: np.ndarray, mol: mda.core.universe.Universe
+) -> nx.classes.graph.Graph:
     """Convert a list of pairs to a graph and its connected components.
 
     Reference
@@ -232,7 +240,9 @@ def convert_atom_pairs_to_graph(atom_pairs: np.ndarray, mol: mda.core.universe.U
     return graph
 
 
-def add_attributes_to_nodes(graph: nx.classes.graph.Graph, mol_system: mda.core.universe.Universe) -> nx.classes.graph.Graph:
+def add_attributes_to_nodes(
+    graph: nx.classes.graph.Graph, mol_system: mda.core.universe.Universe
+) -> nx.classes.graph.Graph:
     """Add molecular attributes to graph nodes.
 
     Attributes are taken from the molecular system (MDAnalysis universe).
@@ -307,7 +317,9 @@ def get_graph_components(graph: nx.classes.graph.Graph) -> list[nx.classes.graph
     return graph_list
 
 
-def get_graph_fingerprint(graph: nx.classes.graph.Graph) -> tuple[int, int, str, set, str]:
+def get_graph_fingerprint(
+    graph: nx.classes.graph.Graph,
+) -> tuple[int, int, str, set, str]:
     """Generate a fingerprint for a given graph.
 
     This function calculates a fingerprint for a given graph based on its properties, including
@@ -337,22 +349,24 @@ def get_graph_fingerprint(graph: nx.classes.graph.Graph) -> tuple[int, int, str,
     edges = graph.number_of_edges()
 
     atom_names = " ".join(sorted(nx.get_node_attributes(graph, "atom_name").values()))
-    
+
     res_names = set()
     for res_name in set((nx.get_node_attributes(graph, "residue_name").values())):
         res_names.add(mol_def.AMINO_ACID_DICT.get(res_name, res_name))
-    
+
     graph_degrees = Counter(dict(graph.degree).values())
     degree_dist = " ".join(
-            [f"{key}:{value}" for key, value in sorted(graph_degrees.items())]
-        )
+        [f"{key}:{value}" for key, value in sorted(graph_degrees.items())]
+    )
 
     return (nodes, edges, atom_names, res_names, degree_dist)
     # return (nodes, edges, atom_names, res_names)
     # return (nodes, atom_names, res_names)
 
 
-def get_graph_fingerprint2(graph: nx.classes.graph.Graph) -> tuple[int, int, dict[str, int], list[str], dict[int, int]]:
+def get_graph_fingerprint2(
+    graph: nx.classes.graph.Graph,
+) -> tuple[int, int, dict[str, int], list[str], dict[int, int]]:
     """Generate a fingerprint for a given graph.
 
     This function calculates a fingerprint for a given graph based on its properties, including
@@ -386,8 +400,8 @@ def get_graph_fingerprint2(graph: nx.classes.graph.Graph) -> tuple[int, int, dic
 
     res_names = []
     current_residue_id = None
-    # Example: 
-    # sorted(graph.nodes.items(), key=lambda x: x[0]) = 
+    # Example:
+    # sorted(graph.nodes.items(), key=lambda x: x[0]) =
     #       19 {'atom_id': 19, 'atom_name': 'NZ', 'residue_id': 1, 'residue_name': 'LYSH'}
     #       23 {'atom_id': 23, 'atom_name': 'C', 'residue_id': 1, 'residue_name': 'LYSH'}
     #       24 {'atom_id': 24, 'atom_name': 'O', 'residue_id': 1, 'residue_name': 'LYSH'}
@@ -398,13 +412,13 @@ def get_graph_fingerprint2(graph: nx.classes.graph.Graph) -> tuple[int, int, dic
     #       35 {'atom_id': 35, 'atom_name': 'CD', 'residue_id': 2, 'residue_name': 'LYSH'}
     # ==> So I want to extract each residue name for one unique residue id
     for _, node_attr in sorted(graph.nodes.items(), key=lambda x: x[0]):
-        residue_id = node_attr['residue_id']
-        res_name = node_attr['residue_name']
+        residue_id = node_attr["residue_id"]
+        res_name = node_attr["residue_name"]
         if residue_id != current_residue_id:
             res_names.append(mol_def.AMINO_ACID_DICT.get(res_name, res_name))
             current_residue_id = residue_id
 
-    # Exemple : 
+    # Exemple :
     # graph.degree = [(1, 1), (2, 3), (3, 1), (4, 2), (5, 1)]
     # dict(graph.degree)) = {1: 1, 2: 3, 3: 1, 4: 2, 5: 1}
     # dict(graph.degree).values()) = [1, 3, 1, 2, 1]
@@ -414,7 +428,9 @@ def get_graph_fingerprint2(graph: nx.classes.graph.Graph) -> tuple[int, int, dic
     return (nodes, edges, atom_names, res_names, graph_degrees_dict)
 
 
-def get_graph_fingerprint_concat(graph: nx.classes.graph.Graph) -> tuple[int, dict[str, int], list[str]]:
+def get_graph_fingerprint_concat(
+    graph: nx.classes.graph.Graph,
+) -> tuple[int, dict[str, int], list[str]]:
     """Generate a concatenated fingerprint for a given graph.
 
     This function calculates a concatenated fingerprint for a given graph based on its properties, including
@@ -455,7 +471,9 @@ def print_graph_fingerprint(graph: nx.classes.graph.Graph, index_graph: int):
     logger.debug(f"- Node degrees dist: {fingerprint[4]}")
 
 
-def count_molecule(graph_list: list[nx.classes.graph.Graph]) -> dict[nx.classes.graph.Graph, dict[str, int]]:
+def count_molecule(
+    graph_list: list[nx.classes.graph.Graph],
+) -> dict[nx.classes.graph.Graph, dict[str, int]]:
     """Count the occurrence of molecules in a list of graphs based on their fingerprints.
 
     This function takes a list of graphs and counts the occurrence of each unique molecule
@@ -531,7 +549,7 @@ def print_graph_inventory(graph_dict: dict):
     for graph_idx, (graph, key) in enumerate(graph_dict.items(), start=1):
         logger.info(f"Molecule {graph_idx:,} ----------------")
 
-        if len(key) == 3: 
+        if len(key) == 3:
             (atom_start, atom_end, count) = key.values()
         else:
             (atom_start, atom_end, name, count) = key.values()
@@ -544,22 +562,20 @@ def print_graph_inventory(graph_dict: dict):
         for i in range(min(20, len(atom_start))):
             logger.info(f"\t({atom_start[i]} -- {atom_end[i]})")
 
-        atom_names = list(
-            sorted(nx.get_node_attributes(graph, "atom_name").values())
-        )
+        atom_names = list(sorted(nx.get_node_attributes(graph, "atom_name").values()))
         atom_names_str = " ".join(atom_names[:20])
         logger.debug(f"- 20 first atom names: {atom_names_str}")
 
-        res_names = set(
-            sorted(nx.get_node_attributes(graph, "residue_name").values())
-        )
+        res_names = set(sorted(nx.get_node_attributes(graph, "residue_name").values()))
         logger.debug(f"- res names: {res_names}")
 
         total_molecules_count += count
     logger.success(f"{total_molecules_count:,} molecules in total")
 
 
-def print_graph(graph: nx.classes.graph.Graph, filepath_name: str, option_color: bool =False):
+def print_graph(
+    graph: nx.classes.graph.Graph, filepath_name: str, option_color: bool = False
+):
     """Print and save a graph as PNG
 
     Ressources
@@ -611,7 +627,9 @@ def print_graph(graph: nx.classes.graph.Graph, filepath_name: str, option_color:
     plt.savefig(filepath_name)
 
 
-def print_first_atoms(mda_universe: mda.core.universe.Universe, number_of_atoms: int =10):
+def print_first_atoms(
+    mda_universe: mda.core.universe.Universe, number_of_atoms: int = 10
+):
     """Print the first atoms in the MDAnalysis Universe object.
 
     For debugging purpose only.
@@ -679,7 +697,9 @@ def remove_hydrogene(filename: str) -> mda.core.universe.Universe:
     return mol
 
 
-def find_ion_solvant(molecule: dict, universe: mda.core.universe.Universe, counts: dict, input_filepath: str) -> tuple[mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int]]]:
+def find_ion_solvant(
+    molecule: dict, universe: mda.core.universe.Universe, counts: dict
+) -> tuple[mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int]]]:
     """Counts and removes ions or solvents from the MDAnalysis Universe.
 
     Parameters
@@ -697,8 +717,8 @@ def find_ion_solvant(molecule: dict, universe: mda.core.universe.Universe, count
             MDAnalysis Universe object containing only non-ion or non-solvent atoms.
         dict
             Dictionary containing the counts of removed atoms.
-            With the graph (representing this molecule) as key, 
-            and in the value : 
+            With the graph (representing this molecule) as key,
+            and in the value :
                 - the atom_id of the first atom (for each molecule)
                 - the atom_id of the last atom (for each molecule)
                 - the name of this molecule (collected from the dictionary in mol_def.py)
@@ -722,7 +742,7 @@ def find_ion_solvant(molecule: dict, universe: mda.core.universe.Universe, count
             tmp_select = f"{selection} and not resid {' and not resid '.join(list_resid_methionine)}"
             selected_atoms = universe.select_atoms(tmp_select)
 
-    #Collect all resids from each residues selected, to remove it from the univers
+    # Collect all resids from each residues selected, to remove it from the univers
     selected_res_ids = [str(residue.resid) for residue in selected_atoms.residues]
     res_count = len(selected_res_ids)
 
@@ -742,12 +762,14 @@ def find_ion_solvant(molecule: dict, universe: mda.core.universe.Universe, count
         for subgraph in list_graph:
             atom_start.append(min(nx.get_node_attributes(subgraph, "atom_id").values()))
             atom_end.append(max(nx.get_node_attributes(subgraph, "atom_id").values()))
-        
-        counts[list_graph[0]] = {"atom_start": atom_start,
-                                 "atom_end": atom_end,
-                                 "name": name,
-                                 "graph": res_count}
-        
+
+        counts[list_graph[0]] = {
+            "atom_start": atom_start,
+            "atom_end": atom_end,
+            "name": name,
+            "graph": res_count,
+        }
+
         # Here we remove all the resIDS (from selected_res_ids) from this universe
         for resID in selected_res_ids:
             selection = f"not (resname {res_name} and resid {resID})"
@@ -755,7 +777,9 @@ def find_ion_solvant(molecule: dict, universe: mda.core.universe.Universe, count
     return (universe, counts)
 
 
-def count_remove_ion_solvant(universe: mda.core.universe.Universe, input_filepath: str) -> tuple[mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int]]]:
+def count_remove_ion_solvant(
+    universe: mda.core.universe.Universe, input_filepath: str
+) -> tuple[mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int]]]:
     """Count and remove ions and solvents from the MDAnalysis Universe return by
     the function find_ion_solvant().
 
@@ -771,19 +795,19 @@ def count_remove_ion_solvant(universe: mda.core.universe.Universe, input_filepat
         tuple
             Containing :
                 - the new Universe without ions and solvants.
-                - a dictionary where 
-                    - the key is a graph 
+                - a dictionary where
+                    - the key is a graph
                     - and the value is an other dictionary with: atom_start, atom_end, name of the ion-solvant, the counts of removed ions-solvant
     """
     counts = {}
 
     logger.info("Searching ions...")
     for ion in mol_def.IONS_LIST:
-        universe, counts = find_ion_solvant(ion, universe, counts, input_filepath)
+        universe, counts = find_ion_solvant(ion, universe, counts)
 
     logger.info("Searching solvant molecules...")
     for solvant in mol_def.SOLVANTS_LIST:
-        universe, counts = find_ion_solvant(solvant, universe, counts, input_filepath)
+        universe, counts = find_ion_solvant(solvant, universe, counts)
 
     # Write the new universe without ions and solvant into a new file
     output_file = f"{Path(input_filepath).stem}_without_H_ions_solvant{Path(input_filepath).suffix}"
@@ -794,10 +818,12 @@ def count_remove_ion_solvant(universe: mda.core.universe.Universe, input_filepat
     for molecule, dict_count in counts.items():
         name = dict_count.get("name")
         count = dict_count.get("graph")
-        res_name = ' '.join(set(nx.get_node_attributes(molecule, 'residue_name').values()))
+        res_name = " ".join(
+            set(nx.get_node_attributes(molecule, "residue_name").values())
+        )
         logger.success(f"Found: {count} {name} ({res_name})")
 
-    # Check if there is other residue with the resname SOL in the updated MDAnalysis.core.universe.Universe 
+    # Check if there is other residue with the resname SOL in the updated MDAnalysis.core.universe.Universe
     selected_atoms = universe_clean.select_atoms("resname SOL")
     count = len(selected_atoms.residues)
     logger.info(f"{count} residues SOL remaining")
@@ -908,7 +934,9 @@ def extract_protein_sequence(graph: nx.classes.graph.Graph) -> dict[str, int]:
     return info_seq
 
 
-def export_protein_sequence_into_FASTA(protein_sequence_dict: dict[int, dict[str, int]], filepath_name: str):
+def export_protein_sequence_into_FASTA(
+    protein_sequence_dict: dict[int, dict[str, int]], filepath_name: str
+):
     """Export the protein sequences into a FASTA file.
 
     Parameters
@@ -933,7 +961,11 @@ def export_protein_sequence_into_FASTA(protein_sequence_dict: dict[int, dict[str
             file.write(f"{content}\n")
 
 
-def main(input_file_path: str, draw_graph_option: bool =False, check_overlapping_residue: bool =False):
+def main(
+    input_file_path: str,
+    draw_graph_option: bool = False,
+    check_overlapping_residue: bool = False,
+):
     """Excute the main function for analyzing a .gro file.
 
     Parameters
