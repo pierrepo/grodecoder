@@ -186,7 +186,7 @@ def get_atom_pairs3(molecular_system: mda.core.universe.Universe) -> np.ndarray:
     ----------
         https://docs.mdanalysis.org/stable/documentation_pages/core/groups.html#MDAnalysis.core.groups.AtomGroup.guess_bonds
         https://docs.mdanalysis.org/stable/documentation_pages/topology/guessers.html#MDAnalysis.topology.guessers.guess_bonds
-        
+
     Parameters
     ----------
         molecular_system: mda.core.universe.Universe
@@ -199,7 +199,7 @@ def get_atom_pairs3(molecular_system: mda.core.universe.Universe) -> np.ndarray:
     """
     molecular_system.atoms.guess_bonds()
     bonds = molecular_system.atoms.bonds
-    atom_pairs = [[bonds[index][0].id, bonds[index][1].id] for index in range(len(bonds))]
+    atom_pairs = [[bond[0].id, bond[1].id] for bond in bonds]
     return np.array(atom_pairs)
 
 
