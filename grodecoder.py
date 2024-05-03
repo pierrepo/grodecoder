@@ -335,22 +335,106 @@ def get_graph_fingerprint(graph: nx.classes.graph.Graph) -> tuple[int, int, str,
     """
     nodes = graph.number_of_nodes()
     edges = graph.number_of_edges()
+
     atom_names = " ".join(sorted(nx.get_node_attributes(graph, "atom_name").values()))
-    # res_names = " ".join(
-    #     sorted(set((nx.get_node_attributes(graph, "residue_name").values())))
-    # )
+    
     res_names = set()
     for res_name in set((nx.get_node_attributes(graph, "residue_name").values())):
         res_names.add(mol_def.AMINO_ACID_DICT.get(res_name, res_name))
-
+    
     graph_degrees = Counter(dict(graph.degree).values())
     degree_dist = " ".join(
-        [f"{key}:{value}" for key, value in sorted(graph_degrees.items())]
-    )
+            [f"{key}:{value}" for key, value in sorted(graph_degrees.items())]
+        )
 
     return (nodes, edges, atom_names, res_names, degree_dist)
     # return (nodes, edges, atom_names, res_names)
     # return (nodes, atom_names, res_names)
+
+
+def get_graph_fingerprint2(graph: nx.classes.graph.Graph) -> tuple[int, int, dict[str, int], list[str], dict[int, int]]:
+    """Generate a fingerprint for a given graph.
+
+    This function calculates a fingerprint for a given graph based on its properties, including
+    the number of nodes, the number of edges, and sorted concatenations of atom names, residue
+    names and their degree.
+
+    Reference
+    ---------
+    - https://stackoverflow.com/questions/46999771/comparing-a-large-number-of-graphs-for-isomorphism
+
+    Parameters
+    ----------
+        graph: networkx.classes.graph.Graph
+            The graph for which the fingerprint is to be generated.
+
+    Returns
+    -------
+        tuple:
+            A tuple containing the fingerprint of the graph, which includes the following elements:
+                - int: The number of nodes in the graph.
+                - int: The number of edges in the graph.
+                - dict[str, int]: A dictionary containing the counts of each atom name present in the graph.
+                - list[str]: A list containing the names of the unique residues present in the graph.
+                - dict[int, int]: A dictionary containing the counts of each degree present in the graph.
+    """
+    nodes = graph.number_of_nodes()
+    edges = graph.number_of_edges()
+
+    atom_names = Counter(sorted(nx.get_node_attributes(graph, "atom_name").values()))
+    atom_names = dict(atom_names)
+
+    res_names = []
+    current_residue_id = None
+    # Example: 
+    # sorted(graph.nodes.items(), key=lambda x: x[0]) = 
+    #       19 {'atom_id': 19, 'atom_name': 'NZ', 'residue_id': 1, 'residue_name': 'LYSH'}
+    #       23 {'atom_id': 23, 'atom_name': 'C', 'residue_id': 1, 'residue_name': 'LYSH'}
+    #       24 {'atom_id': 24, 'atom_name': 'O', 'residue_id': 1, 'residue_name': 'LYSH'}
+    #       25 {'atom_id': 25, 'atom_name': 'N', 'residue_id': 2, 'residue_name': 'LYSH'}
+    #       27 {'atom_id': 27, 'atom_name': 'CA', 'residue_id': 2, 'residue_name': 'LYSH'}
+    #       29 {'atom_id': 29, 'atom_name': 'CB', 'residue_id': 2, 'residue_name': 'LYSH'}
+    #       32 {'atom_id': 32, 'atom_name': 'CG', 'residue_id': 2, 'residue_name': 'LYSH'}
+    #       35 {'atom_id': 35, 'atom_name': 'CD', 'residue_id': 2, 'residue_name': 'LYSH'}
+    # ==> So I want to extract each residue name for one unique residue id
+    for _, node_attr in sorted(graph.nodes.items(), key=lambda x: x[0]):
+        residue_id = node_attr['residue_id']
+        res_name = node_attr['residue_name']
+        if residue_id != current_residue_id:
+            res_names.append(mol_def.AMINO_ACID_DICT.get(res_name, res_name))
+            current_residue_id = residue_id
+
+    # Exemple : 
+    # graph.degree = [(1, 1), (2, 3), (3, 1), (4, 2), (5, 1)]
+    # dict(graph.degree)) = {1: 1, 2: 3, 3: 1, 4: 2, 5: 1}
+    # dict(graph.degree).values()) = [1, 3, 1, 2, 1]
+    # ==> graph_degrees_dict = {1: 3, 2: 1, 3: 1}
+    graph_degrees_dict = dict(Counter(sorted(dict(graph.degree).values())))
+
+    return (nodes, edges, atom_names, res_names, graph_degrees_dict)
+
+
+def get_graph_fingerprint_concat(graph: nx.classes.graph.Graph) -> tuple[int, dict[str, int], list[str]]:
+    """Generate a concatenated fingerprint for a given graph.
+
+    This function calculates a concatenated fingerprint for a given graph based on its properties, including
+    the number of nodes, sorted concatenations of atom names, and residue names.
+
+    Parameters
+    ----------
+        graph: networkx.classes.graph.Graph
+            The graph for which the fingerprint is to be generated.
+
+    Returns
+    -------
+        tuple[int, dict[str, int], list[str]]:
+            A tuple containing the concatenated fingerprint of the graph, which includes the following elements:
+                - int: The number of nodes in the graph.
+                - dict[str, int]: A dictionary containing the counts of each atom name present in the graph.
+                - list[str]: A list containing the names of the unique residues present in the graph.
+    """
+    (nodes, _, atom_names, res_names, _) = get_graph_fingerprint2(graph)
+    return (nodes, atom_names, res_names)
 
 
 def print_graph_fingerprint(graph: nx.classes.graph.Graph, index_graph: int):
@@ -362,11 +446,11 @@ def print_graph_fingerprint(graph: nx.classes.graph.Graph, index_graph: int):
             A NetworkX graph object.
     """
     logger.debug("print groupby ... ")
-    fingerprint = get_graph_fingerprint(graph)
+    fingerprint = get_graph_fingerprint2(graph)
     logger.debug(f"Graph {index_graph} fingerprint-----------------")
     logger.debug(f"- Number of nodes: {fingerprint[0]}")
     logger.debug(f"- Number of edges: {fingerprint[1]}")
-    logger.debug(f"- Sorted atom names (first 50 char.): {fingerprint[2][:50]}")
+    logger.debug(f"- Sorted atom names (first 50 char.): {fingerprint[2]}")
     logger.debug(f"- Sorted set of residue names: {fingerprint[3]}")
     logger.debug(f"- Node degrees dist: {fingerprint[4]}")
 
@@ -375,7 +459,7 @@ def count_molecule(graph_list: list[nx.classes.graph.Graph]) -> dict[nx.classes.
     """Count the occurrence of molecules in a list of graphs based on their fingerprints.
 
     This function takes a list of graphs and counts the occurrence of each unique molecule
-    based on their fingerprints, which are calculated using the get_graph_fingerprint function.
+    based on their fingerprints, which are calculated using the get_graph_fingerprint_concat function.
     
     Reference 
     ---------
@@ -394,9 +478,11 @@ def count_molecule(graph_list: list[nx.classes.graph.Graph]) -> dict[nx.classes.
     """
     logger.info("Counting molecules...")
     dict_count = {}
+
+    # sorted_graphs = sorted(graph_list, key=get_graph_fingerprint_concat)
     sorted_graphs = sorted(graph_list, key=get_graph_fingerprint)
 
-    for fingerprint, graph in groupby(sorted_graphs, key=get_graph_fingerprint):
+    for fingerprint, graph in groupby(sorted_graphs, key=get_graph_fingerprint_concat):
         # fingerprint : (nb_node, nb_edge, atom_name, resname, degree)
         # graph : objet itertools that group all graph with the same fingerprint
 
@@ -822,7 +908,7 @@ def extract_protein_sequence(graph: nx.classes.graph.Graph) -> dict[str, int]:
     return info_seq
 
 
-def export_protein_sequence_into_FASTA(protein_sequence_dict: dict[str, int], filepath_name: str):
+def export_protein_sequence_into_FASTA(protein_sequence_dict: dict[int, dict[str, int]], filepath_name: str):
     """Export the protein sequences into a FASTA file.
 
     Parameters
@@ -863,7 +949,6 @@ def main(input_file_path: str, draw_graph_option: bool =False, check_overlapping
     threshold = 1.7
     logger.success(f"Bond threshold: {threshold} Angstrom")
 
-
     molecular_system = remove_hydrogene(input_file_path)
     molecular_system, count_ion_solvant = count_remove_ion_solvant(
         molecular_system, input_file_path
@@ -871,7 +956,6 @@ def main(input_file_path: str, draw_graph_option: bool =False, check_overlapping
 
     # atom_pairs = get_atom_pairs2(molecular_system, threshold)
     atom_pairs = get_atom_pairs3(molecular_system)
-
 
     graph_return = convert_atom_pairs_to_graph(atom_pairs, molecular_system)
 
