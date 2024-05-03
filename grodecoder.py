@@ -204,6 +204,11 @@ def get_atom_pairs3(molecular_system: mda.core.universe.Universe) -> np.ndarray:
             An array containing the atom pairs that are within the specified distance threshold.
     """
     molecular_system.atoms.guess_bonds()
+    # Example:
+    # bonds = <TopologyGroup containing n bonds>, where n is the number of bonds in this system
+    # Each element in bonds is <Bond between: Atom n1, Atom n2>, where n1 and n2 are the indice of atom in the system
+    # We can extract information of Atom n1 and Atom n2 with: bond[0] and bond[1] 
+    # bond[0 or 1] give information on atom id, atom name, residue name, residue id and segid
     bonds = molecular_system.atoms.bonds
     atom_pairs = [[bond[0].id, bond[1].id] for bond in bonds]
     return np.array(atom_pairs)
@@ -513,7 +518,8 @@ def count_molecule(
             atom_start.append(min(nx.get_node_attributes(graph, "atom_id").values()))
             atom_end.append(max(nx.get_node_attributes(graph, "atom_id").values()))
 
-        if nb_graph == 1:  # For this fingerprint, there is only one graph
+        # For this fingerprint, there is only one graph
+        if nb_graph == 1: 
             dict_count[similar_graphs[0]] = {
                 "atom_start": atom_start,
                 "atom_end": atom_end,
