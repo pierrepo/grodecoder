@@ -492,8 +492,10 @@ def count_molecule(
     logger.info("Counting molecules...")
     dict_count = {}
 
-    # sorted_graphs = sorted(graph_list, key=get_graph_fingerprint_concat)
-    sorted_graphs = sorted(graph_list, key=get_graph_fingerprint)
+    # sorted_graphs = sorted(graph_list, key=get_graph_fingerprint)
+    # sorted_graphs = sorted(graph_list, key=lambda x: get_graph_fingerprint2(x))
+    sorted_graphs = sorted(graph_list, key=lambda x: get_graph_fingerprint_concat(x))
+
 
     for fingerprint, graph in groupby(sorted_graphs, key=get_graph_fingerprint_concat):
         # fingerprint : (nb_node, nb_edge, atom_name, resname, degree)
