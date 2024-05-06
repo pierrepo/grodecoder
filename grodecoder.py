@@ -400,37 +400,27 @@ def get_graph_fingerprint2(
     nodes = graph.number_of_nodes()
     edges = graph.number_of_edges()
 
-    atom_names = Counter(sorted(nx.get_node_attributes(graph, "atom_name").values()))
-    atom_names = dict(atom_names)
+    atom_names = Counter(nx.get_node_attributes(graph, "atom_name").values())
+    atom_names = dict(atom_names.most_common())
 
-    res_names = []
-    current_residue_id = None
-    # Example:
-    # sorted(graph.nodes.items(), key=lambda x: x[0]) =
-    #       19 {'atom_id': 19, 'atom_name': 'NZ', 'residue_id': 1, 'residue_name': 'LYSH'}
-    #       23 {'atom_id': 23, 'atom_name': 'C', 'residue_id': 1, 'residue_name': 'LYSH'}
-    #       24 {'atom_id': 24, 'atom_name': 'O', 'residue_id': 1, 'residue_name': 'LYSH'}
-    #       25 {'atom_id': 25, 'atom_name': 'N', 'residue_id': 2, 'residue_name': 'LYSH'}
-    #       27 {'atom_id': 27, 'atom_name': 'CA', 'residue_id': 2, 'residue_name': 'LYSH'}
-    #       29 {'atom_id': 29, 'atom_name': 'CB', 'residue_id': 2, 'residue_name': 'LYSH'}
-    #       32 {'atom_id': 32, 'atom_name': 'CG', 'residue_id': 2, 'residue_name': 'LYSH'}
-    #       35 {'atom_id': 35, 'atom_name': 'CD', 'residue_id': 2, 'residue_name': 'LYSH'}
-    # ==> So I want to extract each residue name for one unique residue id
-    for _, node_attr in sorted(graph.nodes.items(), key=lambda x: x[0]):
-        residue_id = node_attr["residue_id"]
-        res_name = node_attr["residue_name"]
-        if residue_id != current_residue_id:
-            res_names.append(mol_def.AMINO_ACID_DICT.get(res_name, res_name))
-            current_residue_id = residue_id
+    # Get all residue ids and resides names pairs.
+    residue_pairs = zip(
+        nx.get_node_attributes(graph, "residue_id").values(),
+        nx.get_node_attributes(graph, "residue_name").values()
+    )
+    # Convert to dictionnary to have only one residue id (key is unique in dict).
+    residue_pairs_dict = dict(residue_pairs)
+    # Then extract residue names ordered by residue ids:
+    residue_names = [residue_pairs_dict[key] for key in sorted(residue_pairs_dict)]
 
     # Exemple :
     # graph.degree = [(1, 1), (2, 3), (3, 1), (4, 2), (5, 1)]
-    # dict(graph.degree)) = {1: 1, 2: 3, 3: 1, 4: 2, 5: 1}
-    # dict(graph.degree).values()) = [1, 3, 1, 2, 1]
-    # ==> graph_degrees_dict = {1: 3, 2: 1, 3: 1}
-    graph_degrees_dict = dict(Counter(sorted(dict(graph.degree).values())))
+    graph_degrees_dict = dict(
+        Counter([degree for _, degree in graph.degree])
+        .most_common()
+    )
 
-    return (nodes, edges, atom_names, res_names, graph_degrees_dict)
+    return (nodes, edges, atom_names, residue_names, graph_degrees_dict)
 
 
 def get_graph_fingerprint_concat(
@@ -984,7 +974,6 @@ def main(
             Check of some residues are overlapping between graphs / molecules. Default: False.
     """
     threshold = max(mol_def.BOND_LENGTH.values())
-    threshold = 1.7
     logger.success(f"Bond threshold: {threshold} Angstrom")
 
     molecular_system = remove_hydrogene(input_file_path)
