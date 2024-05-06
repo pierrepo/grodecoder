@@ -882,13 +882,8 @@ def is_protein(graph: nx.classes.graph.Graph) -> bool:
             True if the molecule is a protein, False otherwise.
     """
     # logger.info("Checking if the molecule is a protein...")
-    atom_names = ""
-
-    if graph.number_of_nodes() > 3:
-        atom_names = " ".join(
-            sorted(nx.get_node_attributes(graph, "atom_name").values())
-        )
-    return "CA" in atom_names
+    nodes, _, atom_names_dict, _, _ = get_graph_fingerprint2(graph)
+    return (nodes > 3) and ("CA" in atom_names_dict)
 
 
 def extract_protein_sequence(graph: nx.classes.graph.Graph) -> dict[str, int]:
