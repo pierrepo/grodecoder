@@ -201,12 +201,14 @@ def get_atom_pairs3(molecular_system: mda.core.universe.Universe) -> np.ndarray:
         numpy.ndarray
             An array containing the atom pairs that are within the specified distance threshold.
     """
+    logger.info("Create atom pairs list with the Van der Waals radius of each atom...")
+
     molecular_system.atoms.guess_bonds()
     # Example:
     # bonds = <TopologyGroup containing n bonds>, where n is the number of bonds in this system
     # Each element in bonds is <Bond between: Atom n1, Atom n2>, where n1 and n2 are the indice of atom in the system
-    # We can extract information of Atom n1 and Atom n2 with: bond[0] and bond[1] 
-    # bond[0 or 1] give information on atom id, atom name, residue name, residue id and segid
+    # We can extract information of Atom n1 and Atom n2 with bond[0] and bond[1] respectively
+    # bond[0] or bond[1] gives information on atom id, atom name, residue name, residue id and segid
     bonds = molecular_system.atoms.bonds
     atom_pairs = [[bond[0].id, bond[1].id] for bond in bonds]
     return np.array(atom_pairs)
@@ -234,6 +236,7 @@ def convert_atom_pairs_to_graph(
             A graph object representing the molecular system.
     """
     logger.info("Converting atom pairs to graph...")
+    
     graph = nx.Graph()
     # Add all atoms as single nodes.
     graph.add_nodes_from(mol.atoms.ids)
@@ -446,8 +449,6 @@ def count_molecule(
     logger.info("Counting molecules...")
     dict_count = {}
 
-    # sorted_graphs = sorted(graph_list, key=get_graph_fingerprint)
-
     # Convert the dictionnary of atom_name to a str 
     # So dictionnary can be compare between them
     sorted_graphs = sorted(graph_list, key=get_graph_fingerprint_str)
@@ -465,7 +466,7 @@ def count_molecule(
             atom_start.append(min(nx.get_node_attributes(graph, "atom_id").values()))
             atom_end.append(max(nx.get_node_attributes(graph, "atom_id").values()))
 
-        # For this fingerprint, there is only one graph
+        # If for this fingerprint, there is only one graph
         if nb_graph == 1: 
             dict_count[similar_graphs[0]] = {
                 "atom_start": atom_start,
@@ -473,7 +474,7 @@ def count_molecule(
                 "graph": nb_graph,
             }
         else:
-            # For this fingerprint, all the graph only have one node
+            # If for this fingerprint, all the graph only have one node
             if fingerprint[0] == 1:
                 dict_count[similar_graphs[0]] = {
                     "atom_start": atom_start,
