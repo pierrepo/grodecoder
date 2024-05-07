@@ -401,7 +401,10 @@ def get_graph_fingerprint2(
     edges = graph.number_of_edges()
 
     atom_names = Counter(nx.get_node_attributes(graph, "atom_name").values())
-    atom_names = dict(atom_names.most_common())
+    # Use sorted so the atom_names will be in the same order if it's the same molecule. 
+    # Otherwise it's different even if it's the same molecule
+    # And the dictionnary comparaison will say it's different molecule
+    atom_names = dict(sorted(atom_names.most_common()))
 
     # Get all residue ids and resides names pairs.
     residue_pairs = zip(
@@ -425,7 +428,9 @@ def get_graph_fingerprint2(
 
 def get_graph_fingerprint_concat(
     graph: nx.classes.graph.Graph,
-) -> tuple[int, dict[str, int], list[str]]:
+) -> tuple[int, str, list[str]]:
+# ) -> tuple[int, dict[str, int], list[str]]:
+
     """Generate a concatenated fingerprint for a given graph.
 
     This function calculates a concatenated fingerprint for a given graph based on its properties, including
@@ -445,7 +450,7 @@ def get_graph_fingerprint_concat(
                 - list[str]: A list containing the names of the unique residues present in the graph.
     """
     (nodes, _, atom_names, res_names, _) = get_graph_fingerprint2(graph)
-    return (nodes, atom_names, res_names)
+    return (nodes, str(atom_names), res_names)
 
 
 def print_graph_fingerprint(graph: nx.classes.graph.Graph, index_graph: int):
@@ -493,14 +498,15 @@ def count_molecule(
     dict_count = {}
 
     # sorted_graphs = sorted(graph_list, key=get_graph_fingerprint)
-    # sorted_graphs = sorted(graph_list, key=lambda x: get_graph_fingerprint2(x))
-    sorted_graphs = sorted(graph_list, key=lambda x: get_graph_fingerprint_concat(x))
 
+    # Convert the dictionnary of atom_name to a str 
+    # So dictionnary can be compare between them
+    sorted_graphs = sorted(graph_list, key=get_graph_fingerprint_concat)
 
     for fingerprint, graph in groupby(sorted_graphs, key=get_graph_fingerprint_concat):
         # fingerprint : (nb_node, nb_edge, atom_name, resname, degree)
         # graph : objet itertools that group all graph with the same fingerprint
-
+        
         # A list that contain all graph with the same fingerprint
         similar_graphs = list(graph)
         nb_graph = len(similar_graphs)  # Number of graph for this fingerprint
