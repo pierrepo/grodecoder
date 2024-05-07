@@ -4,10 +4,8 @@ Usage:
     import grodecoder as gd
 """
 
-__authors__ = "Karine DUONG"
-__contact__ = "karine.duong@etu.u-paris.fr"
-__copyright__ = "IBPC"
-__date__ = "2024-03-18"
+__authors__ = ("Karine DUONG", "Pierre POULAIN")
+__contact__ = "pierre.poulain@u-paris.fr"
 
 
 from collections import Counter
@@ -324,53 +322,6 @@ def get_graph_components(graph: nx.classes.graph.Graph) -> list[nx.classes.graph
 
 def get_graph_fingerprint(
     graph: nx.classes.graph.Graph,
-) -> tuple[int, int, str, set, str]:
-    """Generate a fingerprint for a given graph.
-
-    This function calculates a fingerprint for a given graph based on its properties, including
-    the number of nodes, the number of edges, and sorted concatenations of atom names, residue
-    names and their degree.
-
-    Reference
-    ---------
-    - https://stackoverflow.com/questions/46999771/comparing-a-large-number-of-graphs-for-isomorphism
-
-    Parameters
-    ----------
-        graph: networkx.classes.graph.Graph
-            The graph for which the fingerprint is to be generated.
-
-    Returns
-    -------
-        tuple:
-            A tuple containing the fingerprint of the graph, which includes the following elements:
-               - Number of nodes in the graph.
-               - Number of edges in the graph.
-               - Concatenation of sorted atom names of all nodes in the graph.
-               - Concatenation of sorted residue names of all nodes in the graph.
-               - Concatenation of sorted degree of all nodes in the graph.
-    """
-    nodes = graph.number_of_nodes()
-    edges = graph.number_of_edges()
-
-    atom_names = " ".join(sorted(nx.get_node_attributes(graph, "atom_name").values()))
-
-    res_names = set()
-    for res_name in set((nx.get_node_attributes(graph, "residue_name").values())):
-        res_names.add(mol_def.AMINO_ACID_DICT.get(res_name, res_name))
-
-    graph_degrees = Counter(dict(graph.degree).values())
-    degree_dist = " ".join(
-        [f"{key}:{value}" for key, value in sorted(graph_degrees.items())]
-    )
-
-    return (nodes, edges, atom_names, res_names, degree_dist)
-    # return (nodes, edges, atom_names, res_names)
-    # return (nodes, atom_names, res_names)
-
-
-def get_graph_fingerprint2(
-    graph: nx.classes.graph.Graph,
 ) -> tuple[int, int, dict[str, int], list[str], dict[int, int]]:
     """Generate a fingerprint for a given graph.
 
@@ -426,15 +377,13 @@ def get_graph_fingerprint2(
     return (nodes, edges, atom_names, residue_names, graph_degrees_dict)
 
 
-def get_graph_fingerprint_concat(
+def get_graph_fingerprint_str(
     graph: nx.classes.graph.Graph,
 ) -> tuple[int, str, list[str]]:
-# ) -> tuple[int, dict[str, int], list[str]]:
 
-    """Generate a concatenated fingerprint for a given graph.
-
-    This function calculates a concatenated fingerprint for a given graph based on its properties, including
-    the number of nodes, sorted concatenations of atom names, and residue names.
+    """Collect the tuple return by get_graph_fingerprint, to only extract 
+    the number of nodes, the dictionary of atom_name (that we going to convert to str so it's haschable)
+    and the list of res_names.
 
     Parameters
     ----------
@@ -443,13 +392,13 @@ def get_graph_fingerprint_concat(
 
     Returns
     -------
-        tuple[int, dict[str, int], list[str]]:
+        tuple[int, str, list[str]]:
             A tuple containing the concatenated fingerprint of the graph, which includes the following elements:
                 - int: The number of nodes in the graph.
-                - dict[str, int]: A dictionary containing the counts of each atom name present in the graph.
+                - str: A string containing the counts of each atom name present in the graph. Exemple : "{'CA': 5, 'N': 3}"
                 - list[str]: A list containing the names of the unique residues present in the graph.
     """
-    (nodes, _, atom_names, res_names, _) = get_graph_fingerprint2(graph)
+    (nodes, _, atom_names, res_names, _) = get_graph_fingerprint(graph)
     return (nodes, str(atom_names), res_names)
 
 
@@ -462,7 +411,7 @@ def print_graph_fingerprint(graph: nx.classes.graph.Graph, index_graph: int):
             A NetworkX graph object.
     """
     logger.debug("print groupby ... ")
-    fingerprint = get_graph_fingerprint2(graph)
+    fingerprint = get_graph_fingerprint(graph)
     logger.debug(f"Graph {index_graph} fingerprint-----------------")
     logger.debug(f"- Number of nodes: {fingerprint[0]}")
     logger.debug(f"- Number of edges: {fingerprint[1]}")
@@ -477,7 +426,7 @@ def count_molecule(
     """Count the occurrence of molecules in a list of graphs based on their fingerprints.
 
     This function takes a list of graphs and counts the occurrence of each unique molecule
-    based on their fingerprints, which are calculated using the get_graph_fingerprint_concat function.
+    based on their fingerprints, which are calculated using the get_graph_fingerprint_str function.
     
     Reference 
     ---------
@@ -501,12 +450,12 @@ def count_molecule(
 
     # Convert the dictionnary of atom_name to a str 
     # So dictionnary can be compare between them
-    sorted_graphs = sorted(graph_list, key=get_graph_fingerprint_concat)
+    sorted_graphs = sorted(graph_list, key=get_graph_fingerprint_str)
 
-    for fingerprint, graph in groupby(sorted_graphs, key=get_graph_fingerprint_concat):
+    for fingerprint, graph in groupby(sorted_graphs, key=get_graph_fingerprint_str):
         # fingerprint : (nb_node, nb_edge, atom_name, resname, degree)
         # graph : objet itertools that group all graph with the same fingerprint
-        
+
         # A list that contain all graph with the same fingerprint
         similar_graphs = list(graph)
         nb_graph = len(similar_graphs)  # Number of graph for this fingerprint
@@ -685,6 +634,18 @@ def read_structure_file_remove_hydrogens(file_path: str) -> mda.core.universe.Un
 
 
 def remove_hydrogene(filename: str) -> mda.core.universe.Universe:
+    """Removes hydrogen atoms from a molecular system.
+
+    Parameters
+    ----------
+        filename : str
+            Path to the file containing the molecular structure.
+
+    Returns
+    -------
+        mda.core.universe.Universe
+            MDAnalysis Universe object representing the molecular system without hydrogen atoms.
+    """
     molecule = mda.Universe(filename)
     logger.info(f"Found {len(molecule.atoms):,} atoms")
 
@@ -737,13 +698,18 @@ def find_ion_solvant(
     # Because methanol and methionine can get confuse with their res_name "MET"
     # Then if the residue in this selection have CA in their atoms, it's not a methanol
     # So we save his residue IDs, to remove it from the selection later (after reviewed all the residues)
-    list_resid_methionine = set()
+    dict_res_atom_id_methionine = dict()
+
     if res_name == "MET":
         for index_res in selected_atoms.residues:
             if "CA" in index_res.atoms.names:
-                list_resid_methionine.add(str(index_res.resid))
-        if list_resid_methionine:
-            tmp_select = f"{selection} and not resid {' and not resid '.join(list_resid_methionine)}"
+                dict_res_atom_id_methionine[index_res.resid] = index_res.atoms.ids
+        if len(dict_res_atom_id_methionine) != 0:
+            tmp_select = selection
+            # Here I want to only select the methanol 
+            # So select all the residue with resname MET, but not those with atomid in dict_res_atom_id_methionine
+            for _, atom_id in dict_res_atom_id_methionine.items():
+                tmp_select += f" and not (id {atom_id[0]}:{atom_id[-1]})"
             selected_atoms = universe.select_atoms(tmp_select)
 
     # Collect all resids from each residues selected, to remove it from the univers
@@ -776,7 +742,10 @@ def find_ion_solvant(
 
         # Here we remove all the resIDS (from selected_res_ids) from this universe
         for resID in selected_res_ids:
-            selection = f"not (resname {res_name} and resid {resID})"
+            if resID in dict_res_atom_id_methionine:
+                selection = f"not (resname {res_name} and resid {resID}) and not (id {dict_res_atom_id_methionine[resID][0]}:{dict_res_atom_id_methionine[resID][-1]})"
+            else:
+                selection = f"not (resname {res_name} and resid {resID})"
             universe = universe.select_atoms(f"{selection}")
     return (universe, counts)
 
@@ -890,7 +859,7 @@ def is_protein(graph: nx.classes.graph.Graph) -> bool:
             True if the molecule is a protein, False otherwise.
     """
     # logger.info("Checking if the molecule is a protein...")
-    nodes, _, atom_names_dict, _, _ = get_graph_fingerprint2(graph)
+    nodes, _, atom_names_dict, _, _ = get_graph_fingerprint(graph)
     return (nodes > 3) and ("CA" in atom_names_dict)
 
 
