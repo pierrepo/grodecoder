@@ -382,6 +382,7 @@ def get_graph_fingerprint(
 
 def get_graph_fingerprint_str(
     graph: nx.classes.graph.Graph,
+    check_connectivity: bool,
 ) -> tuple[int, str, list[str]]:
 
     """Collect the tuple return by get_graph_fingerprint, to only extract 
@@ -401,8 +402,11 @@ def get_graph_fingerprint_str(
                 - str: A string containing the counts of each atom name present in the graph. Exemple : "{'CA': 5, 'N': 3}"
                 - list[str]: A list containing the names of the unique residues present in the graph.
     """
-    (nodes, _, atom_names, res_names, _) = get_graph_fingerprint(graph)
-    return (nodes, str(atom_names), res_names)
+    (nodes, edges, atom_names, res_names, graph_degrees_dict) = get_graph_fingerprint(graph)
+    if check_connectivity:
+        return (nodes, edges,str(atom_names), res_names, str(graph_degrees_dict))
+    else:
+        return (nodes, str(atom_names), res_names)
 
 
 def print_graph_fingerprint(graph: nx.classes.graph.Graph, index_graph: int):
@@ -425,6 +429,7 @@ def print_graph_fingerprint(graph: nx.classes.graph.Graph, index_graph: int):
 
 def count_molecule(
     graph_list: list[nx.classes.graph.Graph],
+    check_connectivity: bool,
 ) -> dict[nx.classes.graph.Graph, dict[str, int]]:
     """Count the occurrence of molecules in a list of graphs based on their fingerprints.
 
@@ -451,9 +456,10 @@ def count_molecule(
 
     # Convert the dictionnary of atom_name to a str 
     # So dictionnary can be compare between them
-    sorted_graphs = sorted(graph_list, key=get_graph_fingerprint_str)
+    # sorted_graphs = sorted( graph_list,check_connectivity, key=get_graph_fingerprint_str)
+    sorted_graphs = sorted(graph_list, key=lambda x: get_graph_fingerprint_str(x, check_connectivity))
 
-    for fingerprint, graph in groupby(sorted_graphs, key=get_graph_fingerprint_str):
+    for fingerprint, graph in groupby(sorted_graphs, key=lambda x: get_graph_fingerprint_str(x, check_connectivity)):
         # fingerprint : (nb_node, nb_edge, atom_name, resname, degree)
         # graph : objet itertools that group all graph with the same fingerprint
 
@@ -934,6 +940,7 @@ def main(
     input_file_path: str,
     draw_graph_option: bool = False,
     check_overlapping_residue: bool = False,
+    check_connectivity: bool = False,
 ):
     """Excute the main function for analyzing a .gro file.
 
@@ -954,7 +961,7 @@ def main(
         molecular_system, input_file_path
     )
 
-    # atom_pairs = get_atom_pairs2(molecular_system, threshold)
+    # atom_pairs = get_atom_pairs2(molecular_system, 1.7)
     atom_pairs = get_atom_pairs3(molecular_system)
 
     graph_return = convert_atom_pairs_to_graph(atom_pairs, molecular_system)
@@ -965,7 +972,7 @@ def main(
     if check_overlapping_residue:
         check_overlapping_residue_between_graphs(graph_list)
 
-    graph_count_dict = count_molecule(graph_list)
+    graph_count_dict = count_molecule(graph_list, check_connectivity)
 
     for index_graph, graph in enumerate(graph_count_dict.keys(), start=1):
         print_graph_fingerprint(graph, index_graph)
@@ -1057,6 +1064,12 @@ def parse_arg() -> argparse.Namespace:
         default=False,
         action="store_true",
     )
+    parser.add_argument(
+        "--checkconnectivity",
+        help="Add edges and degre in the fingerprint. Default: False.",
+        default=False,
+        action="store_true",
+    )
     return parser.parse_args()
 
 
@@ -1066,4 +1079,5 @@ if __name__ == "__main__":
         args.input,
         draw_graph_option=args.drawgraph,
         check_overlapping_residue=args.checkoverlapping,
+        check_connectivity=args.checkconnectivity
     )
