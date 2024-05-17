@@ -936,11 +936,77 @@ def export_protein_sequence_into_FASTA(
             file.write(f"{content}\n")
 
 
+def is_lipid(graph: nx.classes.graph.Graph) -> bool:
+    return False
+
+
+def is_ion():
+    return False
+
+
+def is_solvant():
+    return False
+
+
+def find_resolution(universe_without_h_ion_solvant, number_res=3):
+    """Finds the resolution of the molecular system.
+
+    Parameters
+    ----------
+        universe_without_h_ion_solvant: MDAnalysis.Universe
+            The molecular universe without hydrogen ions and solvent.
+        number_res: int
+            The number of residues to collect. Default is 3.
+
+    Returns
+    -------
+        str
+            The resolution of the molecular system.
+             - "aa" if all 3 collected residues have more than 2 atoms and the minimum distance between atoms of each residue is less than 2 Å.
+             - "cg" if the minimum distance between atoms of the collected residues is greater than 2 Å, indicating a coarse-grained model.
+    """
+    cmp = []
+    res_num = [universe_without_h_ion_solvant.atoms.residues[x].resid for x in range(len(universe_without_h_ion_solvant.atoms.residues))]
+    nb_aa = 0
+    return_resolution = ""
+
+    # Collect 3 residues, that have more than 2 atoms
+    for index in res_num:
+        if len(cmp) != number_res:
+            selection = f"resid {index}"
+            selected_atoms = universe_without_h_ion_solvant.select_atoms(selection)
+            if len(selected_atoms.atoms) > 2: cmp.append(selected_atoms)
+
+    for res in cmp:
+        # Calculate interatomic distances between all atoms for this residue
+        position = res.positions
+        taille = len(res.atoms)        
+        tmp = np.full((taille, taille), 100.0)
+        for index_i, pos_i in enumerate(position):
+            for index_j, pos_j in enumerate(position[index_i + 1 :], start=index_i + 1):
+                tmp[index_i, index_j] = cdist([pos_i], [pos_j])[0, 0]
+
+        # Check if the minimal distance between the atom for this residue is under 2A
+        # Otherwise, it means the residue and this system is in coarse-grained Model
+        if tmp.min() < 2:
+            nb_aa += 1
+        else: return_resolution = "cg"
+
+    if nb_aa==3: return_resolution = "aa"
+
+    return return_resolution
+
+
+def export_inventory(dict_inventory):
+    pass
+
+
 def main(
     input_file_path: str,
     draw_graph_option: bool = False,
     check_overlapping_residue: bool = False,
     check_connectivity: bool = False,
+    bond_threshold: str = "aa"
 ):
     """Excute the main function for analyzing a .gro file.
 
@@ -961,8 +1027,17 @@ def main(
         molecular_system, input_file_path
     )
 
+    if bond_threshold=="auto":
+        resolution = find_resolution(molecular_system)
+    else: resolution = bond_threshold
+    
+    if resolution=="aa":
+        atom_pairs = get_atom_pairs3(molecular_system)
+    else:
+        atom_pairs = get_atom_pairs2(molecular_system, 1.7)
+
     # atom_pairs = get_atom_pairs2(molecular_system, 1.7)
-    atom_pairs = get_atom_pairs3(molecular_system)
+    # atom_pairs = get_atom_pairs3(molecular_system)
 
     graph_return = convert_atom_pairs_to_graph(atom_pairs, molecular_system)
 
@@ -985,14 +1060,16 @@ def main(
         logger.info("Drawing graphs...")
         filename = Path(input_file_path).stem
         for index_graph, graph_count in enumerate(graph_count_dict.keys()):
-            if isinstance(graph_count, nx.Graph):
-                print_graph(graph_count, f"{filename}_{index_graph}.png")
+            print_graph(graph_count, f"{filename}_{index_graph}.png")
 
-    protein_sequence_dict = {}
+    protein_sequence_dict, lipid_formula_dict = {}, {}
     for index_graph, graph in enumerate(graph_count_dict.keys(), start=1):
-        if isinstance(graph, nx.Graph) and is_protein(graph):
+        if is_protein(graph):
             protein_sequence_dict[index_graph] = extract_protein_sequence(graph)
-
+        else:
+            if is_lipid():
+                pass
+            pass
     export_protein_sequence_into_FASTA(protein_sequence_dict, f"{filename}.fasta")
 
 
@@ -1070,6 +1147,12 @@ def parse_arg() -> argparse.Namespace:
         default=False,
         action="store_true",
     )
+    parser.add_argument(
+        "--bondthreshold",
+        help="Choose the method to calculate the atom pairs. If we know the resolution of the system is all atom choose 'aa' or we don't know so choose 'auto')",
+        default="aa",
+        choices=["aa", "auto"],
+    )
     return parser.parse_args()
 
 
@@ -1079,5 +1162,6 @@ if __name__ == "__main__":
         args.input,
         draw_graph_option=args.drawgraph,
         check_overlapping_residue=args.checkoverlapping,
-        check_connectivity=args.checkconnectivity
+        check_connectivity=args.checkconnectivity,
+        bond_threshold=args.bondthreshold
     )
