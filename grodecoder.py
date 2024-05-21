@@ -9,10 +9,13 @@ __contact__ = "pierre.poulain@u-paris.fr"
 
 
 from collections import Counter
+import datetime
 import itertools
 from itertools import groupby
+import json
 from pathlib import Path
 import re
+import time
 
 import argparse
 from loguru import logger
@@ -946,14 +949,6 @@ def is_lipid(graph: nx.classes.graph.Graph) -> bool:
     return False
 
 
-def is_ion():
-    return False
-
-
-def is_solvant():
-    return False
-
-
 def find_resolution(universe_without_h_ion_solvant, number_res=3):
     """Finds the resolution of the molecular system.
 
@@ -1003,12 +998,63 @@ def find_resolution(universe_without_h_ion_solvant, number_res=3):
     return return_resolution
 
 
-def get_inventory(graph_count_dict):
-    
-    pass
+def export_inventory(graph_count_dict: dict[nx.classes.graph.Graph, dict[str, int]], resolution: str, filename: str):
+    """Exports inventory data from a dictionary of graph objects and their associated information about molecule into JSON file.
 
-def export_inventory(dict_inventory):
-    pass
+    Parameters:
+    ----------
+        graph_count_dict : dict
+            A dictionary where each key is a NetworkX graph object, and each value is another dictionary containing
+            various attributes and metadata about the graph, including whether it represents a protein, lipid, ion, 
+            or solvent.
+        resolution: str
+            The resolution of the molecular system.
+        filename: str
+            Path to the file containing the molecular structure.
+    """
+    list_dict_molecule = []
+    for index_graph, (graph, information) in enumerate(graph_count_dict.items(), start=1):    
+        is_protein, is_lipid, is_ion, is_solvant = False, False, False, False
+        protein_sequence, putative_name = "", ""
+        
+        res_names = " ".join(set(sorted(nx.get_node_attributes(graph, "residue_name").values())))
+        
+        if "is_protein" in information.keys(): 
+            is_protein = information["is_protein"]
+            protein_sequence = information["protein_sequence"]["sequence"]
+        elif "lipid" in information.keys():
+            is_lipid = information["is_lipid"]  
+        elif "ion" in information.keys():
+            is_ion = information["ion"]
+            putative_name = information["name"]
+        elif "solvant" in information.keys():
+            is_solvant = information["solvant"]
+            putative_name = information["name"]
+        
+        dict_inventory = {"id": index_graph, 
+                        "number_of_atom": graph.number_of_nodes(), 
+                        "number_of_molecule": information["graph"], 
+                        "residue_names": res_names, 
+                        "formula_no_h": "", 
+                        "is_protein": is_protein, 
+                        "protein_sequence": protein_sequence, 
+                        "is_lipid": is_lipid, 
+                        "is_solvant": is_solvant, 
+                        "is_ion": is_ion, 
+                        "putative_name": putative_name}
+        list_dict_molecule.append(dict_inventory)
+
+    final_dict = {"inventory": list_dict_molecule, 
+                  "resolution": resolution, 
+                  "date": str(datetime.datetime.today()), 
+                  "filename": filename
+                 }
+    
+    filename = Path(filename).stem
+    logger.info("Export inventory into JSON file...")
+    out_file = open(f"{filename}.json", "w")
+    json.dump(final_dict, out_file)
+    out_file.close()
 
 
 def main(
@@ -1075,13 +1121,17 @@ def main(
     protein_sequence_dict, lipid_formula_dict = {}, {}
     for index_graph, graph in enumerate(graph_count_dict.keys(), start=1):
         if is_protein(graph):
-            protein_sequence_dict[index_graph] = extract_protein_sequence(graph)
+            sequence = extract_protein_sequence(graph)
+            protein_sequence_dict[index_graph] = sequence
+            graph_count_dict[graph]["is_protein"] = True
+            graph_count_dict[graph]["protein_sequence"] = sequence
         else:
             if is_lipid(graph):
-                # If the resname for this graph is in the DB we have 
-                pass
-            pass
+                # If the resname for this graph is in the DB we have
+                graph_count_dict[graph]["is_lipid"] = True
     export_protein_sequence_into_FASTA(protein_sequence_dict, f"{filename}.fasta")
+    
+    export_inventory(graph_count_dict, resolution, input_file_path)
 
 
 def is_a_structure_file(filepath: str) -> str:
