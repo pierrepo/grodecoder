@@ -430,6 +430,66 @@ def print_graph_fingerprint(graph: nx.classes.graph.Graph, index_graph: int):
     logger.debug(f"- Node degrees dist: {fingerprint[4]}")
 
 
+def get_intervals(seq: list[int]) -> list[str]:
+    """Generate a list of intervals from a sorted sequence of integers.
+    
+    Resources
+    ---------
+        https://codereview.stackexchange.com/questions/220072/construct-intervals-from-a-sequence-of-numbers-and-vice-versa
+
+    Parameter
+    ---------
+        seq: list[int])
+            A sorted list of integers.
+
+    Returns
+    -------
+        list[str]
+            A list of strings representing intervals in the input sequence.
+            
+    Example:
+        get_intervals([1, 2, 3, 6, 7, 8, 10])
+        ['1-3', '6-8', '10-10']
+    """
+    starts = [x for x in seq if x-1 not in seq]
+    ends = [y for y in seq if y+1 not in seq]
+    return [str(a)+'-'+str(b) for a, b in zip(starts, ends)]
+
+
+def extract_interval(graph: nx.classes.graph.Graph) -> dict[str, list[int]]:
+    """Extract residue and atom intervals from a graph and return them as a dictionary.
+
+    Parameter
+    ---------
+        graph: nx.classes.graph.Graph
+            A NetworkX graph with nodes that have "residue_id", "residue_name", and "atom_id" attributes.
+
+    Returns
+    -------
+        dict[str, list[int]]
+            A dictionary containing lists of residue IDs, residue ID intervals,
+                    atom IDs, and atom ID intervals.
+    """
+    residue_pairs = zip(
+        nx.get_node_attributes(graph, "residue_id").values(),
+        nx.get_node_attributes(graph, "residue_name").values()
+    )
+    residue_pairs_dict = dict(residue_pairs)
+    residue_id = [key for key in sorted(residue_pairs_dict)]
+    
+    res_id = residue_id
+    res_id_interval = get_intervals(residue_id)
+    
+    atom_id = nx.get_node_attributes(graph, "atom_id").values()
+    atom_id_interval = get_intervals(atom_id)
+    
+    dict_res = {"res_id": res_id, 
+                "res_id_interval": intervals, 
+                "atom_id": atom_id, 
+                "atom_id_interval": atom_id_interval}
+    return dict_res
+
+
 def count_molecule(
     graph_list: list[nx.classes.graph.Graph],
     check_connectivity: bool,
@@ -469,31 +529,46 @@ def count_molecule(
         # A list that contain all graph with the same fingerprint
         similar_graphs = list(graph)
         nb_graph = len(similar_graphs)  # Number of graph for this fingerprint
-
-        atom_start, atom_end = [], []
+        
+        atom_id, res_id = [], []
         for graph in similar_graphs:
-            atom_start.append(min(nx.get_node_attributes(graph, "atom_id").values()))
-            atom_end.append(max(nx.get_node_attributes(graph, "atom_id").values()))
-
+            residue_pairs = zip(
+                    nx.get_node_attributes(graph, "residue_id").values(),
+                    nx.get_node_attributes(graph, "residue_name").values()
+            )
+            residue_pairs_dict = dict(residue_pairs)
+            
+            res_id.extend([key for key in sorted(residue_pairs_dict)])
+            atom_id.extend(nx.get_node_attributes(graph, "atom_id").values())
+    
+        res_id_interval = get_intervals(res_id)
+        atom_id_interval = get_intervals(sorted(atom_id))
+                                
         # If for this fingerprint, there is only one graph
         if nb_graph == 1: 
             dict_count[similar_graphs[0]] = {
-                "atom_start": atom_start,
-                "atom_end": atom_end,
+                "res_id": res_id, 
+                "res_id_interval": res_id_interval,
+                "atom_id": atom_id, 
+                "atom_id_interval": atom_id_interval,
                 "graph": nb_graph,
             }
         else:
             # If for this fingerprint, all the graph only have one node
             if fingerprint[0] == 1:
                 dict_count[similar_graphs[0]] = {
-                    "atom_start": atom_start,
-                    "atom_end": atom_end,
+                    "res_id": res_id, 
+                    "res_id_interval": res_id_interval,
+                    "atom_id": atom_id, 
+                    "atom_id_interval": atom_id_interval,
                     "graph": nb_graph,
                 }
             else:
                 dict_count[similar_graphs[0]] = {
-                    "atom_start": atom_start,
-                    "atom_end": atom_end,
+                    "res_id": res_id, 
+                    "res_id_interval": res_id_interval,
+                    "atom_id": atom_id, 
+                    "atom_id_interval": atom_id_interval,
                     "graph": nb_graph,
                 }
     return dict_count
@@ -511,23 +586,27 @@ def print_graph_inventory(graph_dict: dict):
     total_molecules_count = 0
     for graph_idx, (graph, key) in enumerate(graph_dict.items(), start=1):
         logger.info(f"Molecule {graph_idx:,} ----------------")
-
-        if len(key) == 3:
-            (atom_start, atom_end, count) = key.values()
+        
+        if len(key) == 5:
+            (_, res_id_interval, _, atom_id_interval, count) = key.values()
         else:
-            (atom_start, atom_end, name, count, _, _) = key.values()
+            (_, res_id_interval, _, atom_id_interval, name, count, _, _) = key.values()
             logger.info(f"- name: {name}")
 
         logger.info(f"- number of atoms: {graph.number_of_nodes():,}")
         logger.info(f"- number of molecules: {count:,}")
 
-        logger.info(f"- tuple of atom_start and atom_end for each graph/molecule:")
-        for i in range(min(20, len(atom_start))):
-            logger.info(f"\t({atom_start[i]} -- {atom_end[i]})")
+        logger.info(f"- interval of residue ids (the 10 first):")
+        for i in range(min(10, len(res_id_interval))):
+            logger.info(f"\t({res_id_interval[i][:20]})")
+        
+        logger.info(f"- interval of atom ids (the 10 first):")
+        for i in range(min(10, len(atom_id_interval))):
+            logger.info(f"\t({atom_id_interval[i][:20]})")
 
         atom_names = list(sorted(nx.get_node_attributes(graph, "atom_name").values()))
         atom_names_str = " ".join(atom_names[:20])
-        logger.debug(f"- 20 first atom names: {atom_names_str}")
+        logger.debug(f"- the 20 first atom names: {atom_names_str}")
 
         res_names = set(sorted(nx.get_node_attributes(graph, "residue_name").values()))
         logger.debug(f"- res names: {res_names}")
@@ -739,17 +818,28 @@ def find_ion_solvant(
             graph = add_attributes_to_nodes(graph, index_resID)
             list_graph.append(graph)
 
-        atom_start, atom_end = [], []
-        for subgraph in list_graph:
-            atom_start.append(min(nx.get_node_attributes(subgraph, "atom_id").values()))
-            atom_end.append(max(nx.get_node_attributes(subgraph, "atom_id").values()))
-
+        atom_id, res_id = [], []
+        for subgraph in list_graph:       
+            residue_pairs = zip(
+                    nx.get_node_attributes(subgraph, "residue_id").values(),
+                    nx.get_node_attributes(subgraph, "residue_name").values()
+            )
+            residue_pairs_dict = dict(residue_pairs)
+            
+            res_id.extend([key for key in sorted(residue_pairs_dict)])
+            atom_id.extend(nx.get_node_attributes(subgraph, "atom_id").values())
+    
+        res_id_interval = get_intervals(res_id)
+        atom_id_interval = get_intervals(atom_id)
+            
         if solvant_or_ion == "ion": solvant, ion = False, True
         else: solvant, ion = True, False
         
         counts[list_graph[0]] = {
-            "atom_start": atom_start,
-            "atom_end": atom_end,
+            "res_id": res_id,
+            "res_id_interval": res_id_interval,
+            "atom_id": atom_id, 
+            "atom_id_interval": atom_id_interval,
             "name": name,
             "graph": res_count,
             "solvant": solvant, 
