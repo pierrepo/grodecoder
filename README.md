@@ -21,19 +21,29 @@ conda activate grodecoder-env
 ## Usage
 
 Run GROdecoder on a test file:
-
 ```bash
-python grodecoder.py --gro data/examples/barstar.gro
+python grodecoder.py --input data/examples/barstar.gro
 ```
 
-Draw graphs corresponding to the molecules found in the .gro file:
-
+Draw graphs corresponding to the molecules found in the structure file (by default at false):
 ```bash
-python grodecoder.py --gro data/examples/barstar.gro --drawgraph
+python grodecoder.py --input data/examples/barstar.gro --drawgraph
 ```
 
+Check that all residues exist only one time (by default at false):
+```bash
+python grodecoder.py --input data/examples/barstar.gro --checkoverlapping
+```
 
+Add edges and degre in the fingerprint (by default at false)"
+```bash
+python grodecoder.py --input data/examples/barstar.gro --checkconnectivity
+```
 
+Choose the method to calculate the atom pairs. If we know the resolution of the system is all atom choose 'aa' or if we don't know choose 'auto' (by default at aa): 
+```bash
+python grodecoder.py --input data/examples/barstar.gro --bondthreshold
+```
 
 
 
