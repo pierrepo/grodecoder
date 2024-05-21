@@ -10,6 +10,7 @@ __contact__ = "pierre.poulain@u-paris.fr"
 
 from collections import Counter
 import datetime
+import hashlib
 import itertools
 from itertools import groupby
 import json
@@ -1145,7 +1146,8 @@ def export_inventory(graph_count_dict: dict[nx.classes.graph.Graph, dict[str, in
     final_dict = {"inventory": list_dict_molecule, 
                   "resolution": resolution, 
                   "date": date_time, 
-                  "filename": Path(filename).name
+                  "filename": Path(filename).name,
+                  "file_md5sum": hashlib.md5(open(filename,'rb').read()).hexdigest()
                  }
     
     logger.info("Export inventory into JSON file...")
