@@ -1017,7 +1017,13 @@ def export_inventory(graph_count_dict: dict[nx.classes.graph.Graph, dict[str, in
         is_protein, is_lipid, is_ion, is_solvant = False, False, False, False
         protein_sequence, putative_name = "", ""
         
-        res_names = " ".join(set(sorted(nx.get_node_attributes(graph, "residue_name").values())))
+        residue_pairs = zip(
+        nx.get_node_attributes(graph, "residue_id").values(),
+        nx.get_node_attributes(graph, "residue_name").values()
+        )
+        residue_pairs_dict = dict(residue_pairs)
+        residue_names = [residue_pairs_dict[key] for key in sorted(residue_pairs_dict)]
+        residue_names = " ".join(residue_names)
         
         if "is_protein" in information.keys(): 
             is_protein = information["is_protein"]
@@ -1034,7 +1040,7 @@ def export_inventory(graph_count_dict: dict[nx.classes.graph.Graph, dict[str, in
         dict_inventory = {"id": index_graph, 
                         "number_of_atom": graph.number_of_nodes(), 
                         "number_of_molecule": information["graph"], 
-                        "residue_names": res_names, 
+                        "residue_names": residue_names, 
                         "formula_no_h": "", 
                         "is_protein": is_protein, 
                         "protein_sequence": protein_sequence, 
@@ -1044,15 +1050,16 @@ def export_inventory(graph_count_dict: dict[nx.classes.graph.Graph, dict[str, in
                         "putative_name": putative_name}
         list_dict_molecule.append(dict_inventory)
 
+    date_time = datetime.datetime.now()
+    date_time = str(date_time.strftime("%Y-%m-%d_%H:%M"))
     final_dict = {"inventory": list_dict_molecule, 
                   "resolution": resolution, 
-                  "date": str(datetime.datetime.today()), 
-                  "filename": filename
+                  "date": date_time, 
+                  "filename": Path(filename).name
                  }
     
-    filename = Path(filename).stem
     logger.info("Export inventory into JSON file...")
-    out_file = open(f"{filename}.json", "w")
+    out_file = open(f"{Path(filename).stem}_{date_time}.json", "w")
     json.dump(final_dict, out_file)
     out_file.close()
 
