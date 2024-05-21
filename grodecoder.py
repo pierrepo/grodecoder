@@ -512,7 +512,7 @@ def print_graph_inventory(graph_dict: dict):
         if len(key) == 3:
             (atom_start, atom_end, count) = key.values()
         else:
-            (atom_start, atom_end, name, count) = key.values()
+            (atom_start, atom_end, name, count, _, _) = key.values()
             logger.info(f"- name: {name}")
 
         logger.info(f"- number of atoms: {graph.number_of_nodes():,}")
@@ -670,7 +670,8 @@ def remove_hydrogene(filename: str) -> mda.core.universe.Universe:
 
 
 def find_ion_solvant(
-    molecule: dict, universe: mda.core.universe.Universe, counts: dict
+    molecule: dict, universe: mda.core.universe.Universe, counts: dict, 
+    solvant_or_ion:str
 ) -> tuple[mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int]]]:
     """Counts and removes ions or solvents from the MDAnalysis Universe.
 
@@ -740,11 +741,16 @@ def find_ion_solvant(
             atom_start.append(min(nx.get_node_attributes(subgraph, "atom_id").values()))
             atom_end.append(max(nx.get_node_attributes(subgraph, "atom_id").values()))
 
+        if solvant_or_ion == "ion": solvant, ion = False, True
+        else: solvant, ion = True, False
+        
         counts[list_graph[0]] = {
             "atom_start": atom_start,
             "atom_end": atom_end,
             "name": name,
             "graph": res_count,
+            "solvant": solvant, 
+            "ion": ion
         }
 
         # Here we remove all the resIDS (from selected_res_ids) from this universe
@@ -783,11 +789,11 @@ def count_remove_ion_solvant(
 
     logger.info("Searching ions...")
     for ion in mol_def.IONS_LIST:
-        universe, counts = find_ion_solvant(ion, universe, counts)
+        universe, counts = find_ion_solvant(ion, universe, counts, "ion")
 
     logger.info("Searching solvant molecules...")
     for solvant in mol_def.SOLVANTS_LIST:
-        universe, counts = find_ion_solvant(solvant, universe, counts)
+        universe, counts = find_ion_solvant(solvant, universe, counts, "solvant")
 
     # Write the new universe without ions and solvant into a new file
     output_file = f"{Path(input_filepath).stem}_without_H_ions_solvant{Path(input_filepath).suffix}"
@@ -997,6 +1003,10 @@ def find_resolution(universe_without_h_ion_solvant, number_res=3):
     return return_resolution
 
 
+def get_inventory(graph_count_dict):
+    
+    pass
+
 def export_inventory(dict_inventory):
     pass
 
@@ -1067,7 +1077,8 @@ def main(
         if is_protein(graph):
             protein_sequence_dict[index_graph] = extract_protein_sequence(graph)
         else:
-            if is_lipid():
+            if is_lipid(graph):
+                # If the resname for this graph is in the DB we have 
                 pass
             pass
     export_protein_sequence_into_FASTA(protein_sequence_dict, f"{filename}.fasta")
