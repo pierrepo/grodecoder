@@ -454,7 +454,7 @@ def get_intervals(seq: list[int]) -> list[str]:
     """
     starts = [x for x in seq if x-1 not in seq]
     ends = [y for y in seq if y+1 not in seq]
-    return [str(a)+'-'+str(b) for a, b in zip(starts, ends)]
+    return [str(a)+'-'+str(b) if a!=b else str(a) for a, b in zip(starts, ends)]
 
 
 def extract_interval(graph: nx.classes.graph.Graph) -> dict[str, list[int]]:
@@ -589,25 +589,17 @@ def print_graph_inventory(graph_dict: dict):
         logger.info(f"Molecule {graph_idx:,} ----------------")
         
         if len(key) == 5:
-            (_, res_id_interval, _, atom_id_interval, count) = key.values()
+            (_, res_id_interval, _, _, count) = key.values()
         else:
-            (_, res_id_interval, _, atom_id_interval, name, count, _, _) = key.values()
+            (_, res_id_interval, _, _, name, count, _, _) = key.values()
             logger.info(f"- name: {name}")
 
         logger.info(f"- number of atoms: {graph.number_of_nodes():,}")
         logger.info(f"- number of molecules: {count:,}")
 
-        logger.info(f"- interval of residue ids (the 10 first):")
+        logger.info(f"- residue ids:")
         for i in range(min(10, len(res_id_interval))):
             logger.info(f"\t({res_id_interval[i][:20]})")
-        
-        logger.info(f"- interval of atom ids (the 10 first):")
-        for i in range(min(10, len(atom_id_interval))):
-            logger.info(f"\t({atom_id_interval[i][:20]})")
-
-        atom_names = list(sorted(nx.get_node_attributes(graph, "atom_name").values()))
-        atom_names_str = " ".join(atom_names[:20])
-        logger.debug(f"- the 20 first atom names: {atom_names_str}")
 
         res_names = set(sorted(nx.get_node_attributes(graph, "residue_name").values()))
         logger.debug(f"- res names: {res_names}")
@@ -797,7 +789,7 @@ def find_ion_solvant(
                 dict_res_atom_id_methionine[index_res.resid] = index_res.atoms.ids
         if len(dict_res_atom_id_methionine) != 0:
             tmp_select = selection
-            # Here I want to only select the methanol 
+            # Here I want to only select the methanol
             # So select all the residue with resname MET, but not those with atomid in dict_res_atom_id_methionine
             for _, atom_id in dict_res_atom_id_methionine.items():
                 tmp_select += f" and not (id {atom_id[0]}:{atom_id[-1]})"
