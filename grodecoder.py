@@ -827,7 +827,7 @@ def find_ion_solvant(
             
         if solvant_or_ion == "ion": solvant, ion = False, True
         else: solvant, ion = True, False
-        
+
         counts[list_graph[0]] = {
             "res_id": res_id,
             "res_id_interval": res_id_interval,
@@ -1032,7 +1032,7 @@ def is_lipid(graph: nx.classes.graph.Graph) -> bool:
     return False
 
 
-def find_resolution(universe_without_h_ion_solvant, number_res=3):
+def find_resolution(universe_without_h_ion_solvant: mda.core.universe.Universe, number_res:int = 3) -> str:
     """Finds the resolution of the molecular system.
 
     Parameters
@@ -1081,6 +1081,23 @@ def find_resolution(universe_without_h_ion_solvant, number_res=3):
     return return_resolution
 
 
+def get_formula_based_atom_name(atom_name_dict: dict[str, int]):
+    atom_name_counts = {}
+    for atom_name, count in atom_name_dict.items():
+        name = re.sub(r'[^a-zA-Z]', "", atom_name)
+        if name in ['N', 'ND', 'NE', 'NH', 'NZ']: name = 'N'
+        elif name in ['C', 'CA', 'CB', 'CD', 'CE', 'CG', 'CH', 'CZ']: name = 'C'
+        elif name in ['H', 'HA', 'HB', 'HC', 'HD', 'HE', 'HG', 'HN', 'HO', 'HR', 'HS', 'HT', 'HX', 'HY','HZ']: name = 'H'
+        elif name in ['O', 'OA', 'OB', 'OD', 'OE', 'OG', 'OH', 'OP', 'OR', 'OS']: name = 'O'
+        elif name in ['SG']: name = 'S'
+        atom_name_counts[name] = atom_name_counts.get(name, 0) + count
+
+    # Assemble the formula
+    sorted_atom_counts = sorted(atom_name_counts.items())
+    formula = ''.join(f"{atom}{count}" if count > 1 else atom for atom, count in sorted_atom_counts)
+    return formula
+
+
 def export_inventory(graph_count_dict: dict[nx.classes.graph.Graph, dict[str, int]], resolution: str, filename: str):
     """Exports inventory data from a dictionary of graph objects and their associated information about molecule into JSON file.
 
@@ -1107,6 +1124,9 @@ def export_inventory(graph_count_dict: dict[nx.classes.graph.Graph, dict[str, in
         residue_pairs_dict = dict(residue_pairs)
         residue_names = [residue_pairs_dict[key] for key in sorted(residue_pairs_dict)]
         residue_names = " ".join(residue_names)
+
+        atom_names = Counter(nx.get_node_attributes(graph, "atom_name").values())
+        atom_names = dict(sorted(atom_names.most_common()))
         
         if "is_protein" in information.keys(): 
             is_protein = information["is_protein"]
@@ -1115,16 +1135,15 @@ def export_inventory(graph_count_dict: dict[nx.classes.graph.Graph, dict[str, in
             is_lipid = information["is_lipid"]  
         elif "ion" in information.keys():
             is_ion = information["ion"]
-            putative_name = information["name"]
-        elif "solvant" in information.keys():
             is_solvant = information["solvant"]
             putative_name = information["name"]
         
         dict_inventory = {"id": index_graph, 
                         "number_of_atom": graph.number_of_nodes(), 
                         "number_of_molecule": information["graph"], 
-                        "residue_names": residue_names, 
-                        "formula_no_h": "", 
+                        "residue_names": residue_names,
+                        "residue_ids": " ".join(information["res_id_interval"]), 
+                        "formula_no_h": get_formula_based_atom_name(atom_names), 
                         "is_protein": is_protein, 
                         "protein_sequence": protein_sequence, 
                         "is_lipid": is_lipid, 
@@ -1134,17 +1153,17 @@ def export_inventory(graph_count_dict: dict[nx.classes.graph.Graph, dict[str, in
         list_dict_molecule.append(dict_inventory)
 
     date_time = datetime.datetime.now()
-    date_time = str(date_time.strftime("%Y-%m-%d_%H:%M"))
+    date_time = str(date_time.strftime("%Y-%m-%d_%H-%M-%S"))
     final_dict = {"inventory": list_dict_molecule, 
                   "resolution": resolution, 
                   "date": date_time, 
-                  "filename": Path(filename).name,
+                  "file_path": filename,
                   "file_md5sum": hashlib.md5(open(filename,'rb').read()).hexdigest()
                  }
     
     logger.info("Export inventory into JSON file...")
-    out_file = open(f"{Path(filename).stem}_{date_time}.json", "w")
-    json.dump(final_dict, out_file)
+    out_file = open(f"{date_time}_{Path(filename).stem}.json", "w")
+    json.dump(final_dict, out_file, indent=4)
     out_file.close()
 
 
