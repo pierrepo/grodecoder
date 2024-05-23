@@ -1081,7 +1081,25 @@ def find_resolution(universe_without_h_ion_solvant: mda.core.universe.Universe, 
     return return_resolution
 
 
-def get_formula_based_atom_name(atom_name_dict: dict[str, int]):
+def get_formula_based_atom_name(atom_name_dict: dict[str, int]) -> str:
+    """Generates a molecular formula string based on the counts of different atom names provided in the input dictionary.
+
+    Parameters
+    ----------
+        atom_name_dict: dict[str, int]
+            A dictionary with atom names as keys and their respective counts as values.
+
+    Returns
+    -------
+        str
+            A string representing the molecular formula with atoms sorted alphabetically and counts appended 
+        
+    Example
+    -------
+        atom_name_dict = {'CD1': 6, 'H': 12, 'O': 6, 'CA': 1}
+        get_formula_based_atom_name(atom_name_dict)
+        'C7H12O6'
+    """
     atom_name_counts = {}
     for atom_name, count in atom_name_dict.items():
         name = re.sub(r'[^a-zA-Z]', "", atom_name)
