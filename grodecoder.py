@@ -61,7 +61,7 @@ def get_distance_matrix_between_atom(
     taille = len(file_gro.atoms)
     tmp = np.full((taille, taille), 100.0)
     for index_i, pos_i in enumerate(position):
-        for index_j, pos_j in enumerate(position[index_i + 1 :], start=index_j + 1):
+        for index_j, pos_j in enumerate(position[index_i + 1 :], start=index_i + 1):
             tmp[index_i][index_j] = cdist([pos_i], [pos_j])
     return tmp
 
@@ -779,23 +779,6 @@ def find_ion_solvant(
     selection = f"resname {res_name} and (name {' or name '.join(atom_names)})"
     selected_atoms = universe.select_atoms(selection)
 
-    # Because methanol and methionine can get confuse with their res_name "MET"
-    # Then if the residue in this selection have CA in their atoms, it's not a methanol
-    # So we save his residue IDs, to remove it from the selection later (after reviewed all the residues)
-    dict_res_atom_id_methionine = dict()
-
-    if res_name == "MET":
-        for index_res in selected_atoms.residues:
-            if "CA" in index_res.atoms.names:
-                dict_res_atom_id_methionine[index_res.resid] = index_res.atoms.ids
-        if len(dict_res_atom_id_methionine) != 0:
-            tmp_select = selection
-            # Here I want to only select the methanol
-            # So select all the residue with resname MET, but not those with atomid in dict_res_atom_id_methionine
-            for _, atom_id in dict_res_atom_id_methionine.items():
-                tmp_select += f" and not (id {atom_id[0]}:{atom_id[-1]})"
-            selected_atoms = universe.select_atoms(tmp_select)
-
     # Collect all resids from each residues selected, to remove it from the univers
     selected_res_ids = [str(residue.resid) for residue in selected_atoms.residues]
     res_count = len(selected_res_ids)
@@ -842,10 +825,10 @@ def find_ion_solvant(
 
         # Here we remove all the resIDS (from selected_res_ids) from this universe
         for resID in selected_res_ids:
-            if resID in dict_res_atom_id_methionine:
-                selection = f"not (resname {res_name} and resid {resID}) and not (id {dict_res_atom_id_methionine[resID][0]}:{dict_res_atom_id_methionine[resID][-1]})"
-            else:
-                selection = f"not (resname {res_name} and resid {resID})"
+            # if resID in dict_res_atom_id_methionine:
+            #     selection = f"not (resname {res_name} and resid {resID}) and not (id {dict_res_atom_id_methionine[resID][0]}:{dict_res_atom_id_methionine[resID][-1]})"
+            # else:
+            selection = f"not (resname {res_name} and resid {resID})"
             universe = universe.select_atoms(f"{selection}")
     return (universe, counts)
 
@@ -880,6 +863,11 @@ def count_remove_ion_solvant(
 
     logger.info("Searching solvant molecules...")
     for solvant in mol_def.SOLVANTS_LIST:
+        # Solvant methanol and the residue methionine could be confused
+        # because their share the same residue name 'MET'.
+        # We ignore methanol for now.
+        if solvant["res_name"] == "MET":
+            continue
         universe, counts = find_ion_solvant(solvant, universe, counts, "solvant")
 
     # Write the new universe without ions and solvant into a new file
@@ -959,6 +947,9 @@ def is_protein(graph: nx.classes.graph.Graph) -> bool:
             True if the molecule is a protein, False otherwise.
     """
     # logger.info("Checking if the molecule is a protein...")
+    # Récuper les clés du dictionnaires des résidus
+    # Calculer le set des noms des résidus du graph cournant
+    # Vérifier que l'intersection entre les deux est > 3
     nodes, _, atom_names_dict, _, _ = get_graph_fingerprint(graph)
     return (nodes > 3) and ("CA" in atom_names_dict)
 
@@ -1202,7 +1193,7 @@ def main(
     draw_graph_option: bool = False,
     check_overlapping_residue: bool = False,
     check_connectivity: bool = False,
-    bond_threshold: str = "aa", 
+    bond_threshold: str | float = "auto", 
     query_pdb=False
 ):
     """Excute the main function for analyzing a .gro file.
@@ -1226,12 +1217,12 @@ def main(
 
     if bond_threshold=="auto":
         resolution = find_resolution(molecular_system)
-    else: resolution = bond_threshold
-    
-    if resolution=="aa":
-        atom_pairs = get_atom_pairs3(molecular_system)
+        if resolution=="aa":
+            atom_pairs = get_atom_pairs3(molecular_system)
+        else:
+            atom_pairs = get_atom_pairs2(molecular_system, 4.0)
     else:
-        atom_pairs = get_atom_pairs2(molecular_system, 1.7)
+        atom_pairs = get_atom_pairs2(molecular_system, bond_threshold)
 
     # atom_pairs = get_atom_pairs2(molecular_system, 1.7)
     # atom_pairs = get_atom_pairs3(molecular_system)
@@ -1313,6 +1304,36 @@ def is_a_structure_file(filepath: str) -> str:
     return filepath
 
 
+def is_a_valid_threshold(threshold: str) -> str | float:
+    """Check if the given threshold is permitted).
+
+    Parameters
+    ----------
+        filepath : str
+            Path of the file.
+
+    Raises
+    ------
+        argparse.ArgumentTypeError
+            If the given filepath is not an existing file,
+            or if it does not have a '.gro' or '.pdb' extension.
+
+    Returns
+    -------
+        str
+            The validated path.
+    """
+    if threshold == "auto":
+        return threshold
+    try:
+        threshold_as_float = float(threshold)
+    except:
+        raise argparse.ArgumentTypeError(f"Argument should 'auto' or a number")
+    if not threshold_as_float > 0.0:
+        raise argparse.ArgumentTypeError(f"Argument should be > 0")
+    return threshold_as_float
+
+
 def parse_arg() -> argparse.Namespace:
     """Parse command-line arguments.
 
@@ -1362,8 +1383,8 @@ def parse_arg() -> argparse.Namespace:
     parser.add_argument(
         "--bondthreshold",
         help="Choose the method to calculate the atom pairs. If we know the resolution of the system is all atom choose 'aa' or we don't know so choose 'auto')",
-        default="aa",
-        choices=["aa", "auto"],
+        default="auto",
+        type=is_a_valid_threshold,
     )
     parser.add_argument(
         "--querypdb",
