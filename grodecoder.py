@@ -7,7 +7,7 @@ Usage:
 __authors__ = ("Karine DUONG", "Pierre POULAIN")
 __contact__ = "pierre.poulain@u-paris.fr"
 
-
+from Bio import SeqIO
 from collections import Counter
 import datetime
 import hashlib
@@ -30,6 +30,7 @@ from scipy.sparse import triu
 from scipy.spatial.distance import cdist
 
 import mol_def
+import search_into_PDB
 
 
 def get_distance_matrix_between_atom(
@@ -1133,7 +1134,7 @@ def export_inventory(graph_count_dict: dict[nx.classes.graph.Graph, dict[str, in
     list_dict_molecule = []
     for index_graph, (graph, information) in enumerate(graph_count_dict.items(), start=1):    
         is_protein, is_lipid, is_ion, is_solvant = False, False, False, False
-        protein_sequence, putative_name = "", ""
+        protein_sequence, pdb_id, macromolecular_names, putative_name = "", "", "", ""
         
         residue_pairs = zip(
         nx.get_node_attributes(graph, "residue_id").values(),
@@ -1145,44 +1146,55 @@ def export_inventory(graph_count_dict: dict[nx.classes.graph.Graph, dict[str, in
 
         atom_names = Counter(nx.get_node_attributes(graph, "atom_name").values())
         atom_names = dict(sorted(atom_names.most_common()))
-        
+
         if "is_protein" in information.keys(): 
             is_protein = information["is_protein"]
-            protein_sequence = information["protein_sequence"]["sequence"]
-        elif "lipid" in information.keys():
+            protein_sequence = information["protein_sequence"]
+        if "pdb_id" in information.keys():
+            pdb_id = " ".join(information["pdb_id"])
+            macromolecular_names = "; ".join(information["macromolecular_names"])
+        if "lipid" in information.keys():
             is_lipid = information["is_lipid"]  
-        elif "ion" in information.keys():
+        if "ion" in information.keys():
             is_ion = information["ion"]
             is_solvant = information["solvant"]
             putative_name = information["name"]
-        
+
         dict_inventory = {"id": index_graph, 
-                        "number_of_atom": graph.number_of_nodes(), 
-                        "number_of_molecule": information["graph"], 
+                        "number_of_atoms": graph.number_of_nodes(), 
+                        "number_of_molecules": information["graph"], 
                         "residue_names": residue_names,
                         "residue_ids": " ".join(information["res_id_interval"]), 
                         "formula_no_h": get_formula_based_atom_name(atom_names), 
-                        "is_protein": is_protein, 
-                        "protein_sequence": protein_sequence, 
+                        "is_protein": is_protein,
+                        "protein_sequence": protein_sequence,
+                        "pdb_id": pdb_id, 
+                        "macromolecular_names": macromolecular_names, 
                         "is_lipid": is_lipid, 
                         "is_solvant": is_solvant, 
                         "is_ion": is_ion, 
                         "putative_name": putative_name}
         list_dict_molecule.append(dict_inventory)
 
-    date_time = datetime.datetime.now()
-    date_time = str(date_time.strftime("%Y-%m-%d_%H-%M-%S"))
-    final_dict = {"inventory": list_dict_molecule, 
+        date_time = f"{datetime.datetime.now():%Y-%m-%d_%H-%M-%S}"
+
+        current_dir = Path.cwd()
+        absolute_file_path = current_dir / filename
+        relative_path = absolute_file_path.relative_to(current_dir)
+
+        final_dict = {"inventory": list_dict_molecule, 
                   "resolution": resolution, 
                   "date": date_time, 
-                  "file_path": filename,
-                  "file_md5sum": hashlib.md5(open(filename,'rb').read()).hexdigest()
+                  "file_path": str(relative_path),
+                  "file_md5sum": hashlib.md5(open(filename,"rb").read()).hexdigest()
                  }
     
-    logger.info("Export inventory into JSON file...")
-    out_file = open(f"{date_time}_{Path(filename).stem}.json", "w")
+    logger.info("Exporting inventory into JSON file...")
+    filename_JSON = f"{date_time}_grodecoder_{Path(filename).stem}.json"
+    out_file = open(filename_JSON, "w")
     json.dump(final_dict, out_file, indent=4)
     out_file.close()
+    logger.info(f"JSON filename : {filename_JSON}")
 
 
 def main(
@@ -1190,7 +1202,8 @@ def main(
     draw_graph_option: bool = False,
     check_overlapping_residue: bool = False,
     check_connectivity: bool = False,
-    bond_threshold: str = "aa"
+    bond_threshold: str = "aa", 
+    query_pdb=False
 ):
     """Excute the main function for analyzing a .gro file.
 
@@ -1249,10 +1262,19 @@ def main(
     protein_sequence_dict, lipid_formula_dict = {}, {}
     for index_graph, graph in enumerate(graph_count_dict.keys(), start=1):
         if is_protein(graph):
-            sequence = extract_protein_sequence(graph)
-            protein_sequence_dict[index_graph] = sequence
+            sequence_nbres = extract_protein_sequence(graph)
+            sequence = sequence_nbres["sequence"]
+
+            protein_sequence_dict[index_graph] = sequence_nbres
             graph_count_dict[graph]["is_protein"] = True
             graph_count_dict[graph]["protein_sequence"] = sequence
+            
+            print(query_pdb)
+            if query_pdb: 
+                results = search_into_PDB.API_PDB_search_based_sequence(sequence)
+                set_macromolecular_names = search_into_PDB.treat_PDB_ID_to_macromolecular_names(results)
+                graph_count_dict[graph]["pdb_id"] = results
+                graph_count_dict[graph]["macromolecular_names"] = set_macromolecular_names
         else:
             if is_lipid(graph):
                 # If the resname for this graph is in the DB we have
@@ -1260,6 +1282,7 @@ def main(
     export_protein_sequence_into_FASTA(protein_sequence_dict, f"{filename}.fasta")
     
     export_inventory(graph_count_dict, resolution, input_file_path)
+    
 
 
 def is_a_structure_file(filepath: str) -> str:
@@ -1342,6 +1365,12 @@ def parse_arg() -> argparse.Namespace:
         default="aa",
         choices=["aa", "auto"],
     )
+    parser.add_argument(
+        "--querypdb",
+        help="Add PDB id and their putative name in the JSON file for the protein. Default: False.",
+        default=False, 
+        action="store_true",
+    )
     return parser.parse_args()
 
 
@@ -1352,5 +1381,6 @@ if __name__ == "__main__":
         draw_graph_option=args.drawgraph,
         check_overlapping_residue=args.checkoverlapping,
         check_connectivity=args.checkconnectivity,
-        bond_threshold=args.bondthreshold
+        bond_threshold=args.bondthreshold, 
+        query_pdb=args.querypdb
     )
