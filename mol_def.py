@@ -25,6 +25,7 @@ BOND_LENGTH = {
 # https://userguide.mdanalysis.org/stable/standard_selections.html#proteins
 AMINO_ACID_DICT = mda.lib.util.inverse_aa_codes
 AMINO_ACID_DICT["HSP"] = "H"
+AMINO_ACID_DICT["CYSP"] = "C"
 
 
 # The reference for each res_name and atom_names in IONS_LIST:
