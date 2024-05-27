@@ -497,7 +497,12 @@ def extract_interval(graph: nx.classes.graph.Graph) -> dict[str, list[int]]:
 
 
 def get_formula_based_atom_name(atom_name_dict: dict[str, int]) -> str:
-    """Generates a molecular formula string based on the counts of different atom names provided in the input dictionary.
+    """Generates a molecular formula string, by apply guess_atom_type() from MDA on each atom names and save the occurrence.
+
+    Ressources
+    ----------
+    https://docs.mdanalysis.org/2.0.0/documentation_pages/topology/guessers.html#guessing-elements-from-atom-names
+    https://docs.mdanalysis.org/2.0.0/documentation_pages/topology/guessers.html#MDAnalysis.topology.guessers.guess_atom_type 
 
     Parameters
     ----------
@@ -507,30 +512,10 @@ def get_formula_based_atom_name(atom_name_dict: dict[str, int]) -> str:
     Returns
     -------
         str
-            A string representing the molecular formula with atoms sorted alphabetically and counts appended 
-        
-    Example
-    -------
-        atom_name_dict = {'CD1': 6, 'H': 12, 'O': 6, 'CA': 1}
-        get_formula_based_atom_name(atom_name_dict)
-        'C7H12O6'
+            A string representing the chemical formula, without hydrogens
     """
-    # atom_name_counts = {}
-    # for atom_name, count in atom_name_dict.items():
-    #     name = re.sub(r'[^a-zA-Z]', "", atom_name)
-    #     if name in ['N', 'ND', 'NE', 'NH', 'NZ']: name = 'N'
-    #     elif name in ['C', 'CA', 'CB', 'CD', 'CE', 'CG', 'CH', 'CZ']: name = 'C'
-    #     elif name in ['H', 'HA', 'HB', 'HC', 'HD', 'HE', 'HG', 'HN', 'HO', 'HR', 'HS', 'HT', 'HX', 'HY','HZ']: name = 'H'
-    #     elif name in ['O', 'OA', 'OB', 'OD', 'OE', 'OG', 'OH', 'OP', 'OR', 'OS']: name = 'O'
-    #     elif name in ['SG']: name = 'S'
-    #     atom_name_counts[name] = atom_name_counts.get(name, 0) + count
-
-    # Assemble the formula
-    # sorted_atom_counts = sorted(atom_name_counts.items())
-    # formula = ''.join(f"{atom}{count}" if count > 1 else atom for atom, count in sorted_atom_counts)
-
     atom_names = []
-    for atom_name, count in atom_name_dict.items():
+    for atom_name in atom_name_dict.keys():
         atom_name = f"{mda.topology.guessers.guess_atom_type(atom_name)}"
         # print(mda.topology.guessers.guess_atom_element(atom.name))
         if atom_name != "H":
