@@ -495,6 +495,53 @@ def extract_interval(graph: nx.classes.graph.Graph) -> dict[str, list[int]]:
     return dict_res
 
 
+def get_formula_based_atom_name(atom_name_dict: dict[str, int]) -> str:
+    """Generates a molecular formula string based on the counts of different atom names provided in the input dictionary.
+
+    Parameters
+    ----------
+        atom_name_dict: dict[str, int]
+            A dictionary with atom names as keys and their respective counts as values.
+
+    Returns
+    -------
+        str
+            A string representing the molecular formula with atoms sorted alphabetically and counts appended 
+        
+    Example
+    -------
+        atom_name_dict = {'CD1': 6, 'H': 12, 'O': 6, 'CA': 1}
+        get_formula_based_atom_name(atom_name_dict)
+        'C7H12O6'
+    """
+    # atom_name_counts = {}
+    # for atom_name, count in atom_name_dict.items():
+    #     name = re.sub(r'[^a-zA-Z]', "", atom_name)
+    #     if name in ['N', 'ND', 'NE', 'NH', 'NZ']: name = 'N'
+    #     elif name in ['C', 'CA', 'CB', 'CD', 'CE', 'CG', 'CH', 'CZ']: name = 'C'
+    #     elif name in ['H', 'HA', 'HB', 'HC', 'HD', 'HE', 'HG', 'HN', 'HO', 'HR', 'HS', 'HT', 'HX', 'HY','HZ']: name = 'H'
+    #     elif name in ['O', 'OA', 'OB', 'OD', 'OE', 'OG', 'OH', 'OP', 'OR', 'OS']: name = 'O'
+    #     elif name in ['SG']: name = 'S'
+    #     atom_name_counts[name] = atom_name_counts.get(name, 0) + count
+
+    # Assemble the formula
+    # sorted_atom_counts = sorted(atom_name_counts.items())
+    # formula = ''.join(f"{atom}{count}" if count > 1 else atom for atom, count in sorted_atom_counts)
+
+    atom_names = []
+    for atom_name, count in atom_name_dict.items():
+        atom_name = f"{mda.topology.guessers.guess_atom_type(atom_name)}"
+        # print(mda.topology.guessers.guess_atom_element(atom.name))
+        if atom_name != "H":
+            atom_names.append(atom_name)
+
+    atom_names = Counter(atom_names)
+    sorted_atom_counts = sorted(atom_names.items())
+    formula = ''.join(f"{atom}{count}" if count > 1 else atom for atom, count in sorted_atom_counts)
+
+    return formula
+
+
 def count_molecule(
     graph_list: list[nx.classes.graph.Graph],
     check_connectivity: bool,
@@ -548,6 +595,10 @@ def count_molecule(
     
         res_id_interval = get_intervals(res_id)
         atom_id_interval = get_intervals(sorted(atom_id))
+
+        atom_names = Counter(nx.get_node_attributes(graph, "atom_name").values())
+        atom_names = dict(sorted(atom_names.most_common()))
+        formula = get_formula_based_atom_name(atom_names)
                                 
         # If for this fingerprint, there is only one graph
         if nb_graph == 1: 
@@ -556,6 +607,7 @@ def count_molecule(
                 "res_id_interval": res_id_interval,
                 "atom_id": atom_id, 
                 "atom_id_interval": atom_id_interval,
+                "formula_no_h": formula,
                 "graph": nb_graph,
             }
         else:
@@ -566,6 +618,7 @@ def count_molecule(
                     "res_id_interval": res_id_interval,
                     "atom_id": atom_id, 
                     "atom_id_interval": atom_id_interval,
+                    "formula_no_h": formula,
                     "graph": nb_graph,
                 }
             else:
@@ -574,6 +627,7 @@ def count_molecule(
                     "res_id_interval": res_id_interval,
                     "atom_id": atom_id, 
                     "atom_id_interval": atom_id_interval,
+                    "formula_no_h": formula,
                     "graph": nb_graph,
                 }
     return dict_count
@@ -592,8 +646,8 @@ def print_graph_inventory(graph_dict: dict):
     for graph_idx, (graph, key) in enumerate(graph_dict.items(), start=1):
         logger.info(f"Molecule {graph_idx:,} ----------------")
         
-        if len(key) == 5:
-            (_, res_id_interval, _, _, count) = key.values()
+        if len(key) == 6:
+            (_, res_id_interval, _, _, _, count) = key.values()
         else:
             (_, res_id_interval, _, _, name, count, _, _) = key.values()
             logger.info(f"- name: {name}")
@@ -1037,7 +1091,21 @@ def export_protein_sequence_into_FASTA(
             file.write(f"{content}\n")
 
 
-def is_lipid(graph: nx.classes.graph.Graph) -> bool:
+def is_lipid(graph: nx.classes.graph.Graph, dict_count: dict[str, str]) -> bool:
+    res_name_graph = set(nx.get_node_attributes(graph, "residue_name").values())
+    res_name_graph = res_name_graph.pop()
+
+    if "formula_no_h" in dict_count.keys():
+        formula_graph = dict_count["formula_no_h"]
+        selected_row = CSML_CHARMM_GUI_LIPID.loc[ (CSML_CHARMM_GUI_LIPID["Alias"] == res_name_graph) & (CSML_CHARMM_GUI_LIPID["Formula"] == formula_graph) ]
+        
+        #In case, no rows match the condition gracefully.
+        if selected_row.empty:
+            print("no row match")
+            return False
+        else:
+            print(selected_row)
+            return True
     return False
 
 
@@ -1090,41 +1158,6 @@ def find_resolution(universe_without_h_ion_solvant: mda.core.universe.Universe, 
     return return_resolution
 
 
-def get_formula_based_atom_name(atom_name_dict: dict[str, int]) -> str:
-    """Generates a molecular formula string based on the counts of different atom names provided in the input dictionary.
-
-    Parameters
-    ----------
-        atom_name_dict: dict[str, int]
-            A dictionary with atom names as keys and their respective counts as values.
-
-    Returns
-    -------
-        str
-            A string representing the molecular formula with atoms sorted alphabetically and counts appended 
-        
-    Example
-    -------
-        atom_name_dict = {'CD1': 6, 'H': 12, 'O': 6, 'CA': 1}
-        get_formula_based_atom_name(atom_name_dict)
-        'C7H12O6'
-    """
-    atom_name_counts = {}
-    for atom_name, count in atom_name_dict.items():
-        name = re.sub(r'[^a-zA-Z]', "", atom_name)
-        if name in ['N', 'ND', 'NE', 'NH', 'NZ']: name = 'N'
-        elif name in ['C', 'CA', 'CB', 'CD', 'CE', 'CG', 'CH', 'CZ']: name = 'C'
-        elif name in ['H', 'HA', 'HB', 'HC', 'HD', 'HE', 'HG', 'HN', 'HO', 'HR', 'HS', 'HT', 'HX', 'HY','HZ']: name = 'H'
-        elif name in ['O', 'OA', 'OB', 'OD', 'OE', 'OG', 'OH', 'OP', 'OR', 'OS']: name = 'O'
-        elif name in ['SG']: name = 'S'
-        atom_name_counts[name] = atom_name_counts.get(name, 0) + count
-
-    # Assemble the formula
-    sorted_atom_counts = sorted(atom_name_counts.items())
-    formula = ''.join(f"{atom}{count}" if count > 1 else atom for atom, count in sorted_atom_counts)
-    return formula
-
-
 def export_inventory(graph_count_dict: dict[nx.classes.graph.Graph, dict[str, int]], resolution: str, filename: str):
     """Exports inventory data from a dictionary of graph objects and their associated information about molecule into JSON file.
 
@@ -1142,7 +1175,7 @@ def export_inventory(graph_count_dict: dict[nx.classes.graph.Graph, dict[str, in
     list_dict_molecule = []
     for index_graph, (graph, information) in enumerate(graph_count_dict.items(), start=1):    
         is_protein, is_lipid, is_ion, is_solvant = False, False, False, False
-        protein_sequence, pdb_id, macromolecular_names, putative_name = "", "", "", ""
+        formula, protein_sequence, pdb_id, macromolecular_names, putative_name = "", "", "", "", ""
         
         residue_pairs = zip(
         nx.get_node_attributes(graph, "residue_id").values(),
@@ -1155,14 +1188,16 @@ def export_inventory(graph_count_dict: dict[nx.classes.graph.Graph, dict[str, in
         atom_names = Counter(nx.get_node_attributes(graph, "atom_name").values())
         atom_names = dict(sorted(atom_names.most_common()))
 
+        if "formula_no_h" in information.keys():
+            formula = information["formula_no_h"]
         if "is_protein" in information.keys(): 
             is_protein = information["is_protein"]
             protein_sequence = information["protein_sequence"]
         if "pdb_id" in information.keys():
             pdb_id = " ".join(information["pdb_id"])
             macromolecular_names = "; ".join(information["macromolecular_names"])
-        if "lipid" in information.keys():
-            is_lipid = information["is_lipid"]  
+        if "is_lipid" in information.keys():
+            is_lipid = information["is_lipid"]
         if "ion" in information.keys():
             is_ion = information["ion"]
             is_solvant = information["solvant"]
@@ -1173,10 +1208,10 @@ def export_inventory(graph_count_dict: dict[nx.classes.graph.Graph, dict[str, in
                         "number_of_molecules": information["graph"], 
                         "residue_names": residue_names,
                         "residue_ids": " ".join(information["res_id_interval"]), 
-                        "formula_no_h": get_formula_based_atom_name(atom_names), 
+                        "formula_no_h": formula, 
                         "is_protein": is_protein,
                         "protein_sequence": protein_sequence,
-                        "pdb_id": pdb_id, 
+                        "pdb_id": pdb_id,
                         "macromolecular_names": macromolecular_names, 
                         "is_lipid": is_lipid, 
                         "is_solvant": is_solvant, 
@@ -1265,8 +1300,8 @@ def main(
         for index_graph, graph_count in enumerate(graph_count_dict.keys()):
             print_graph(graph_count, f"{filename}_{index_graph}.png")
 
-    protein_sequence_dict, lipid_formula_dict = {}, {}
-    for index_graph, graph in enumerate(graph_count_dict.keys(), start=1):
+    protein_sequence_dict = {}
+    for index_graph, (graph, key) in enumerate(graph_count_dict.items(), start=1):
         if is_protein(graph):
             sequence_nbres = extract_protein_sequence(graph)
             sequence = sequence_nbres["sequence"]
@@ -1280,10 +1315,11 @@ def main(
                 set_macromolecular_names = search_into_PDB.treat_PDB_ID_to_macromolecular_names(results)
                 graph_count_dict[graph]["pdb_id"] = results
                 graph_count_dict[graph]["macromolecular_names"] = set_macromolecular_names
-        else:
-            if is_lipid(graph):
-                # If the resname for this graph is in the DB we have
-                graph_count_dict[graph]["is_lipid"] = True
+        # elif 
+        elif is_lipid(graph, key):
+            # If the resname for this graph is in the DB we have
+            print('je suis dans lipide')
+            graph_count_dict[graph]["is_lipid"] = True
     export_protein_sequence_into_FASTA(protein_sequence_dict, f"{filename}.fasta")
     
     export_inventory(graph_count_dict, resolution, input_file_path)
