@@ -126,6 +126,7 @@ def get_atom_pairs_from_threshold(
         numpy.ndarray
             An array containing the atom pairs that are within the specified distance threshold.
     """
+    logger.info("Creating atom pairs list with a specific threshold...")
     contacts_list = []
 
     # Get the list of all residues.
@@ -1099,12 +1100,8 @@ def is_lipid(graph: nx.classes.graph.Graph, dict_count: dict[str, str]) -> bool:
         formula_graph = dict_count["formula_no_h"]
         selected_row = CSML_CHARMM_GUI_LIPID.loc[ (CSML_CHARMM_GUI_LIPID["Alias"] == res_name_graph) & (CSML_CHARMM_GUI_LIPID["Formula"] == formula_graph) ]
         
-        #In case, no rows match the condition gracefully.
-        if selected_row.empty:
-            print("no row match")
-            return False
-        else:
-            print(selected_row)
+        #Check if the selection match a row with this condition
+        if not selected_row.empty:
             return True
     return False
 
@@ -1270,7 +1267,7 @@ def main(
         if resolution=="aa":
             atom_pairs = get_atom_pairs_from_guess_bonds(molecular_system)
         else:
-            atom_pairs = get_atom_pairs_from_threshold(molecular_system, 4.0)
+            atom_pairs = get_atom_pairs_from_threshold(molecular_system, 4.1)
     else:
         atom_pairs = get_atom_pairs_from_threshold(molecular_system, bond_threshold)
 
@@ -1317,8 +1314,6 @@ def main(
                 graph_count_dict[graph]["macromolecular_names"] = set_macromolecular_names
         # elif 
         elif is_lipid(graph, key):
-            # If the resname for this graph is in the DB we have
-            print('je suis dans lipide')
             graph_count_dict[graph]["is_lipid"] = True
     export_protein_sequence_into_FASTA(protein_sequence_dict, f"{filename}.fasta")
     
