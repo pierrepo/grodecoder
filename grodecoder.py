@@ -14,6 +14,7 @@ import hashlib
 import itertools
 from itertools import groupby
 import json
+import pandas as pd
 from pathlib import Path
 import re
 import time
@@ -31,6 +32,8 @@ from scipy.spatial.distance import cdist
 
 import mol_def
 import search_into_PDB
+
+CSML_CHARMM_GUI_LIPID = pd.read_csv("../grodecoder-sandbox/lipid_CHARMM_GUI_CSML.csv", sep=';')
 
 
 def get_distance_matrix_between_atom(
@@ -827,9 +830,10 @@ def find_ion_solvant(
         for interval in res_id_interval:
             start_end = interval.split('-')
             if len(start_end) == 1:
-                selection = f"not (resname {res_name} and index {start_end[0]})"
+                selection = f"not (resname {res_name} and (name {' or name '.join(atom_names)}) and resid {start_end[0]})"
             else: 
-                selection = f"not (resname {res_name} and index {start_end[0]}:{start_end[1]})"
+                selection = f"not (resname {res_name} and (name {' or name '.join(atom_names)}) and resid {start_end[0]}:{start_end[1]})"
+
             universe = universe.select_atoms(f"{selection}")
 
         # for resID in selected_res_ids:
@@ -958,8 +962,13 @@ def is_protein(graph: nx.classes.graph.Graph) -> bool:
     # Récuper les clés du dictionnaires des résidus
     # Calculer le set des noms des résidus du graph cournant
     # Vérifier que l'intersection entre les deux est > 3
-    nodes, _, atom_names_dict, _, _ = get_graph_fingerprint(graph)
-    return (nodes > 3) and ("CA" in atom_names_dict)
+
+    set_key_amino_acid_mda = set(mol_def.AMINO_ACID_DICT.keys())
+    set_res_name_graph = set(nx.get_node_attributes(graph, "residue_name").values())
+    return len(set_key_amino_acid_mda.intersection(set_res_name_graph)) > 3
+
+    # nodes, _, atom_names_dict, _, _ = get_graph_fingerprint(graph)
+    # return (nodes > 3) and ("CA" in atom_names_dict)
 
 
 def extract_protein_sequence(graph: nx.classes.graph.Graph) -> dict[str, int]:
@@ -1266,7 +1275,6 @@ def main(
             graph_count_dict[graph]["is_protein"] = True
             graph_count_dict[graph]["protein_sequence"] = sequence
             
-            print(query_pdb)
             if query_pdb: 
                 results = search_into_PDB.API_PDB_search_based_sequence(sequence)
                 set_macromolecular_names = search_into_PDB.treat_PDB_ID_to_macromolecular_names(results)
