@@ -106,7 +106,7 @@ def get_atom_pairs(
     return atom_pairs
 
 
-def get_atom_pairs2(
+def get_atom_pairs_from_threshold(
     mol: mda.core.universe.Universe, threshold: float
 ) -> np.ndarray[np.ndarray]:
     """Get atom pairs within a specified distance threshold.
@@ -188,7 +188,7 @@ def get_atom_pairs2(
         return atom_pairs
 
 
-def get_atom_pairs3(molecular_system: mda.core.universe.Universe) -> np.ndarray:
+def get_atom_pairs_from_guess_bonds(molecular_system: mda.core.universe.Universe) -> np.ndarray:
     """This function retrieves atom pairs within a specified distance threshold from the given molecular system.
 
     References
@@ -206,7 +206,7 @@ def get_atom_pairs3(molecular_system: mda.core.universe.Universe) -> np.ndarray:
         numpy.ndarray
             An array containing the atom pairs that are within the specified distance threshold.
     """
-    logger.info("Create atom pairs list with the Van der Waals radius of each atom...")
+    logger.info("Creating atom pairs list with the Van der Waals radius of each atom...")
 
     molecular_system.atoms.guess_bonds()
     # Example:
@@ -455,7 +455,7 @@ def get_intervals(seq: list[int]) -> list[str]:
     """
     starts = [x for x in seq if x-1 not in seq]
     ends = [y for y in seq if y+1 not in seq]
-    return [str(a)+'-'+str(b) if a!=b else str(a) for a, b in zip(starts, ends)]
+    return [str(a) + '-' + str(b) if a!=b else str(a) for a, b in zip(starts, ends)]
 
 
 def extract_interval(graph: nx.classes.graph.Graph) -> dict[str, list[int]]:
@@ -486,7 +486,7 @@ def extract_interval(graph: nx.classes.graph.Graph) -> dict[str, list[int]]:
     atom_id_interval = get_intervals(atom_id)
     
     dict_res = {"res_id": res_id, 
-                "res_id_interval": intervals, 
+                "res_id_interval": res_id_interval, 
                 "atom_id": atom_id, 
                 "atom_id_interval": atom_id_interval}
     return dict_res
@@ -805,7 +805,7 @@ def find_ion_solvant(
             
             res_id.extend([key for key in sorted(residue_pairs_dict)])
             atom_id.extend(nx.get_node_attributes(subgraph, "atom_id").values())
-    
+
         res_id_interval = get_intervals(res_id)
         atom_id_interval = get_intervals(atom_id)
             
@@ -822,14 +822,22 @@ def find_ion_solvant(
             "solvant": solvant, 
             "ion": ion
         }
-
+        
         # Here we remove all the resIDS (from selected_res_ids) from this universe
-        for resID in selected_res_ids:
-            # if resID in dict_res_atom_id_methionine:
-            #     selection = f"not (resname {res_name} and resid {resID}) and not (id {dict_res_atom_id_methionine[resID][0]}:{dict_res_atom_id_methionine[resID][-1]})"
-            # else:
-            selection = f"not (resname {res_name} and resid {resID})"
+        for interval in res_id_interval:
+            start_end = interval.split('-')
+            if len(start_end) == 1:
+                selection = f"not (resname {res_name} and index {start_end[0]})"
+            else: 
+                selection = f"not (resname {res_name} and index {start_end[0]}:{start_end[1]})"
             universe = universe.select_atoms(f"{selection}")
+
+        # for resID in selected_res_ids:
+        #     # if resID in dict_res_atom_id_methionine:
+        #     #     selection = f"not (resname {res_name} and resid {resID}) and not (id {dict_res_atom_id_methionine[resID][0]}:{dict_res_atom_id_methionine[resID][-1]})"
+        #     # else:
+        #     selection = f"not (resname {res_name} and resid {resID})"
+        #     universe = universe.select_atoms(f"{selection}")
     return (universe, counts)
 
 
@@ -1173,7 +1181,7 @@ def export_inventory(graph_count_dict: dict[nx.classes.graph.Graph, dict[str, in
         absolute_file_path = current_dir / filename
         relative_path = absolute_file_path.relative_to(current_dir)
 
-        final_dict = {"inventory": list_dict_molecule, 
+        final_dict = {"inventory": sorted(list_dict_molecule, key=lambda x: x["number_of_molecules"]), 
                   "resolution": resolution, 
                   "date": date_time, 
                   "file_path": str(relative_path),
@@ -1207,8 +1215,6 @@ def main(
         check_overlapping_residue: boolean
             Check of some residues are overlapping between graphs / molecules. Default: False.
     """
-    threshold = max(mol_def.BOND_LENGTH.values())
-    logger.success(f"Bond threshold: {threshold} Angstrom")
 
     molecular_system = remove_hydrogene(input_file_path)
     molecular_system, count_ion_solvant = count_remove_ion_solvant(
@@ -1218,14 +1224,14 @@ def main(
     if bond_threshold=="auto":
         resolution = find_resolution(molecular_system)
         if resolution=="aa":
-            atom_pairs = get_atom_pairs3(molecular_system)
+            atom_pairs = get_atom_pairs_from_guess_bonds(molecular_system)
         else:
-            atom_pairs = get_atom_pairs2(molecular_system, 4.0)
+            atom_pairs = get_atom_pairs_from_threshold(molecular_system, 4.0)
     else:
-        atom_pairs = get_atom_pairs2(molecular_system, bond_threshold)
+        atom_pairs = get_atom_pairs_from_threshold(molecular_system, bond_threshold)
 
-    # atom_pairs = get_atom_pairs2(molecular_system, 1.7)
-    # atom_pairs = get_atom_pairs3(molecular_system)
+    # atom_pairs = get_atom_pairs_from_threshold(molecular_system, 1.7)
+    # atom_pairs = get_atom_pairs_from_guess_bonds(molecular_system)
 
     graph_return = convert_atom_pairs_to_graph(atom_pairs, molecular_system)
 
@@ -1274,7 +1280,6 @@ def main(
     
     export_inventory(graph_count_dict, resolution, input_file_path)
     
-
 
 def is_a_structure_file(filepath: str) -> str:
     """Check if the given filepath points to an existing structure file (.gro, .pdb).
