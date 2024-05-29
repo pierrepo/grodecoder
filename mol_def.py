@@ -1,5 +1,15 @@
+"""This file lists all molecules (amino acids, ions and solvent)
+used for the identification of molecular entities.
+
+Usage
+-----
+    import mol_def 
+"""
+
 import MDAnalysis as mda
 
+
+# https://cdn.numerade.com/ask_images/62305c89db43434fb95d4f223037af3e.jpg
 BOND_LENGTH = {
     "C-C": 1.54,
     "C=C": 1.34,
@@ -30,16 +40,21 @@ AMINO_ACID_DICT["CYSP"] = "C"
 
 # The reference for each res_name and atom_names in IONS_LIST:
 # https://github.com/gromacs/gromacs/tree/main/share/top
+# https://mad.ibcp.fr/explore?categories=MC%3A0006
+# https://www.charmm-gui.org/?doc=open_toppar&filename=stream/misc/toppar_ions_won.str 
+
 # List of all the possibility of ions :
 # https://www.unamur.be/sciences/enligne/transition/chimie/fichesderevision/revision3/listeions.htm
-# https://mad.ibcp.fr/explore?categories=MC%3A0006
 IONS_LIST = [
-    {"name": "Aluminium ion", "res_name": "AL3P", "atom_names": ["AL3P"]},
+    {"name": "Aluminium ion ", "res_name": "AL3P", "atom_names": ["AL3P"]},
+    {"name": "Barium ion - CHARMM", "res_name": "BAR", "atom_names": ["BAR"]},
     {"name": "Bromide ion", "res_name": "BR", "atom_names": ["BR"]},
     {"name": "Bromide ion", "res_name": "BR-", "atom_names": ["BR"]},
     {"name": "Calcium ion", "res_name": "CA", "atom_names": ["CA"]},
     {"name": "Calcium ion", "res_name": "CA2+", "atom_names": ["CA"]},
     {"name": "Calcium ion", "res_name": "CAL", "atom_names": ["CAL"]},  # CA
+    {"name": "Cadmuim II cation - CHARMM", "res_name": "CD2", "atom_names": ["CD"]},
+    {"name": "Cesium ion - CHARMM", "res_name": "CES", "atom_names": ["CES"]},
     {"name": "Copper ion", "res_name": "CU", "atom_names": ["CU"]},
     {"name": "Copper ion", "res_name": "CU1", "atom_names": ["CU"]},
     {"name": "Copper ion", "res_name": "CU1+", "atom_names": ["CU1+"]},
@@ -51,6 +66,12 @@ IONS_LIST = [
     {"name": "Caesium ion", "res_name": "Cs+", "atom_names": ["Cs"]},
     {"name": "Fluoride ion", "res_name": "F", "atom_names": ["F"]},
     {"name": "Fluoride ion", "res_name": "F-", "atom_names": ["F"]},
+    {"name": "H2PO4 ion - CHARMM", "res_name": "H2PO", "atom_names": ["P", "O1", "O2", "O3", "O4", "H1", "H2"]},
+    {"name": "H3PO4 ion - CHARMM", "res_name": "H3PO", "atom_names": ["P", "O1", "O2", "O3", "O4", "H1", "H2", "H3"]},
+    {"name": "HPO4 ion - CHARMM", "res_name": "HPO4", "atom_names": ["P", "O1", "O2", "O3", "O4", "H"]},
+    {"name": "H2SO4 ion - CHARMM", "res_name": "H2SO", "atom_names": ["S", "O1", "O2", "O3", "O4", "H1", "H2"]},
+    {"name": "HSO4 ion - CHARMM", "res_name": "HSO4", "atom_names": ["S", "O1", "O2", "O3", "O4", "H"]},
+    {"name": "Hydrogen peroxide - CHARMM", "res_name": "H2O2", "atom_names": ["HP1", "OP1", "OP2", "HP2"]},
     {"name": "Iodide ion", "res_name": "I", "atom_names": ["I"]},
     {"name": "Iodide ion", "res_name": "I-", "atom_names": ["I"]},
     {"name": "big positive ion", "res_name": "IB+", "atom_names": ["IB"]},
@@ -58,22 +79,28 @@ IONS_LIST = [
     {"name": "Potassium ion", "res_name": "K+", "atom_names": ["K"]},
     {"name": "Lithium ion", "res_name": "LI", "atom_names": ["LI"]},
     {"name": "Lithium ion", "res_name": "LI+", "atom_names": ["LI"]},
+    {"name": "Lithium ion", "res_name": "LIT", "atom_names": ["LIT"]},
     {"name": "Magnesium ion", "res_name": "MG", "atom_names": ["MG"]},
     {"name": "Magnesium ion", "res_name": "MG2+", "atom_names": ["MG"]},
     {"name": "Sodium ion", "res_name": "NA", "atom_names": ["NA"]},
     {"name": "Sodium ion", "res_name": "NA+", "atom_names": ["NA"]},
     {"name": "Hydroxide ion", "res_name": "OH", "atom_names": ["O1"]},
+    {"name": "Plutonium ion", "res_name": "PU3P", "atom_names": ["PU3P"]},
     {"name": "Potassium ion", "res_name": "POT", "atom_names": ["POT"]},  # K
+    {"name": "PO4 ion - CHARMM", "res_name": "PO4", "atom_names": ["P", "O1", "O2", "O3", "O4"]},
     {"name": "Rubidium ion", "res_name": "RB", "atom_names": ["RB"]},
+    {"name": "Rubidium ion - CHARMM", "res_name": "RUB", "atom_names": ["RUB"]},
     {"name": "Rubidium ion", "res_name": "Rb+", "atom_names": ["Rb"]},
     {"name": "Sodium ion", "res_name": "SOD", "atom_names": ["SOD"]},  # NA
+    {"name": "SO4 ion - CHARMM", "res_name": "SO4", "atom_names": ["S", "O1", "O2", "O3", "O4"]},
     {"name": "Zinc ion", "res_name": "ZN", "atom_names": ["ZN"]},
     {"name": "Zinc ion", "res_name": "ZN2+", "atom_names": ["ZN"]}, 
+    {"name": "Zinc ion - CHARMM", "res_name": "ZN2", "atom_names": ["ZN2"]},
 
-    {"name": "Calcium ion (in CG model with MARTINI)", "res_name": "ION", "atom_names": ["CA"]},
-    {"name": "chloride ion (in CG model with MARTINI)", "res_name": "ION", "atom_names": ["CL-"]},
-    {"name": "Sodium ion (in CG model with MARTINI)", "res_name": "ION", "atom_names": ["NA+"]}, 
-    {"name": "Choloneion ion (in CG model with MARTINI)", "res_name": "ION", "atom_names": ["NC3"]}
+    {"name": "Calcium ion - CG model with MARTINI", "res_name": "ION", "atom_names": ["CA"]},
+    {"name": "chloride ion - CG model with MARTINI", "res_name": "ION", "atom_names": ["CL-"]},
+    {"name": "Sodium ion - CG model with MARTINI", "res_name": "ION", "atom_names": ["NA+"]}, 
+    {"name": "Choloneion ion - CG model with MARTINI", "res_name": "ION", "atom_names": ["NC3"]}
 ]
 
 
@@ -98,31 +125,31 @@ SOLVANTS_LIST = [{"name": "water TIP3P solvant", "res_name": "TIP3", "atom_names
                  {"name": "organic solvant propanol/OPLS", "res_name": "POL", "atom_names": ["C", "H", "H", "H", "C", "H", "H", "C", "H", "H", "OA", "HO"]},
                  {"name": "organic solvant methanol/GROMOS", "res_name": "MeOH", "atom_names": ["Me1", "O2", "H3"]}, 
 
-                 {"name": "water (in CG model with MARTINI)", "res_name": "W", "atom_names": ["W"]}, 
-                 {"name": "organic solvant ethanol (in CG model with MARTINI)", "res_name": "EOL", "atom_names": ["COH"]}, 
-                 {"name": "organic solvant ether (in CG model with MARTINI)", "res_name": "ETH", "atom_names": ["CO"]}, 
-                 {"name": "organic solvant butane (in CG model with MARTINI)", "res_name": "BUT", "atom_names": ["C1"]},
-                 {"name": "Acetamide (in CG model with MARTINI)", "res_name": "ACE", "atom_names": ["NCO"]},
-                 {"name": "Acetic (in CG model with MARTINI)", "res_name": "ACH", "atom_names": ["OOH"]},
-                 {"name": "Benzene (in CG model with MARTINI)", "res_name": "BENZ", "atom_names": ["R1", "R2", "R3"]},
-                 {"name": "Butanol (in CG model with MARTINI)", "res_name": "BOL", "atom_names": ["COH"]},
-                 {"name": "Chlorobenzene (in CG model with MARTINI)", "res_name": "CB", "atom_names": ["Cl", "R2", "R3"]},
-                 {"name": "Chloroform (in CG model with MARTINI)", "res_name": "CLF", "atom_names": ["CX"]},
-                 {"name": "Chloropropane (in CG model with MARTINI)", "res_name": "PRX", "atom_names": ["CX"]},
-                 {"name": "Cyclohexane (in CG model with MARTINI)", "res_name": "CHEX", "atom_names": ["R1", "R2", "R3"]},
-                 {"name": "Dodecane (in CG model with MARTINI)", "res_name": "DEC", "atom_names": ["C", "C", "C"]},
-                 {"name": "Glycerinetrioleate (in CG model with MARTINI)", "res_name": "TO", "atom_names": ["GLY", "ES1", "ES2", "ES3", "C1A", "D2A", "C3A", "C4A", "C1B", "D2B", "C3B", "C4B", "C1C", "D2C", "C3C", "C4C"]},
-                 {"name": "Hexadecane (in CG model with MARTINI)", "res_name": "HD", "atom_names": ["C", "C", "C", "C"]},
-                 {"name": "Methylethylsulfide (in CG model with MARTINI)", "res_name": "MES", "atom_names": ["CS"]},
-                 {"name": "Octadecane (in CG model with MARTINI)", "res_name": "OD", "atom_names": ["C", "C", "C", "C", "C"]},
-                 {"name": "Octane (in CG model with MARTINI)", "res_name": "OCT", "atom_names": ["C", "C"]},
-                 {"name": "Octanol (in CG model with MARTINI)", "res_name": "OCO", "atom_names": ["PC", "C"]},
-                 {"name": "Propane (in CG model with MARTINI)", "res_name": "POP", "atom_names": ["C"]},
-                 {"name": "Propanol (in CG model with MARTINI)", "res_name": "POL", "atom_names": ["COH"]},
-                 {"name": "Propanon (in CG model with MARTINI)", "res_name": "PON", "atom_names": ["CO"]},
-                 {"name": "Propylamine (in CG model with MARTINI)", "res_name": "PAM", "atom_names": ["CN"]},
-                 {"name": "Cis-octadecene (in CG model with MARTINI)", "res_name": "BUT", "atom_names": ["C", "C", "D", "C", "C"]},
-                 {"name": "Butanol (in CG model)", "res_name": "C4OH", "atom_names": ["COH"]}
+                 {"name": "water - in CG model with MARTINI", "res_name": "W", "atom_names": ["W"]}, 
+                 {"name": "organic solvant ethanol - CG model with MARTINI", "res_name": "EOL", "atom_names": ["COH"]}, 
+                 {"name": "organic solvant ether - CG model with MARTINI", "res_name": "ETH", "atom_names": ["CO"]}, 
+                 {"name": "organic solvant butane - CG model with MARTINI", "res_name": "BUT", "atom_names": ["C1"]},
+                 {"name": "Acetamide - CG model with MARTINI", "res_name": "ACE", "atom_names": ["NCO"]},
+                 {"name": "Acetic - CG model with MARTINI", "res_name": "ACH", "atom_names": ["OOH"]},
+                 {"name": "Benzene - CG model with MARTINI", "res_name": "BENZ", "atom_names": ["R1", "R2", "R3"]},
+                 {"name": "Butanol - CG model with MARTINI", "res_name": "BOL", "atom_names": ["COH"]},
+                 {"name": "Chlorobenzene - CG model with MARTINI", "res_name": "CB", "atom_names": ["Cl", "R2", "R3"]},
+                 {"name": "Chloroform - CG model with MARTINI", "res_name": "CLF", "atom_names": ["CX"]},
+                 {"name": "Chloropropane - CG model with MARTINI", "res_name": "PRX", "atom_names": ["CX"]},
+                 {"name": "Cyclohexane - CG model with MARTINI", "res_name": "CHEX", "atom_names": ["R1", "R2", "R3"]},
+                 {"name": "Dodecane - CG model with MARTINI", "res_name": "DEC", "atom_names": ["C", "C", "C"]},
+                 {"name": "Glycerinetrioleate - CG model with MARTINI", "res_name": "TO", "atom_names": ["GLY", "ES1", "ES2", "ES3", "C1A", "D2A", "C3A", "C4A", "C1B", "D2B", "C3B", "C4B", "C1C", "D2C", "C3C", "C4C"]},
+                 {"name": "Hexadecane - CG model with MARTINI", "res_name": "HD", "atom_names": ["C", "C", "C", "C"]},
+                 {"name": "Methylethylsulfide - CG model with MARTINI", "res_name": "MES", "atom_names": ["CS"]},
+                 {"name": "Octadecane - CG model with MARTINI", "res_name": "OD", "atom_names": ["C", "C", "C", "C", "C"]},
+                 {"name": "Octane - CG model with MARTINI", "res_name": "OCT", "atom_names": ["C", "C"]},
+                 {"name": "Octanol - CG model with MARTINI", "res_name": "OCO", "atom_names": ["PC", "C"]},
+                 {"name": "Propane - CG model with MARTINI", "res_name": "POP", "atom_names": ["C"]},
+                 {"name": "Propanol - CG model with MARTINI", "res_name": "POL", "atom_names": ["COH"]},
+                 {"name": "Propanon - CG model with MARTINI", "res_name": "PON", "atom_names": ["CO"]},
+                 {"name": "Propylamine - CG model with MARTINI", "res_name": "PAM", "atom_names": ["CN"]},
+                 {"name": "Cis-octadecene - CG model with MARTINI", "res_name": "BUT", "atom_names": ["C", "C", "D", "C", "C"]},
+                 {"name": "Butanol - in CG model", "res_name": "C4OH", "atom_names": ["COH"]}
 
                 #  {"name": "Trans-octadecene  (in CG model)", "res_name": "ODT", "atom_names": ["C1", "C3", "C1", "C1", "C1"]},
                 # https://mad.ibcp.fr/molecule/ODT?version=668651949501128350
