@@ -34,6 +34,7 @@ import mol_def
 import search_into_PDB
 
 CSML_CHARMM_GUI_LIPID = pd.read_csv("../grodecoder-sandbox/lipid_CHARMM_GUI_CSML.csv", sep=';')
+MAD_LIPID = pd.read_csv("../grodecoder-sandbox/lipid_MAD.csv", sep=';')
 
 
 def get_distance_matrix_between_atom(
@@ -1087,6 +1088,7 @@ def is_lipid(graph: nx.classes.graph.Graph, dict_count: dict[str, str]) -> bool:
         
         #Check if the selection match a row with this condition
         if not selected_row.empty:
+            # dict_count["name"] = str(selected_row["Name"])
             return True
     return False
 
@@ -1180,6 +1182,7 @@ def export_inventory(graph_count_dict: dict[nx.classes.graph.Graph, dict[str, in
             macromolecular_names = "; ".join(information["macromolecular_names"])
         if "is_lipid" in information.keys():
             is_lipid = information["is_lipid"]
+            # putative_name = information["name"]
         if "ion" in information.keys():
             is_ion = information["ion"]
             is_solvant = information["solvant"]
@@ -1222,6 +1225,28 @@ def export_inventory(graph_count_dict: dict[nx.classes.graph.Graph, dict[str, in
     logger.info(f"JSON filename : {filename_JSON}")
 
 
+def is_met(graph: nx.classes.graph.Graph) -> bool:
+    """Determines if a given graph represents a methanol (MET).
+
+    Parameters
+    ----------
+        graph: nx.classes.graph.Graph
+            A NetworkX graph representing a molecular structure. 
+
+    Returns
+    -------
+        bool
+            True if the graph represents a MET solvant, False otherwise.
+    """
+    res_name = set(nx.get_node_attributes(graph, "residue_name").values())
+    nb_atom = graph.number_of_nodes()
+
+    if res_name == "MET" and nb_atom == 2:
+        print("je suis met")
+        return True
+    return False
+
+
 def main(
     input_file_path: str,
     draw_graph_option: bool = False,
@@ -1256,9 +1281,6 @@ def main(
     else:
         atom_pairs = get_atom_pairs_from_threshold(molecular_system, bond_threshold)
 
-    # atom_pairs = get_atom_pairs_from_threshold(molecular_system, 1.7)
-    # atom_pairs = get_atom_pairs_from_guess_bonds(molecular_system)
-
     graph_return = convert_atom_pairs_to_graph(atom_pairs, molecular_system)
 
     graph_with_node_attributes = add_attributes_to_nodes(graph_return, molecular_system)
@@ -1284,7 +1306,12 @@ def main(
 
     protein_sequence_dict = {}
     for index_graph, (graph, key) in enumerate(graph_count_dict.items(), start=1):
-        if is_protein(graph):
+        if is_met(graph):
+            graph_count_dict[graph]["solvant"] = True
+            graph_count_dict[graph]["ion"] = False
+            graph_count_dict[graph]["name"] = "organic solvant methanol/OPLS"
+
+        elif is_protein(graph):
             sequence_nbres = extract_protein_sequence(graph)
             sequence = sequence_nbres["sequence"]
 
@@ -1297,7 +1324,6 @@ def main(
                 set_macromolecular_names = search_into_PDB.treat_PDB_ID_to_macromolecular_names(results)
                 graph_count_dict[graph]["pdb_id"] = results
                 graph_count_dict[graph]["macromolecular_names"] = set_macromolecular_names
-        # elif 
         elif is_lipid(graph, key):
             graph_count_dict[graph]["is_lipid"] = True
     export_protein_sequence_into_FASTA(protein_sequence_dict, f"{filename}.fasta")
