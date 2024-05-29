@@ -1036,16 +1036,28 @@ def extract_protein_sequence(graph: nx.classes.graph.Graph) -> dict[str, int]:
     logger.info("Extracting protein sequence...")
     info_seq = {}
     protein_sequence = []
+
+    residue_pairs = zip(
+        nx.get_node_attributes(graph, "residue_id").values(),
+        nx.get_node_attributes(graph, "residue_name").values()
+    )
+    residue_pairs_dict = dict(residue_pairs)
+    residue_names = [residue_pairs_dict[key] for key in sorted(residue_pairs_dict)]
+    for resname in residue_names:
+        protein_sequence.append(
+            mol_def.AMINO_ACID_DICT.get(resname, "?")
+        )
+
     # graph.nodes.items() returns an iterable of tuples (node_id, node_attributes).
     # Examples:
     # (0, {'atom_name': 'N', 'residue_id': 1, 'residue_name': 'MET', 'label': 1})
     # (1, {'atom_name': 'CA', 'residue_id': 1, 'residue_name': 'MET', 'label': 5})
     # (2, {'atom_name': 'CB', 'residue_id': 1, 'residue_name': 'MET', 'label': 7})
-    for _, node_attr in sorted(graph.nodes.items(), key=lambda x: x[0]):
-        if node_attr["atom_name"] == "CA":
-            protein_sequence.append(
-                mol_def.AMINO_ACID_DICT.get(node_attr["residue_name"], "?")
-            )
+    # for _, node_attr in sorted(graph.nodes.items(), key=lambda x: x[0]):
+    #     if node_attr["atom_name"] == "CA":
+    #         protein_sequence.append(
+    #             mol_def.AMINO_ACID_DICT.get(node_attr["residue_name"], "?")
+    #         )
     info_seq["sequence"] = "".join(protein_sequence)
     info_seq["nb_res"] = len(protein_sequence)
     return info_seq
@@ -1079,6 +1091,20 @@ def export_protein_sequence_into_FASTA(
 
 
 def is_lipid(graph: nx.classes.graph.Graph, dict_count: dict[str, str]) -> bool:
+    """Determines if the given graph represents a lipid.
+
+    Parameters
+    ----------
+        graph: nx.classes.graph.Graph
+            The molecular graph with nodes containing attributes, including "residue_name".
+        dict_count: dict[str, str]
+            A dictionary containing molecular information with keys such as "formula_no_h".
+
+    Returns
+    -------
+        bool
+            True if the graph represents a lipid according to the predefined database, False otherwise.
+    """
     res_name_graph = set(nx.get_node_attributes(graph, "residue_name").values())
     res_name_graph = res_name_graph.pop()
 
@@ -1277,7 +1303,7 @@ def main(
         if resolution=="aa":
             atom_pairs = get_atom_pairs_from_guess_bonds(molecular_system)
         else:
-            atom_pairs = get_atom_pairs_from_threshold(molecular_system, 4.1)
+            atom_pairs = get_atom_pairs_from_threshold(molecular_system, 4.2)
     else:
         atom_pairs = get_atom_pairs_from_threshold(molecular_system, bond_threshold)
 
