@@ -243,8 +243,8 @@ def convert_atom_pairs_to_graph(
     ----------
         atom_pairs: list
             A list of pairs representing edges in the graph.
-        number_of_atoms: int
-            The total number of atoms in the graph.
+        mol: mda.core.universe.Universe
+            The MDAnalysis universe object representing the molecular system.
 
     Returns
     -------
@@ -388,6 +388,7 @@ def get_graph_fingerprint(
 
     # Exemple :
     # graph.degree = [(1, 1), (2, 3), (3, 1), (4, 2), (5, 1)]
+    # dict(graph.degree) = { 1: 1, 2: 2, 3: 1, 5: 1 }
     graph_degrees_dict = dict(
         Counter([degree for _, degree in graph.degree]).most_common()
     )
@@ -407,6 +408,8 @@ def get_graph_fingerprint_str(
     ----------
         graph: networkx.classes.graph.Graph
             The graph for which the fingerprint is to be generated.
+        check_connectivity: bool
+            Either we want the degree in the fingerprint or not. By default: false.
 
     Returns
     -------
@@ -462,7 +465,7 @@ def get_intervals(seq: list[int]) -> list[str]:
 
     Example:
         get_intervals([1, 2, 3, 6, 7, 8, 10])
-        ['1-3', '6-8', '10-10']
+        ['1-3', '6-8', '10']
     """
     starts = [x for x in seq if x - 1 not in seq]
     ends = [y for y in seq if y + 1 not in seq]
@@ -525,6 +528,10 @@ def get_formula_based_atom_name(atom_name_dict: dict[str, int]) -> str:
     """
     atom_names = []
     for atom_name in atom_name_dict.keys():
+
+        # Example:
+        # mda.topology.guessers.guess_atom_type("CA") = 'C
+        # mda.topology.guessers.guess_atom_type("HB1") = 'H
         atom_name = f"{mda.topology.guessers.guess_atom_type(atom_name)}"
         # print(mda.topology.guessers.guess_atom_element(atom.name))
         if atom_name != "H":
@@ -556,6 +563,8 @@ def count_molecule(
     ----------
         graph_list: list
             A list of graph objects.
+        check_connectivity: bool
+            Either we want the degree in the fingerprint or not. By default: false.
 
     Returns
     -------
@@ -566,9 +575,6 @@ def count_molecule(
     logger.info("Counting molecules...")
     dict_count = {}
 
-    # Convert the dictionnary of atom_name to a str
-    # So dictionnary can be compare between them
-    # sorted_graphs = sorted( graph_list,check_connectivity, key=get_graph_fingerprint_str)
     sorted_graphs = sorted(
         graph_list, key=lambda x: get_graph_fingerprint_str(x, check_connectivity)
     )
@@ -819,6 +825,8 @@ def find_ion_solvant(
             MDAnalysis Universe object representing the system.
         counts : dict
             Dictionary to store the counts of ions or solvents.
+        solvant_or_ion : str
+            Information about the type of the molecule
 
     Returns
     -------
@@ -1016,12 +1024,7 @@ def is_protein(graph: nx.classes.graph.Graph) -> bool:
     -------
         bool
             True if the molecule is a protein, False otherwise.
-    """
-    # logger.info("Checking if the molecule is a protein...")
-    # Récuper les clés du dictionnaires des résidus
-    # Calculer le set des noms des résidus du graph cournant
-    # Vérifier que l'intersection entre les deux est > 3
-
+    """    
     set_key_amino_acid_mda = set(mol_def.AMINO_ACID_DICT.keys())
     set_res_name_graph = set(nx.get_node_attributes(graph, "residue_name").values())
     return len(set_key_amino_acid_mda.intersection(set_res_name_graph)) > 3
@@ -1064,16 +1067,6 @@ def extract_protein_sequence(graph: nx.classes.graph.Graph) -> dict[str, int]:
     for resname in residue_names:
         protein_sequence.append(mol_def.AMINO_ACID_DICT.get(resname, "?"))
 
-    # graph.nodes.items() returns an iterable of tuples (node_id, node_attributes).
-    # Examples:
-    # (0, {'atom_name': 'N', 'residue_id': 1, 'residue_name': 'MET', 'label': 1})
-    # (1, {'atom_name': 'CA', 'residue_id': 1, 'residue_name': 'MET', 'label': 5})
-    # (2, {'atom_name': 'CB', 'residue_id': 1, 'residue_name': 'MET', 'label': 7})
-    # for _, node_attr in sorted(graph.nodes.items(), key=lambda x: x[0]):
-    #     if node_attr["atom_name"] == "CA":
-    #         protein_sequence.append(
-    #             mol_def.AMINO_ACID_DICT.get(node_attr["residue_name"], "?")
-    #         )
     info_seq["sequence"] = "".join(protein_sequence)
     info_seq["nb_res"] = len(protein_sequence)
     return info_seq
@@ -1164,7 +1157,7 @@ def find_resolution(
         universe_without_h_ion_solvant: MDAnalysis.Universe
             The molecular universe without hydrogen ions and solvent.
         number_res: int
-            The number of residues to collect. Default is 3.
+            The number of residues to collect. By default it's 3.
 
     Returns
     -------
@@ -1527,9 +1520,9 @@ def parse_arg() -> argparse.Namespace:
     )
     parser.add_argument(
         "--bondthreshold",
-        help="Choose the method to calculate the atom pairs. If we know the resolution of the system is all atom choose 'aa' or we don't know so choose 'auto')",
-        default="auto",
         type=is_a_valid_threshold,
+        help="Choose the method to calculate the atom pairs. If we know the resolution of the system is all atom choose 'aa' or we don't know so choose 'auto'",
+        default="auto",
     )
     parser.add_argument(
         "--querypdb",
