@@ -1219,7 +1219,7 @@ def export_inventory(graph_count_dict: dict[nx.classes.graph.Graph, dict[str, in
                         "number_of_molecules": information["graph"], 
                         "residue_names": residue_names,
                         "residue_ids": " ".join(information["res_id_interval"]), 
-                        "formula_no_h": formula, 
+                        "formula_without_h": formula, 
                         "is_protein": is_protein,
                         "protein_sequence": protein_sequence,
                         "pdb_id": pdb_id,
@@ -1303,7 +1303,7 @@ def main(
         if resolution=="aa":
             atom_pairs = get_atom_pairs_from_guess_bonds(molecular_system)
         else:
-            atom_pairs = get_atom_pairs_from_threshold(molecular_system, 4.2)
+            atom_pairs = get_atom_pairs_from_threshold(molecular_system, 5.0)
     else:
         atom_pairs = get_atom_pairs_from_threshold(molecular_system, bond_threshold)
 
