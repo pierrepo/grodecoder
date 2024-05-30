@@ -33,8 +33,10 @@ from scipy.spatial.distance import cdist
 import mol_def
 import search_into_PDB
 
-CSML_CHARMM_GUI = pd.read_csv("../grodecoder-sandbox/lipid_CHARMM_GUI_CSML.csv", sep=';')
-MAD_DB = pd.read_csv("../grodecoder-sandbox/lipid_MAD.csv", sep=';')
+CSML_CHARMM_GUI = pd.read_csv(
+    "../grodecoder-sandbox/lipid_CHARMM_GUI_CSML.csv", sep=";"
+)
+MAD_DB = pd.read_csv("../grodecoder-sandbox/lipid_MAD.csv", sep=";")
 
 
 def get_distance_matrix_between_atom(
@@ -193,7 +195,9 @@ def get_atom_pairs_from_threshold(
         return atom_pairs
 
 
-def get_atom_pairs_from_guess_bonds(molecular_system: mda.core.universe.Universe) -> np.ndarray:
+def get_atom_pairs_from_guess_bonds(
+    molecular_system: mda.core.universe.Universe,
+) -> np.ndarray:
     """This function retrieves atom pairs within a specified distance threshold from the given molecular system.
 
     References
@@ -211,7 +215,9 @@ def get_atom_pairs_from_guess_bonds(molecular_system: mda.core.universe.Universe
         numpy.ndarray
             An array containing the atom pairs that are within the specified distance threshold.
     """
-    logger.info("Creating atom pairs list with the Van der Waals radius of each atom...")
+    logger.info(
+        "Creating atom pairs list with the Van der Waals radius of each atom..."
+    )
 
     molecular_system.atoms.guess_bonds()
     # Example:
@@ -246,7 +252,7 @@ def convert_atom_pairs_to_graph(
             A graph object representing the molecular system.
     """
     logger.info("Converting atom pairs to graph...")
-    
+
     graph = nx.Graph()
     # Add all atoms as single nodes.
     graph.add_nodes_from(mol.atoms.ids)
@@ -365,7 +371,7 @@ def get_graph_fingerprint(
     edges = graph.number_of_edges()
 
     atom_names = Counter(nx.get_node_attributes(graph, "atom_name").values())
-    # Use sorted so the atom_names will be in the same order if it's the same molecule. 
+    # Use sorted so the atom_names will be in the same order if it's the same molecule.
     # Otherwise it's different even if it's the same molecule
     # And the dictionnary comparaison will say it's different molecule
     atom_names = dict(sorted(atom_names.most_common()))
@@ -373,7 +379,7 @@ def get_graph_fingerprint(
     # Get all residue ids and resides names pairs.
     residue_pairs = zip(
         nx.get_node_attributes(graph, "residue_id").values(),
-        nx.get_node_attributes(graph, "residue_name").values()
+        nx.get_node_attributes(graph, "residue_name").values(),
     )
     # Convert to dictionnary to have only one residue id (key is unique in dict).
     residue_pairs_dict = dict(residue_pairs)
@@ -383,8 +389,7 @@ def get_graph_fingerprint(
     # Exemple :
     # graph.degree = [(1, 1), (2, 3), (3, 1), (4, 2), (5, 1)]
     graph_degrees_dict = dict(
-        Counter([degree for _, degree in graph.degree])
-        .most_common()
+        Counter([degree for _, degree in graph.degree]).most_common()
     )
 
     return (nodes, edges, atom_names, residue_names, graph_degrees_dict)
@@ -394,8 +399,7 @@ def get_graph_fingerprint_str(
     graph: nx.classes.graph.Graph,
     check_connectivity: bool,
 ) -> tuple[int, str, list[str]]:
-
-    """Collect the tuple return by get_graph_fingerprint, to only extract 
+    """Collect the tuple return by get_graph_fingerprint, to only extract
     the number of nodes, the dictionary of atom_name (that we going to convert to str so it's haschable)
     and the list of res_names.
 
@@ -412,9 +416,11 @@ def get_graph_fingerprint_str(
                 - str: A string containing the counts of each atom name present in the graph. Exemple : "{'CA': 5, 'N': 3}"
                 - list[str]: A list containing the names of the unique residues present in the graph.
     """
-    (nodes, edges, atom_names, res_names, graph_degrees_dict) = get_graph_fingerprint(graph)
+    (nodes, edges, atom_names, res_names, graph_degrees_dict) = get_graph_fingerprint(
+        graph
+    )
     if check_connectivity:
-        return (nodes, edges,str(atom_names), res_names, str(graph_degrees_dict))
+        return (nodes, edges, str(atom_names), res_names, str(graph_degrees_dict))
     else:
         return (nodes, str(atom_names), res_names)
 
@@ -439,7 +445,7 @@ def print_graph_fingerprint(graph: nx.classes.graph.Graph, index_graph: int):
 
 def get_intervals(seq: list[int]) -> list[str]:
     """Generate a list of intervals from a sorted sequence of integers.
-    
+
     Resources
     ---------
         https://codereview.stackexchange.com/questions/220072/construct-intervals-from-a-sequence-of-numbers-and-vice-versa
@@ -453,14 +459,14 @@ def get_intervals(seq: list[int]) -> list[str]:
     -------
         list[str]
             A list of strings representing intervals in the input sequence.
-            
+
     Example:
         get_intervals([1, 2, 3, 6, 7, 8, 10])
         ['1-3', '6-8', '10-10']
     """
-    starts = [x for x in seq if x-1 not in seq]
-    ends = [y for y in seq if y+1 not in seq]
-    return [str(a) + '-' + str(b) if a!=b else str(a) for a, b in zip(starts, ends)]
+    starts = [x for x in seq if x - 1 not in seq]
+    ends = [y for y in seq if y + 1 not in seq]
+    return [str(a) + "-" + str(b) if a != b else str(a) for a, b in zip(starts, ends)]
 
 
 def extract_interval(graph: nx.classes.graph.Graph) -> dict[str, list[int]]:
@@ -479,21 +485,23 @@ def extract_interval(graph: nx.classes.graph.Graph) -> dict[str, list[int]]:
     """
     residue_pairs = zip(
         nx.get_node_attributes(graph, "residue_id").values(),
-        nx.get_node_attributes(graph, "residue_name").values()
+        nx.get_node_attributes(graph, "residue_name").values(),
     )
     residue_pairs_dict = dict(residue_pairs)
     residue_id = [key for key in sorted(residue_pairs_dict)]
-    
+
     res_id = residue_id
     res_id_interval = get_intervals(residue_id)
-    
+
     atom_id = nx.get_node_attributes(graph, "atom_id").values()
     atom_id_interval = get_intervals(atom_id)
-    
-    dict_res = {"res_id": res_id, 
-                "res_id_interval": res_id_interval, 
-                "atom_id": atom_id, 
-                "atom_id_interval": atom_id_interval}
+
+    dict_res = {
+        "res_id": res_id,
+        "res_id_interval": res_id_interval,
+        "atom_id": atom_id,
+        "atom_id_interval": atom_id_interval,
+    }
     return dict_res
 
 
@@ -503,7 +511,7 @@ def get_formula_based_atom_name(atom_name_dict: dict[str, int]) -> str:
     Ressources
     ----------
     https://docs.mdanalysis.org/2.0.0/documentation_pages/topology/guessers.html#guessing-elements-from-atom-names
-    https://docs.mdanalysis.org/2.0.0/documentation_pages/topology/guessers.html#MDAnalysis.topology.guessers.guess_atom_type 
+    https://docs.mdanalysis.org/2.0.0/documentation_pages/topology/guessers.html#MDAnalysis.topology.guessers.guess_atom_type
 
     Parameters
     ----------
@@ -524,7 +532,9 @@ def get_formula_based_atom_name(atom_name_dict: dict[str, int]) -> str:
 
     atom_names = Counter(atom_names)
     sorted_atom_counts = sorted(atom_names.items())
-    formula = ''.join(f"{atom}{count}" if count > 1 else atom for atom, count in sorted_atom_counts)
+    formula = "".join(
+        f"{atom}{count}" if count > 1 else atom for atom, count in sorted_atom_counts
+    )
 
     return formula
 
@@ -556,43 +566,47 @@ def count_molecule(
     logger.info("Counting molecules...")
     dict_count = {}
 
-    # Convert the dictionnary of atom_name to a str 
+    # Convert the dictionnary of atom_name to a str
     # So dictionnary can be compare between them
     # sorted_graphs = sorted( graph_list,check_connectivity, key=get_graph_fingerprint_str)
-    sorted_graphs = sorted(graph_list, key=lambda x: get_graph_fingerprint_str(x, check_connectivity))
+    sorted_graphs = sorted(
+        graph_list, key=lambda x: get_graph_fingerprint_str(x, check_connectivity)
+    )
 
-    for fingerprint, graph in groupby(sorted_graphs, key=lambda x: get_graph_fingerprint_str(x, check_connectivity)):
+    for fingerprint, graph in groupby(
+        sorted_graphs, key=lambda x: get_graph_fingerprint_str(x, check_connectivity)
+    ):
         # fingerprint : (nb_node, nb_edge, atom_name, resname, degree)
         # graph : objet itertools that group all graph with the same fingerprint
 
         # A list that contain all graph with the same fingerprint
         similar_graphs = list(graph)
         nb_graph = len(similar_graphs)  # Number of graph for this fingerprint
-        
+
         atom_id, res_id = [], []
         for graph in similar_graphs:
             residue_pairs = zip(
-                    nx.get_node_attributes(graph, "residue_id").values(),
-                    nx.get_node_attributes(graph, "residue_name").values()
+                nx.get_node_attributes(graph, "residue_id").values(),
+                nx.get_node_attributes(graph, "residue_name").values(),
             )
             residue_pairs_dict = dict(residue_pairs)
-            
+
             res_id.extend([key for key in sorted(residue_pairs_dict)])
             atom_id.extend(nx.get_node_attributes(graph, "atom_id").values())
-    
+
         res_id_interval = get_intervals(res_id)
         atom_id_interval = get_intervals(sorted(atom_id))
 
         atom_names = Counter(nx.get_node_attributes(graph, "atom_name").values())
         atom_names = dict(sorted(atom_names.most_common()))
         formula = get_formula_based_atom_name(atom_names)
-                                
+
         # If for this fingerprint, there is only one graph
-        if nb_graph == 1: 
+        if nb_graph == 1:
             dict_count[similar_graphs[0]] = {
-                "res_id": res_id, 
+                "res_id": res_id,
                 "res_id_interval": res_id_interval,
-                "atom_id": atom_id, 
+                "atom_id": atom_id,
                 "atom_id_interval": atom_id_interval,
                 "formula_no_h": formula,
                 "graph": nb_graph,
@@ -601,18 +615,18 @@ def count_molecule(
             # If for this fingerprint, all the graph only have one node
             if fingerprint[0] == 1:
                 dict_count[similar_graphs[0]] = {
-                    "res_id": res_id, 
+                    "res_id": res_id,
                     "res_id_interval": res_id_interval,
-                    "atom_id": atom_id, 
+                    "atom_id": atom_id,
                     "atom_id_interval": atom_id_interval,
                     "formula_no_h": formula,
                     "graph": nb_graph,
                 }
             else:
                 dict_count[similar_graphs[0]] = {
-                    "res_id": res_id, 
+                    "res_id": res_id,
                     "res_id_interval": res_id_interval,
-                    "atom_id": atom_id, 
+                    "atom_id": atom_id,
                     "atom_id_interval": atom_id_interval,
                     "formula_no_h": formula,
                     "graph": nb_graph,
@@ -632,7 +646,7 @@ def print_graph_inventory(graph_dict: dict):
     total_molecules_count = 0
     for graph_idx, (graph, key) in enumerate(graph_dict.items(), start=1):
         logger.info(f"Molecule {graph_idx:,} ----------------")
-        
+
         if len(key) == 6:
             (_, res_id_interval, _, _, _, count) = key.values()
         else:
@@ -790,8 +804,10 @@ def remove_hydrogene(filename: str) -> mda.core.universe.Universe:
 
 
 def find_ion_solvant(
-    molecule: dict, universe: mda.core.universe.Universe, counts: dict, 
-    solvant_or_ion:str
+    molecule: dict,
+    universe: mda.core.universe.Universe,
+    counts: dict,
+    solvant_or_ion: str,
 ) -> tuple[mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int]]]:
     """Counts and removes ions or solvents from the MDAnalysis Universe.
 
@@ -840,39 +856,41 @@ def find_ion_solvant(
             list_graph.append(graph)
 
         atom_id, res_id = [], []
-        for subgraph in list_graph:       
+        for subgraph in list_graph:
             residue_pairs = zip(
-                    nx.get_node_attributes(subgraph, "residue_id").values(),
-                    nx.get_node_attributes(subgraph, "residue_name").values()
+                nx.get_node_attributes(subgraph, "residue_id").values(),
+                nx.get_node_attributes(subgraph, "residue_name").values(),
             )
             residue_pairs_dict = dict(residue_pairs)
-            
+
             res_id.extend([key for key in sorted(residue_pairs_dict)])
             atom_id.extend(nx.get_node_attributes(subgraph, "atom_id").values())
 
         res_id_interval = get_intervals(res_id)
         atom_id_interval = get_intervals(atom_id)
-            
-        if solvant_or_ion == "ion": solvant, ion = False, True
-        else: solvant, ion = True, False
+
+        if solvant_or_ion == "ion":
+            solvant, ion = False, True
+        else:
+            solvant, ion = True, False
 
         counts[list_graph[0]] = {
             "res_id": res_id,
             "res_id_interval": res_id_interval,
-            "atom_id": atom_id, 
+            "atom_id": atom_id,
             "atom_id_interval": atom_id_interval,
             "name": name,
             "graph": res_count,
-            "solvant": solvant, 
-            "ion": ion
+            "solvant": solvant,
+            "ion": ion,
         }
-        
+
         # Here we remove all the resIDS (from selected_res_ids) from this universe
         for interval in res_id_interval:
-            start_end = interval.split('-')
+            start_end = interval.split("-")
             if len(start_end) == 1:
                 selection = f"not (resname {res_name} and (name {' or name '.join(atom_names)}) and resid {start_end[0]})"
-            else: 
+            else:
                 selection = f"not (resname {res_name} and (name {' or name '.join(atom_names)}) and resid {start_end[0]}:{start_end[1]})"
 
             universe = universe.select_atoms(f"{selection}")
@@ -1039,14 +1057,12 @@ def extract_protein_sequence(graph: nx.classes.graph.Graph) -> dict[str, int]:
 
     residue_pairs = zip(
         nx.get_node_attributes(graph, "residue_id").values(),
-        nx.get_node_attributes(graph, "residue_name").values()
+        nx.get_node_attributes(graph, "residue_name").values(),
     )
     residue_pairs_dict = dict(residue_pairs)
     residue_names = [residue_pairs_dict[key] for key in sorted(residue_pairs_dict)]
     for resname in residue_names:
-        protein_sequence.append(
-            mol_def.AMINO_ACID_DICT.get(resname, "?")
-        )
+        protein_sequence.append(mol_def.AMINO_ACID_DICT.get(resname, "?"))
 
     # graph.nodes.items() returns an iterable of tuples (node_id, node_attributes).
     # Examples:
@@ -1090,7 +1106,9 @@ def export_protein_sequence_into_FASTA(
             file.write(f"{content}\n")
 
 
-def is_lipid(resolution: str, graph: nx.classes.graph.Graph, dict_count: dict[str, str]) -> bool:
+def is_lipid(
+    resolution: str, graph: nx.classes.graph.Graph, dict_count: dict[str, str]
+) -> bool:
     """Determines if the given graph represents a lipid.
 
     Parameters
@@ -1111,25 +1129,34 @@ def is_lipid(resolution: str, graph: nx.classes.graph.Graph, dict_count: dict[st
     res_name_graph = res_name_graph.pop()
 
     if resolution == "aa":
-        lipid_csml_charmm_gui = CSML_CHARMM_GUI[CSML_CHARMM_GUI['Category'].str.contains("lipid", case=False, na=False)]
+        lipid_csml_charmm_gui = CSML_CHARMM_GUI[
+            CSML_CHARMM_GUI["Category"].str.contains("lipid", case=False, na=False)
+        ]
         if "formula_no_h" in dict_count.keys():
             formula_graph = dict_count["formula_no_h"]
-            selected_row = lipid_csml_charmm_gui.loc[ (lipid_csml_charmm_gui["Alias"] == res_name_graph) & (lipid_csml_charmm_gui["Formula"] == formula_graph) ]
-            
-            #Check if the selection match a row with this condition
+            selected_row = lipid_csml_charmm_gui.loc[
+                (lipid_csml_charmm_gui["Alias"] == res_name_graph)
+                & (lipid_csml_charmm_gui["Formula"] == formula_graph)
+            ]
+
+            # Check if the selection match a row with this condition
             if not selected_row.empty:
                 # dict_count["name"] = str(selected_row["Name"])
                 return True
-    else: 
-        lipid_MAD= MAD_DB[MAD_DB['Category'].str.contains("Lipids", case=False, na=False)]
-        selected_row = lipid_MAD.loc[ (lipid_MAD["Alias"] == res_name_graph) ]
+    else:
+        lipid_MAD = MAD_DB[
+            MAD_DB["Category"].str.contains("Lipids", case=False, na=False)
+        ]
+        selected_row = lipid_MAD.loc[(lipid_MAD["Alias"] == res_name_graph)]
         if not selected_row.empty:
-                # dict_count["name"] = str(selected_row["Name"])
-                return True
+            # dict_count["name"] = str(selected_row["Name"])
+            return True
     return False
 
 
-def find_resolution(universe_without_h_ion_solvant: mda.core.universe.Universe, number_res:int = 3) -> str:
+def find_resolution(
+    universe_without_h_ion_solvant: mda.core.universe.Universe, number_res: int = 3
+) -> str:
     """Finds the resolution of the molecular system.
 
     Parameters
@@ -1147,7 +1174,10 @@ def find_resolution(universe_without_h_ion_solvant: mda.core.universe.Universe, 
              - "cg" if the minimum distance between atoms of the collected residues is greater than 2 Å, indicating a coarse-grained model.
     """
     cmp = []
-    res_num = [universe_without_h_ion_solvant.atoms.residues[x].resid for x in range(len(universe_without_h_ion_solvant.atoms.residues))]
+    res_num = [
+        universe_without_h_ion_solvant.atoms.residues[x].resid
+        for x in range(len(universe_without_h_ion_solvant.atoms.residues))
+    ]
     nb_aa = 0
     return_resolution = ""
 
@@ -1156,12 +1186,13 @@ def find_resolution(universe_without_h_ion_solvant: mda.core.universe.Universe, 
         if len(cmp) != number_res:
             selection = f"resid {index}"
             selected_atoms = universe_without_h_ion_solvant.select_atoms(selection)
-            if len(selected_atoms.atoms) > 2: cmp.append(selected_atoms)
+            if len(selected_atoms.atoms) > 2:
+                cmp.append(selected_atoms)
 
     for res in cmp:
         # Calculate interatomic distances between all atoms for this residue
         position = res.positions
-        taille = len(res.atoms)        
+        taille = len(res.atoms)
         tmp = np.full((taille, taille), 100.0)
         for index_i, pos_i in enumerate(position):
             for index_j, pos_j in enumerate(position[index_i + 1 :], start=index_i + 1):
@@ -1171,21 +1202,27 @@ def find_resolution(universe_without_h_ion_solvant: mda.core.universe.Universe, 
         # Otherwise, it means the residue and this system is in coarse-grained Model
         if tmp.min() < 2:
             nb_aa += 1
-        else: return_resolution = "cg"
+        else:
+            return_resolution = "cg"
 
-    if nb_aa==3: return_resolution = "aa"
+    if nb_aa == 3:
+        return_resolution = "aa"
 
     return return_resolution
 
 
-def export_inventory(graph_count_dict: dict[nx.classes.graph.Graph, dict[str, int]], resolution: str, filename: str):
+def export_inventory(
+    graph_count_dict: dict[nx.classes.graph.Graph, dict[str, int]],
+    resolution: str,
+    filename: str,
+):
     """Exports inventory data from a dictionary of graph objects and their associated information about molecule into JSON file.
 
     Parameters:
     ----------
         graph_count_dict : dict
             A dictionary where each key is a NetworkX graph object, and each value is another dictionary containing
-            various attributes and metadata about the graph, including whether it represents a protein, lipid, ion, 
+            various attributes and metadata about the graph, including whether it represents a protein, lipid, ion,
             or solvent.
         resolution: str
             The resolution of the molecular system.
@@ -1193,13 +1230,21 @@ def export_inventory(graph_count_dict: dict[nx.classes.graph.Graph, dict[str, in
             Path to the file containing the molecular structure.
     """
     list_dict_molecule = []
-    for index_graph, (graph, information) in enumerate(graph_count_dict.items(), start=1):    
+    for index_graph, (graph, information) in enumerate(
+        graph_count_dict.items(), start=1
+    ):
         is_protein, is_lipid, is_ion, is_solvant = False, False, False, False
-        formula, protein_sequence, pdb_id, macromolecular_names, putative_name = "", "", "", "", ""
-        
+        formula, protein_sequence, pdb_id, macromolecular_names, putative_name = (
+            "",
+            "",
+            "",
+            "",
+            "",
+        )
+
         residue_pairs = zip(
-        nx.get_node_attributes(graph, "residue_id").values(),
-        nx.get_node_attributes(graph, "residue_name").values()
+            nx.get_node_attributes(graph, "residue_id").values(),
+            nx.get_node_attributes(graph, "residue_name").values(),
         )
         residue_pairs_dict = dict(residue_pairs)
         residue_names = [residue_pairs_dict[key] for key in sorted(residue_pairs_dict)]
@@ -1210,7 +1255,7 @@ def export_inventory(graph_count_dict: dict[nx.classes.graph.Graph, dict[str, in
 
         if "formula_no_h" in information.keys():
             formula = information["formula_no_h"]
-        if "is_protein" in information.keys(): 
+        if "is_protein" in information.keys():
             is_protein = information["is_protein"]
             protein_sequence = information["protein_sequence"]
         if "pdb_id" in information.keys():
@@ -1224,20 +1269,22 @@ def export_inventory(graph_count_dict: dict[nx.classes.graph.Graph, dict[str, in
             is_solvant = information["solvant"]
             putative_name = information["name"]
 
-        dict_inventory = {"id": index_graph, 
-                        "number_of_atoms": graph.number_of_nodes(), 
-                        "number_of_molecules": information["graph"], 
-                        "residue_names": residue_names,
-                        "residue_ids": " ".join(information["res_id_interval"]), 
-                        "formula_without_h": formula, 
-                        "is_protein": is_protein,
-                        "protein_sequence": protein_sequence,
-                        "pdb_id": pdb_id,
-                        "macromolecular_names": macromolecular_names, 
-                        "is_lipid": is_lipid, 
-                        "is_solvant": is_solvant, 
-                        "is_ion": is_ion, 
-                        "putative_name": putative_name}
+        dict_inventory = {
+            "id": index_graph,
+            "number_of_atoms": graph.number_of_nodes(),
+            "number_of_molecules": information["graph"],
+            "residue_names": residue_names,
+            "residue_ids": " ".join(information["res_id_interval"]),
+            "formula_without_h": formula,
+            "is_protein": is_protein,
+            "protein_sequence": protein_sequence,
+            "pdb_id": pdb_id,
+            "macromolecular_names": macromolecular_names,
+            "is_lipid": is_lipid,
+            "is_solvant": is_solvant,
+            "is_ion": is_ion,
+            "putative_name": putative_name,
+        }
         list_dict_molecule.append(dict_inventory)
 
         date_time = f"{datetime.datetime.now():%Y-%m-%d_%H-%M-%S}"
@@ -1246,13 +1293,16 @@ def export_inventory(graph_count_dict: dict[nx.classes.graph.Graph, dict[str, in
         absolute_file_path = current_dir / filename
         relative_path = absolute_file_path.relative_to(current_dir)
 
-        final_dict = {"inventory": sorted(list_dict_molecule, key=lambda x: x["number_of_molecules"]), 
-                  "resolution": resolution, 
-                  "date": date_time, 
-                  "file_path": str(relative_path),
-                  "file_md5sum": hashlib.md5(open(filename,"rb").read()).hexdigest()
-                 }
-    
+        final_dict = {
+            "inventory": sorted(
+                list_dict_molecule, key=lambda x: x["number_of_molecules"]
+            ),
+            "resolution": resolution,
+            "date": date_time,
+            "file_path": str(relative_path),
+            "file_md5sum": hashlib.md5(open(filename, "rb").read()).hexdigest(),
+        }
+
     logger.info("Exporting inventory into JSON file...")
     filename_JSON = f"{date_time}_grodecoder_{Path(filename).stem}.json"
     out_file = open(filename_JSON, "w")
@@ -1267,7 +1317,7 @@ def is_met(graph: nx.classes.graph.Graph) -> bool:
     Parameters
     ----------
         graph: nx.classes.graph.Graph
-            A NetworkX graph representing a molecular structure. 
+            A NetworkX graph representing a molecular structure.
 
     Returns
     -------
@@ -1288,8 +1338,8 @@ def main(
     draw_graph_option: bool = False,
     check_overlapping_residue: bool = False,
     check_connectivity: bool = False,
-    bond_threshold: str | float = "auto", 
-    query_pdb=False
+    bond_threshold: str | float = "auto",
+    query_pdb=False,
 ):
     """Excute the main function for analyzing a .gro file.
 
@@ -1308,9 +1358,9 @@ def main(
         molecular_system, input_file_path
     )
 
-    if bond_threshold=="auto":
+    if bond_threshold == "auto":
         resolution = find_resolution(molecular_system)
-        if resolution=="aa":
+        if resolution == "aa":
             atom_pairs = get_atom_pairs_from_guess_bonds(molecular_system)
         else:
             atom_pairs = get_atom_pairs_from_threshold(molecular_system, 5.0)
@@ -1354,18 +1404,22 @@ def main(
             protein_sequence_dict[index_graph] = sequence_nbres
             graph_count_dict[graph]["is_protein"] = True
             graph_count_dict[graph]["protein_sequence"] = sequence
-            
-            if query_pdb: 
+
+            if query_pdb:
                 results = search_into_PDB.API_PDB_search_based_sequence(sequence)
-                set_macromolecular_names = search_into_PDB.treat_PDB_ID_to_macromolecular_names(results)
+                set_macromolecular_names = (
+                    search_into_PDB.treat_PDB_ID_to_macromolecular_names(results)
+                )
                 graph_count_dict[graph]["pdb_id"] = results
-                graph_count_dict[graph]["macromolecular_names"] = set_macromolecular_names
+                graph_count_dict[graph][
+                    "macromolecular_names"
+                ] = set_macromolecular_names
         elif is_lipid(resolution, graph, key):
             graph_count_dict[graph]["is_lipid"] = True
     export_protein_sequence_into_FASTA(protein_sequence_dict, f"{filename}.fasta")
-    
+
     export_inventory(graph_count_dict, resolution, input_file_path)
-    
+
 
 def is_a_structure_file(filepath: str) -> str:
     """Check if the given filepath points to an existing structure file (.gro, .pdb).
@@ -1480,7 +1534,7 @@ def parse_arg() -> argparse.Namespace:
     parser.add_argument(
         "--querypdb",
         help="Add PDB id and their putative name in the JSON file for the protein. Default: False.",
-        default=False, 
+        default=False,
         action="store_true",
     )
     return parser.parse_args()
@@ -1493,6 +1547,6 @@ if __name__ == "__main__":
         draw_graph_option=args.drawgraph,
         check_overlapping_residue=args.checkoverlapping,
         check_connectivity=args.checkconnectivity,
-        bond_threshold=args.bondthreshold, 
-        query_pdb=args.querypdb
+        bond_threshold=args.bondthreshold,
+        query_pdb=args.querypdb,
     )
