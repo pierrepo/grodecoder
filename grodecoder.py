@@ -33,8 +33,8 @@ from scipy.spatial.distance import cdist
 import mol_def
 import search_into_PDB
 
-CSML_CHARMM_GUI_LIPID = pd.read_csv("../grodecoder-sandbox/lipid_CHARMM_GUI_CSML.csv", sep=';')
-MAD_LIPID = pd.read_csv("../grodecoder-sandbox/lipid_MAD.csv", sep=';')
+CSML_CHARMM_GUI = pd.read_csv("../grodecoder-sandbox/lipid_CHARMM_GUI_CSML.csv", sep=';')
+MAD_DB = pd.read_csv("../grodecoder-sandbox/lipid_MAD.csv", sep=';')
 
 
 def get_distance_matrix_between_atom(
@@ -1090,11 +1090,13 @@ def export_protein_sequence_into_FASTA(
             file.write(f"{content}\n")
 
 
-def is_lipid(graph: nx.classes.graph.Graph, dict_count: dict[str, str]) -> bool:
+def is_lipid(resolution: str, graph: nx.classes.graph.Graph, dict_count: dict[str, str]) -> bool:
     """Determines if the given graph represents a lipid.
 
     Parameters
     ----------
+        resolution: str
+            The resolution of the molecular system.
         graph: nx.classes.graph.Graph
             The molecular graph with nodes containing attributes, including "residue_name".
         dict_count: dict[str, str]
@@ -1108,14 +1110,22 @@ def is_lipid(graph: nx.classes.graph.Graph, dict_count: dict[str, str]) -> bool:
     res_name_graph = set(nx.get_node_attributes(graph, "residue_name").values())
     res_name_graph = res_name_graph.pop()
 
-    if "formula_no_h" in dict_count.keys():
-        formula_graph = dict_count["formula_no_h"]
-        selected_row = CSML_CHARMM_GUI_LIPID.loc[ (CSML_CHARMM_GUI_LIPID["Alias"] == res_name_graph) & (CSML_CHARMM_GUI_LIPID["Formula"] == formula_graph) ]
-        
-        #Check if the selection match a row with this condition
+    if resolution == "aa":
+        lipid_csml_charmm_gui = CSML_CHARMM_GUI[CSML_CHARMM_GUI['Category'].str.contains("lipid", case=False, na=False)]
+        if "formula_no_h" in dict_count.keys():
+            formula_graph = dict_count["formula_no_h"]
+            selected_row = lipid_csml_charmm_gui.loc[ (lipid_csml_charmm_gui["Alias"] == res_name_graph) & (lipid_csml_charmm_gui["Formula"] == formula_graph) ]
+            
+            #Check if the selection match a row with this condition
+            if not selected_row.empty:
+                # dict_count["name"] = str(selected_row["Name"])
+                return True
+    else: 
+        lipid_MAD= MAD_DB[MAD_DB['Category'].str.contains("Lipids", case=False, na=False)]
+        selected_row = lipid_MAD.loc[ (lipid_MAD["Alias"] == res_name_graph) ]
         if not selected_row.empty:
-            # dict_count["name"] = str(selected_row["Name"])
-            return True
+                # dict_count["name"] = str(selected_row["Name"])
+                return True
     return False
 
 
@@ -1350,7 +1360,7 @@ def main(
                 set_macromolecular_names = search_into_PDB.treat_PDB_ID_to_macromolecular_names(results)
                 graph_count_dict[graph]["pdb_id"] = results
                 graph_count_dict[graph]["macromolecular_names"] = set_macromolecular_names
-        elif is_lipid(graph, key):
+        elif is_lipid(resolution, graph, key):
             graph_count_dict[graph]["is_lipid"] = True
     export_protein_sequence_into_FASTA(protein_sequence_dict, f"{filename}.fasta")
     
