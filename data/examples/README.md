@@ -19,9 +19,9 @@
 - molecular inventory:
     - residues 79 to 208 from the human Mincle CRD (PDB: 3WH3)
     - 3 Calcium ions
-    - 19 Sodium ions
-    - 19 Chloride ions
-    - 21207 water molecules
+    - 16 Sodium ions
+    - 16 Chloride ions
+    - 1170 water molecules
 - resolution: coarse grain
 - force field: Martini 3
 - origin: Zenodo [dataset](https://zenodo.org/records/11204133), archive `noriega_jpcb.zip`, file `noriega_jpcb/CG_simulations/elastic_refinement/CG_3CAL.gro` 
