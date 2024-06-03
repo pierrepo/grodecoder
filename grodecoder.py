@@ -1314,11 +1314,10 @@ def is_met(graph: nx.classes.graph.Graph) -> bool:
         bool
             True if the graph represents a MET solvant, False otherwise.
     """
-    res_name = set(nx.get_node_attributes(graph, "residue_name").values())
+    res_name = (set(nx.get_node_attributes(graph, "residue_name").values())).pop()
     nb_atom = graph.number_of_nodes()
 
     if res_name == "MET" and nb_atom == 2:
-        print("je suis met")
         return True
     return False
 
