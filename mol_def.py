@@ -121,9 +121,11 @@ SOLVANTS_LIST = [{"name": "water TIP3P solvant", "res_name": "TIP3", "atom_names
                  {"name": "water TIP5P/tip5pe solvant", "res_name": "SOL", "atom_names": ["OW", "HW1", "HW2", "LP1", "LP2"]},  # TIP5
                  {"name": "urea solvant", "res_name": "URE", "atom_names": ["C", "O", "N1", "H11", "H12", "N2", "H21", "H22"]},
                  {"name": "organic solvant methanol/OPLS", "res_name": "MET", "atom_names": ["C", "H", "H", "H", "OA", "HO"]},
+                 {"name": "organic solvant methanol", "res_name": "MeOH", "atom_names": ["Me1", "O2", "H3"]},
+                 {"name": "organic solvant methanol", "res_name": "MOH", "atom_names": ["C", "H", "H", "H", "OA", "HO"]},
                  {"name": "organic solvant ethanol/OPLS", "res_name": "ETH", "atom_names": ["C", "H", "H", "H", "C", "H", "H", "OA", "HO"]},
                  {"name": "organic solvant propanol/OPLS", "res_name": "POL", "atom_names": ["C", "H", "H", "H", "C", "H", "H", "C", "H", "H", "OA", "HO"]},
-                 {"name": "organic solvant methanol/GROMOS", "res_name": "MeOH", "atom_names": ["Me1", "O2", "H3"]}, 
+                 {"name": "acetonitrile", "res_name": "ACN", "atom_names": ["C1", "C2", "N"]},
 
                  {"name": "water - in CG model with MARTINI", "res_name": "W", "atom_names": ["W"]}, 
                  {"name": "organic solvant ethanol - CG model with MARTINI", "res_name": "EOL", "atom_names": ["COH"]}, 
