@@ -1193,15 +1193,12 @@ def find_resolution(
 
         # Check if the minimal distance between the atom for this residue is under 2A
         # Otherwise, it means the residue and this system is in coarse-grained Model
-        if tmp.min() < 2:
+        if tmp.min() < 2.0:
             nb_aa += 1
         else:
-            return_resolution = "cg"
+            return "cg"
 
-    if nb_aa == 3:
-        return_resolution = "aa"
-
-    return return_resolution
+    return "aa"
 
 
 def export_inventory(
@@ -1351,8 +1348,8 @@ def main(
         molecular_system, input_file_path
     )
 
+    resolution = find_resolution(molecular_system)
     if bond_threshold == "auto":
-        resolution = find_resolution(molecular_system)
         if resolution == "aa":
             atom_pairs = get_atom_pairs_from_guess_bonds(molecular_system)
         else:
