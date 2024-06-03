@@ -18,7 +18,7 @@ conda env create -f environment.yml
 conda activate grodecoder-env
 ```
 
-## Usage
+## Usage as command line tool
 
 Run GROdecoder on a test file:
 ```bash
@@ -46,5 +46,13 @@ python grodecoder.py --input data/examples/barstar.gro --bondthreshold
 ```
 
 
+## Run the web app
 
+Run the Streamlit web app:
+
+```bash
+streamlit run streamlit_app.py
+```
+
+then open your web browser at <http://localhost:8501>
 
