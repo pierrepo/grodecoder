@@ -23,6 +23,8 @@ dependencies:
   - pymol-open-source
   # Logging
   - loguru
+  # Web interface
+  - streamlit
   - pip:
     # watermark: keep track of dependency versions
     - watermark
