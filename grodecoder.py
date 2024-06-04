@@ -1224,7 +1224,8 @@ def export_inventory(
         graph_count_dict.items(), start=1
     ):
         is_protein, is_lipid, is_ion, is_solvant = False, False, False, False
-        formula, protein_sequence, pdb_id, macromolecular_names, putative_name = (
+        formula, protein_sequence, putative_name, putative_pdb_structure = (
+            "",
             "",
             "",
             "",
@@ -1248,9 +1249,8 @@ def export_inventory(
         if "is_protein" in information.keys():
             is_protein = information["is_protein"]
             protein_sequence = information["protein_sequence"]
-        if "pdb_id" in information.keys():
-            pdb_id = " ".join(information["pdb_id"])
-            macromolecular_names = "; ".join(information["macromolecular_names"])
+            if "putative_pdb_structure" in information.keys():
+                putative_pdb_structure = information["putative_pdb_structure"]
         if "is_lipid" in information.keys():
             is_lipid = information["is_lipid"]
             # putative_name = information["name"]
@@ -1268,12 +1268,11 @@ def export_inventory(
             "formula_without_h": formula,
             "is_protein": is_protein,
             "protein_sequence": protein_sequence,
-            "pdb_id": pdb_id,
-            "macromolecular_names": macromolecular_names,
+            "putative_pdb_structure": putative_pdb_structure,
             "is_lipid": is_lipid,
             "is_solvant": is_solvant,
             "is_ion": is_ion,
-            "putative_name": putative_name,
+            "putative_pdb_name": putative_name,
         }
         list_dict_molecule.append(dict_inventory)
 
@@ -1394,15 +1393,12 @@ def main(
             graph_count_dict[graph]["is_protein"] = True
             graph_count_dict[graph]["protein_sequence"] = sequence
 
+            list_dict_info_pdb = []
             if query_pdb:
                 results = search_into_PDB.API_PDB_search_based_sequence(sequence)
-                set_macromolecular_names = (
-                    search_into_PDB.treat_PDB_ID_to_macromolecular_names(results)
-                )
-                graph_count_dict[graph]["pdb_id"] = results
-                graph_count_dict[graph][
-                    "macromolecular_names"
-                ] = set_macromolecular_names
+                for pdb_id in results:
+                    list_dict_info_pdb.append(search_into_PDB.get_info_one_pdb_id(pdb_id))
+                graph_count_dict[graph]["putative_pdb_structure"] = list_dict_info_pdb
         elif is_lipid(resolution, graph, key):
             graph_count_dict[graph]["is_lipid"] = True
     export_protein_sequence_into_FASTA(protein_sequence_dict, f"{filename}.fasta")
