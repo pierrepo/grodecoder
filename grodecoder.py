@@ -1205,6 +1205,7 @@ def export_inventory(
     graph_count_dict: dict[nx.classes.graph.Graph, dict[str, int]],
     resolution: str,
     filename: str,
+    execution_time: float,
 ):
     """Exports inventory data from a dictionary of graph objects and their associated information about molecule into JSON file.
 
@@ -1225,8 +1226,6 @@ def export_inventory(
     ):
         is_protein, is_lipid, is_ion, is_solvant = False, False, False, False
         formula, protein_sequence, putative_name, putative_pdb_structure = (
-            "",
-            "",
             "",
             "",
             "",
@@ -1288,6 +1287,7 @@ def export_inventory(
             ),
             "resolution": resolution,
             "date": date_time,
+            "execution_time": execution_time,
             "file_path": str(relative_path),
             "file_md5sum": hashlib.md5(open(filename, "rb").read()).hexdigest(),
         }
@@ -1340,6 +1340,7 @@ def main(
         check_overlapping_residue: boolean
             Check of some residues are overlapping between graphs / molecules. Default: False.
     """
+    start_time = time.perf_counter()
 
     molecular_system = remove_hydrogene(input_file_path)
     molecular_system, count_ion_solvant = count_remove_ion_solvant(
@@ -1403,7 +1404,9 @@ def main(
             graph_count_dict[graph]["is_lipid"] = True
     export_protein_sequence_into_FASTA(protein_sequence_dict, f"{filename}.fasta")
 
-    export_inventory(graph_count_dict, resolution, input_file_path)
+    # execution_time in seconds
+    execution_time = time.perf_counter() - start_time
+    export_inventory(graph_count_dict, resolution, input_file_path, execution_time)
 
 
 def is_a_structure_file(filepath: str) -> str:
