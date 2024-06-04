@@ -7,7 +7,7 @@ import requests
 from loguru import logger
 
 
-def API_PDB_search_based_sequence(sequence, max_element=10):
+def API_PDB_search_based_sequence(sequence: str, max_element:int =10) -> list[str]:
     """This function searches the Protein Data Bank (PDB) database based on a given sequence and returns a list of PDB IDs.
 
     Ressources
@@ -55,7 +55,7 @@ def API_PDB_search_based_sequence(sequence, max_element=10):
     return results["result_set"][:max_element]
 
 
-def get_macromolecular_names(PDB_ID, polymer_entity_id, set_names):
+def get_macromolecular_names(PDB_ID, polymer_entity_id, set_names) -> set[str]:
     """Retrieve macromolecular names associated with a given PDB ID and polymer entity ID.
 
     References
@@ -83,7 +83,7 @@ def get_macromolecular_names(PDB_ID, polymer_entity_id, set_names):
         requests.exceptions.RequestException
             If an error occurs while making the API request.
     """
-    logger.info("Retrieving macromolecular names for one PDB ID")
+    logger.info(f"Retrieving macromolecular name for PDB ID {PDB_ID} polymer {polymer_entity_id}")
     try : 
         my_query = requests.get(f"https://data.rcsb.org/rest/v1/core/polymer_entity/{PDB_ID}/{polymer_entity_id}")
         my_query.raise_for_status()
@@ -98,9 +98,9 @@ def get_macromolecular_names(PDB_ID, polymer_entity_id, set_names):
     except requests.exceptions.RequestException as err:
         print(f"Error: {err}")
         return set_names
-            
 
-def treat_PDB_ID_to_macromolecular_names(PDB_ID_polymer_entity_id):
+
+def treat_PDB_ID_to_macromolecular_names(PDB_ID_polymer_entity_id: str) -> set[str]:
     """Retrieve macromolecular names for multiple PDB IDs and polymer entity IDs.
 
     Parameters
@@ -116,12 +116,74 @@ def treat_PDB_ID_to_macromolecular_names(PDB_ID_polymer_entity_id):
     set_macromolecular_names = set()
     
     for ID_entity in PDB_ID_polymer_entity_id:
-        PDB_ID, polymer_entity_id = ID_entity.split("_")
-        get_macromolecular_names(PDB_ID, polymer_entity_id, set_macromolecular_names) 
+        pdb_ID, polymer_entity_id = ID_entity.split("_")
+        get_macromolecular_names(pdb_ID, polymer_entity_id, set_macromolecular_names) 
     return set_macromolecular_names
 
 
-def main(filepath):
+def get_macromolecular_names_bis(my_query_json: dict[str, str]) -> list[str]:
+    """Retrieve all the macromolecular names for this PDB id and this polymer id 
+
+    Args:
+        my_query_json: dict
+            The request from the PDB API 
+
+    Returns:
+        list[str]
+            All the macromolecular names for this PDB id and this polymer id 
+    """
+    list_macromolecular_names = []
+    rcsb_macromolecular_names_combined = my_query_json["rcsb_polymer_entity"]["rcsb_macromolecular_names_combined"]
+    for index in range(len(rcsb_macromolecular_names_combined)):
+        list_macromolecular_names.append(my_query_json["rcsb_polymer_entity"]["rcsb_macromolecular_names_combined"][index]["name"].upper())
+    return list_macromolecular_names
+
+
+def get_organism_names(my_query_json: dict) -> list:
+    """Retrieve the organism names for this PDB id and this polymer id 
+
+    Args:
+        my_query_json: dict
+            The request from the PDB API 
+
+    Returns:
+        list[str]
+            The organism names for this PDB id and this polymer id 
+    """
+    return my_query_json["rcsb_entity_source_organism"][0]["ncbi_scientific_name"]
+
+
+def get_info_one_pdb_id(PDB_ID_polymer_entity_id: str) -> dict[str, list[str]]:
+    """_summary_
+
+    Args:
+        PDB_ID_polymer_entity_id: str
+            One PDB id retrieve from the PDB API 
+
+    Returns:
+        dict[str, list[str]]
+            Dictionnary that have information about this PDB id
+    """
+    pdb_ID, polymer_entity_id = PDB_ID_polymer_entity_id.split("_")
+    dict_pdb_info = {}
+
+    try : 
+        my_query = requests.get(f"https://data.rcsb.org/rest/v1/core/polymer_entity/{pdb_ID}/{polymer_entity_id}")
+        my_query.raise_for_status()
+        results = my_query.json()
+        
+        dict_pdb_info["pdb_ID"] = pdb_ID
+        dict_pdb_info["polymer_id"] = polymer_entity_id
+        dict_pdb_info["names"] = get_macromolecular_names_bis(results)
+        dict_pdb_info["organism"] = get_organism_names(results)
+        return dict_pdb_info
+    
+    except requests.exceptions.RequestException as err:
+        print(f"Error: {err}")
+        return dict_pdb_info
+
+
+def main(filepath: str):
     """ Based on sequence from the input FASTA file, search and print the first 10 PDB id (by default) and their macromolecular names.
 
     Parameters
@@ -132,19 +194,24 @@ def main(filepath):
     records = list(SeqIO.parse(filepath, "fasta"))
     sequences = [str(seq.seq) for seq in records]
 
-    dict_IdPDB_seq = {}
+    list_dict_info_pdb = []
+    # dict_IdPDB_seq = {}
     for index, sequence in enumerate(sequences):
         results = API_PDB_search_based_sequence(sequence)
-        set_macromolecular_names = treat_PDB_ID_to_macromolecular_names(results)
-        dict_IdPDB_seq[index] = {"PDB_ID": results, 
-                                "sequence": sequence, 
-                                "macromolecular_names": set_macromolecular_names}
+        for pdb_id in results: 
+            list_dict_info_pdb.append(get_info_one_pdb_id(pdb_id))
+    #     set_macromolecular_names = treat_PDB_ID_to_macromolecular_names(results)
+    #     dict_IdPDB_seq[index] = {"PDB_ID": results, 
+    #                             "sequence": sequence, 
+    #                             "macromolecular_names": set_macromolecular_names}
 
-    for index_sequence, values in enumerate(dict_IdPDB_seq.values(), start=1):
-        PDB_ID, sequence, macromolecular_names = values.values()
-        logger.success(f"FASTA sequence {index_sequence} (first 20 AA): {sequence[:20]}")
-        logger.success(f"Putative macromolecular names: {macromolecular_names}")
-        logger.success(f"Putative PDB IDs (first 10 match): {PDB_ID}")
+        for i in list_dict_info_pdb:
+            print(i)
+    # for index_sequence, values in enumerate(dict_IdPDB_seq.values(), start=1):
+    #     PDB_ID, sequence, macromolecular_names = values.values()
+    #     logger.success(f"FASTA sequence {index_sequence} (first 20 AA): {sequence[:20]}")
+    #     logger.success(f"Putative macromolecular names: {macromolecular_names}")
+    #     logger.success(f"Putative PDB IDs (first 10 match): {PDB_ID}")
 
 
 def is_a_fasta_file(filepath):
