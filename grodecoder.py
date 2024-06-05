@@ -1000,13 +1000,16 @@ def check_overlapping_residue_between_graphs(graph_list: list[nx.classes.graph.G
 
     if not res_id_common:
         logger.success("No overlapping residue found")
+        return None
     else:
-        for res_id in res_id_common:
-            for graph_id, graph in enumerate(graph_list):
-                res_id_set = set((nx.get_node_attributes(graph, "residue_id").values()))
-                if res_id in res_id_set:
-                    logger.error(f"Residue id {res_id} is found in graph id {graph_id}")
-        raise Exception("Some residue id are found in multiple graphs")
+        res_id_common_set = set(res_id_common)
+        # for res_id in res_id_common_set:
+        #     for graph_id, graph in enumerate(graph_list):
+        #         res_id_set = set((nx.get_node_attributes(graph, "residue_id").values()))
+        #         if res_id in res_id_set:
+        #             logger.error(f"Residue id {res_id} is found in graph id {graph_id}")
+        return res_id_common_set
+        # raise Exception("Some residue id are found in multiple graphs")
 
 
 def is_protein(graph: nx.classes.graph.Graph) -> bool:
@@ -1206,6 +1209,7 @@ def export_inventory(
     resolution: str,
     filename: str,
     execution_time: float,
+    overlap_residue : None | set[int]
 ):
     """Exports inventory data from a dictionary of graph objects and their associated information about molecule into JSON file.
 
@@ -1225,7 +1229,8 @@ def export_inventory(
         graph_count_dict.items(), start=1
     ):
         is_protein, is_lipid, is_ion, is_solvant = False, False, False, False
-        formula, protein_sequence, putative_name, putative_pdb_structure = (
+        formula, protein_sequence, putative_name, putative_pdb_structure, remark_message = (
+            "",
             "",
             "",
             "",
@@ -1281,15 +1286,19 @@ def export_inventory(
         absolute_file_path = current_dir / filename
         relative_path = absolute_file_path.relative_to(current_dir)
 
+        if overlap_residue:
+            remark_message = [f"Residue {x} has been splitted into multiple molecules. This should be wrong." for x in overlap_residue]
+
         final_dict = {
-            "inventory": sorted(
+            "Inventory": sorted(
                 list_dict_molecule, key=lambda x: x["number_of_molecules"]
             ),
-            "resolution": resolution,
-            "date": date_time,
-            "execution_time": execution_time,
-            "file_path": str(relative_path),
-            "file_md5sum": hashlib.md5(open(filename, "rb").read()).hexdigest(),
+            "Resolution": resolution,
+            "Date": date_time,
+            "Execution_time": execution_time,
+            "Remark" : remark_message,
+            "File_path": str(relative_path),
+            "File_md5sum": hashlib.md5(open(filename, "rb").read()).hexdigest(),
         }
 
     logger.info("Exporting inventory into JSON file...")
@@ -1361,8 +1370,9 @@ def main(
     graph_with_node_attributes = add_attributes_to_nodes(graph_return, molecular_system)
     graph_list = get_graph_components(graph_with_node_attributes)
 
+    overlap_residue = None
     if check_overlapping_residue:
-        check_overlapping_residue_between_graphs(graph_list)
+        overlap_residue = check_overlapping_residue_between_graphs(graph_list)
 
     graph_count_dict = count_molecule(graph_list, check_connectivity)
 
@@ -1406,7 +1416,7 @@ def main(
 
     # execution_time in seconds
     execution_time = time.perf_counter() - start_time
-    export_inventory(graph_count_dict, resolution, input_file_path, execution_time)
+    export_inventory(graph_count_dict, resolution, input_file_path, execution_time, overlap_residue)
 
 
 def is_a_structure_file(filepath: str) -> str:
