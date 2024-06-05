@@ -34,9 +34,9 @@ import mol_def
 import search_into_PDB
 
 CSML_CHARMM_GUI = pd.read_csv(
-    "../grodecoder-sandbox/lipid_CHARMM_GUI_CSML.csv", sep=";"
+    "./data/databases/lipid_CHARMM_GUI_CSML.csv", sep=";"
 )
-MAD_DB = pd.read_csv("../grodecoder-sandbox/lipid_MAD.csv", sep=";")
+MAD_DB = pd.read_csv("./data/databases//lipid_MAD.csv", sep=";")
 
 
 def get_distance_matrix_between_atom(
