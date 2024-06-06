@@ -1,10 +1,10 @@
-import time
-
-from loguru import logger
-import streamlit as st
+import os
 from pathlib import Path
 import tempfile
-import os
+
+from loguru import logger
+from PIL import Image
+import streamlit as st
 
 import grodecoder as gd
 
@@ -34,7 +34,18 @@ if __name__ == "__main__":
         }
         </style>
         """, unsafe_allow_html=True)
-    st.logo("assets/grodecoder_logo.png")
+    logo = Image.open("assets/grodecoder_logo.png")
+    st.sidebar.image(logo)
+    st.sidebar.markdown("""
+    **GroDecoder** extracts and identifies
+    the molecular components of a structure file (PDB or GRO)
+    issued from a molecular dynamics simulation.
+
+    ---
+    [Source code](https://github.com/pierrepo/grodecoder)                 
+    """
+    )
+
     st.markdown("# GroDecoder 📦")
     
 

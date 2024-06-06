@@ -25,6 +25,7 @@ dependencies:
   - loguru
   # Web interface
   - streamlit
+  - pillow
   - pip:
     # watermark: keep track of dependency versions
     - watermark
