@@ -24,7 +24,7 @@ def last_line_log_file():
 
 if __name__ == "__main__":
     logger.remove()
-    logger.add(st.write, format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}", level="INFO")
+    logger.add(st.write, format="{time:YYYY-MM-DD HH:mm:ss} | {message}", level="INFO")
     logger.add("test.log", format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}")
     st.markdown(
         """
