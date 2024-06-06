@@ -1,7 +1,37 @@
 # Structure files used for testing and evaluation purposes
 
-`noriega_AA_CRD_3CAL.gro`
+`barstar.gro`
+- molecular inventory:
+    - residues 1 to 89 from the barstar (PDB: 1BTA)
+    - 6 Sodium ions
+    - 5753 water molecules (TIP3P)
+- resolution: all-atom
+- force field: OPLS
 
+
+`4MQJ_ABCD.gro`
+- molecular inventory:
+    - residues 1 to 141 and 288 to 428 from the hemoglobin subunit alpha (PDB: 4MQJ)
+    - residues 142 to 287 and 429 to 574 from the hemoglobin subunit gamma-2 (PDB: 4MQJ)
+    - 55 potassium ion
+    - 59 chloride ions
+    - 19672 water molecules (TIP3P)
+- resolution: all-atom
+- force field: Charmm36
+
+
+`1QJ8_ETH_ACN_MET_URE.gro`
+- molecular inventory:
+    - residues 1 to 148 from OUTER MEMBRANE PROTEIN X (PDB: 1QJ8)
+    - 200 urea molecules
+    - 200 methanol molecules
+    - 200 ethanol molecules 
+    - 200 acetonitrile molecules 
+    - 19672 water molecules (TIP3P)
+- resolution: all-atom
+
+
+`noriega_AA_CRD_3CAL.gro`
 - molecular inventory:
     - residues 79 to 208 from the human Mincle CRD (PDB: 3WH3)
     - 3 Calcium ions
@@ -15,7 +45,6 @@
 
 
 `noriega_CG_CRD_3CAL.gro`
-
 - molecular inventory:
     - residues 79 to 208 from the human Mincle CRD (PDB: 3WH3)
     - 3 Calcium ions
