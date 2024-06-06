@@ -802,6 +802,7 @@ def remove_hydrogene(filename: str) -> mda.core.universe.Universe:
     filename_tmp = f"{Path(filename).stem}_without_H{Path(filename).suffix}"
     # Write the new system in a new file
     mol.write(filename_tmp, reindex=False)
+    logger.info(f" New structure file without hydrogens : {filename_tmp}")
 
     # We need to read structure from disk to be extra sure hydrogen atoms are removed.
     mol = mda.Universe(filename_tmp)
@@ -952,6 +953,8 @@ def count_remove_ion_solvant(
     # Write the new universe without ions and solvant into a new file
     output_file = f"{Path(input_filepath).stem}_without_H_ions_solvant{Path(input_filepath).suffix}"
     universe.atoms.write(output_file, reindex=False)
+    logger.info(f" New structure file without hydrogens, ions and solvants : {output_file}")
+
     universe_clean = mda.Universe(output_file)
 
     # Print which ion and solvant we find, and how many
@@ -1100,6 +1103,7 @@ def export_protein_sequence_into_FASTA(
             seq = [seq[i : i + 80] for i in range(0, len(seq), 80)]
             content = f">Protein: {nb_res} residues\n" + "\n".join(seq)
             file.write(f"{content}\n")
+    logger.info(f"FASTA filename : {filepath_name}")
 
 
 def is_lipid(
@@ -1282,9 +1286,10 @@ def export_inventory(
 
         date_time = f"{datetime.datetime.now():%Y-%m-%d_%H-%M-%S}"
 
-        current_dir = Path.cwd()
-        absolute_file_path = current_dir / filename
-        relative_path = absolute_file_path.relative_to(current_dir)
+        # current_dir = Path.cwd()
+        # absolute_file_path = current_dir / filename
+        # relative_path = absolute_file_path.relative_to(current_dir)
+        relative_path = filename
 
         if overlap_residue:
             remark_message = [f"Residue {x} has been splitted into multiple molecules. This should be wrong." for x in overlap_residue]
@@ -1306,6 +1311,9 @@ def export_inventory(
     out_file = open(filename_JSON, "w")
     json.dump(final_dict, out_file, indent=4)
     out_file.close()
+
+    # clikable_link = f"<a href='file://{filename_JSON}'>{filename_JSON}</a>"
+    # logger.info(f"JSON filename : {clikable_link}")
     logger.info(f"JSON filename : {filename_JSON}")
 
 
