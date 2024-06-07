@@ -1128,7 +1128,7 @@ def is_lipid(
     res_name_graph = set(nx.get_node_attributes(graph, "residue_name").values())
     res_name_graph = res_name_graph.pop()
 
-    if resolution == "aa":
+    if resolution == "AA":
         lipid_csml_charmm_gui = CSML_CHARMM_GUI[
             CSML_CHARMM_GUI["Category"].str.contains("lipid", case=False, na=False)
         ]
