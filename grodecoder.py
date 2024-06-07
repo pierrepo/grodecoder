@@ -648,7 +648,7 @@ def print_graph_inventory(graph_dict: dict):
         graph_dict: dict
             A dictionary with graphs as keys and counts (numbers of graphs) as values.
     """
-    logger.info("Molecules inventory:")
+    logger.info("Molecular inventory:")
     total_molecules_count = 0
     for graph_idx, (graph, key) in enumerate(graph_dict.items(), start=1):
         logger.info(f"Molecule {graph_idx:,} ----------------")
@@ -662,9 +662,9 @@ def print_graph_inventory(graph_dict: dict):
         logger.info(f"- number of atoms: {graph.number_of_nodes():,}")
         logger.info(f"- number of molecules: {count:,}")
 
-        logger.info(f"- residue ids:")
+        logger.debug(f"- residue ids:")
         for i in range(min(10, len(res_id_interval))):
-            logger.info(f"\t({res_id_interval[i][:20]})")
+            logger.debug(f"\t({res_id_interval[i][:20]})")
 
         res_names = set(sorted(nx.get_node_attributes(graph, "residue_name").values()))
         logger.debug(f"- res names: {res_names}")
@@ -794,19 +794,19 @@ def remove_hydrogene(filename: str) -> mda.core.universe.Universe:
             MDAnalysis Universe object representing the molecular system without hydrogen atoms.
     """
     molecule = mda.Universe(filename)
-    logger.info(f"Found {len(molecule.atoms):,} atoms")
+    logger.info(f"Found {len(molecule.atoms):,} atoms in {filename}")
 
     # Remove hydrogene from the system
-    logger.info("Removing H atoms...")
+    logger.info("Removing hydrogen atoms...")
     mol = molecule.select_atoms("not (name H* or name [123456789]H*)")
     filename_tmp = f"{Path(filename).stem}_without_H{Path(filename).suffix}"
     # Write the new system in a new file
     mol.write(filename_tmp, reindex=False)
-    logger.info(f" New structure file without hydrogens : {filename_tmp}")
+    logger.debug(f" New structure file without hydrogens : {filename_tmp}")
 
     # We need to read structure from disk to be extra sure hydrogen atoms are removed.
     mol = mda.Universe(filename_tmp)
-    logger.info(f"Found {len(mol.atoms):,} atoms remaining")
+    logger.info(f"{len(mol.atoms):,} atoms remaining")
     return mol
 
 
@@ -953,7 +953,7 @@ def count_remove_ion_solvant(
     # Write the new universe without ions and solvant into a new file
     output_file = f"{Path(input_filepath).stem}_without_H_ions_solvant{Path(input_filepath).suffix}"
     universe.atoms.write(output_file, reindex=False)
-    logger.info(f" New structure file without hydrogens, ions and solvants : {output_file}")
+    logger.debug(f" New structure file without hydrogens, ions and solvants : {output_file}")
 
     universe_clean = mda.Universe(output_file)
 
@@ -971,7 +971,7 @@ def count_remove_ion_solvant(
     count = len(selected_atoms.residues)
     logger.info(f"{count} residues SOL remaining")
 
-    logger.info(f"Found {len(universe_clean.atoms):,} atoms remaining")
+    logger.info(f"{len(universe_clean.atoms):,} atoms remaining")
     return (universe_clean, counts)
 
 
@@ -1103,7 +1103,7 @@ def export_protein_sequence_into_FASTA(
             seq = [seq[i : i + 80] for i in range(0, len(seq), 80)]
             content = f">Protein: {nb_res} residues\n" + "\n".join(seq)
             file.write(f"{content}\n")
-    logger.info(f"FASTA filename : {filepath_name}")
+    logger.debug(f"FASTA filename : {filepath_name}")
 
 
 def is_lipid(
@@ -1128,7 +1128,7 @@ def is_lipid(
     res_name_graph = set(nx.get_node_attributes(graph, "residue_name").values())
     res_name_graph = res_name_graph.pop()
 
-    if resolution == "aa":
+    if resolution == "AA":
         lipid_csml_charmm_gui = CSML_CHARMM_GUI[
             CSML_CHARMM_GUI["Category"].str.contains("lipid", case=False, na=False)
         ]
@@ -1154,58 +1154,45 @@ def is_lipid(
     return False
 
 
-def find_resolution(
-    universe_without_h_ion_solvant: mda.core.universe.Universe, number_res: int = 3
+def guess_resolution(
+    molecular_system: mda.core.universe.Universe,
+    number_of_res: int = 5,
+    threshold: float = 2.0,
 ) -> str:
     """Finds the resolution of the molecular system.
 
+    - Select 3 residues with more than 2 atoms.
+    - Compute distance between atoms of each residue.
+    - System is all-atom ("AA") if the minimum distance between atoms of each residue is less than 2 Å.
+    - System is coarse-grained ("CG") otherwise.
+
     Parameters
     ----------
-        universe_without_h_ion_solvant: MDAnalysis.Universe
+        molecular_system: MDAnalysis.Universe
             The molecular universe without hydrogen ions and solvent.
-        number_res: int
-            The number of residues to collect. By default it's 3.
+        number_of_res: int
+            The number of residues to collect. By default: 5.
+        threshold: float
+            Threshold distance to consider the system as all-atom. By default: 2.0 Å.
 
     Returns
     -------
         str
-            The resolution of the molecular system.
-             - "aa" if all 3 collected residues have more than 2 atoms and the minimum distance between atoms of each residue is less than 2 Å.
-             - "cg" if the minimum distance between atoms of the collected residues is greater than 2 Å, indicating a coarse-grained model.
+            The resolution of the molecular system:
+            either "AA" (all_atom) or "CG" (coarse-grain).
     """
-    cmp = []
-    res_num = [
-        universe_without_h_ion_solvant.atoms.residues[x].resid
-        for x in range(len(universe_without_h_ion_solvant.atoms.residues))
+    residues_to_analyze = [
+        residue
+        for residue in molecular_system.atoms.residues
+        if len(residue.atoms) >= 2
     ]
-    nb_aa = 0
-    return_resolution = ""
-
-    # Collect 3 residues, that have more than 2 atoms
-    for index in res_num:
-        if len(cmp) != number_res:
-            selection = f"resid {index}"
-            selected_atoms = universe_without_h_ion_solvant.select_atoms(selection)
-            if len(selected_atoms.atoms) > 2:
-                cmp.append(selected_atoms)
-
-    for res in cmp:
-        # Calculate interatomic distances between all atoms for this residue
-        position = res.positions
-        taille = len(res.atoms)
-        tmp = np.full((taille, taille), 100.0)
-        for index_i, pos_i in enumerate(position):
-            for index_j, pos_j in enumerate(position[index_i + 1 :], start=index_i + 1):
-                tmp[index_i, index_j] = cdist([pos_i], [pos_j])[0, 0]
-
-        # Check if the minimal distance between the atom for this residue is under 2A
-        # Otherwise, it means the residue and this system is in coarse-grained Model
-        if tmp.min() < 2.0:
-            nb_aa += 1
-        else:
-            return "cg"
-
-    return "aa"
+    # System is all-atom ("AA") is at least one residue 
+    # has inter-atomic distance below threshold.
+    for residue in residues_to_analyze[:number_of_res]:
+        distances = self_distance_array(residue.atoms.positions)
+        if sum(distances < threshold):
+            return "AA"
+    return "CG"
 
 
 def export_inventory(
@@ -1295,15 +1282,15 @@ def export_inventory(
             remark_message = [f"Residue {x} has been splitted into multiple molecules. This should be wrong." for x in overlap_residue]
 
         final_dict = {
-            "Inventory": sorted(
+            "inventory": sorted(
                 list_dict_molecule, key=lambda x: x["number_of_molecules"]
             ),
-            "Resolution": resolution,
-            "Date": date_time,
-            "Execution_time": execution_time,
-            "Remark" : remark_message,
-            "File_path": str(relative_path),
-            "File_md5sum": hashlib.md5(open(filename, "rb").read()).hexdigest(),
+            "resolution": resolution,
+            "date": date_time,
+            "execution_time_in_sec": f"{execution_time:.2f}",
+            "remark" : remark_message,
+            "file_path": str(relative_path),
+            "file_md5sum": hashlib.md5(open(filename, "rb").read()).hexdigest(),
         }
 
     logger.info("Exporting inventory into JSON file...")
@@ -1311,9 +1298,6 @@ def export_inventory(
     out_file = open(filename_JSON, "w")
     json.dump(final_dict, out_file, indent=4)
     out_file.close()
-
-    # clikable_link = f"<a href='file://{filename_JSON}'>{filename_JSON}</a>"
-    # logger.info(f"JSON filename : {clikable_link}")
     logger.info(f"JSON filename : {filename_JSON}")
 
 
@@ -1364,9 +1348,10 @@ def main(
         molecular_system, input_file_path
     )
 
-    resolution = find_resolution(molecular_system)
+    resolution = guess_resolution(molecular_system)
+    logger.info(f"Molecular resolution: {resolution}")
     if bond_threshold == "auto":
-        if resolution == "aa":
+        if resolution == "AA":
             atom_pairs = get_atom_pairs_from_guess_bonds(molecular_system)
         else:
             atom_pairs = get_atom_pairs_from_threshold(molecular_system, 5.0)
@@ -1534,7 +1519,7 @@ def parse_arg() -> argparse.Namespace:
     parser.add_argument(
         "--bondthreshold",
         type=is_a_valid_threshold,
-        help="Choose the method to calculate the atom pairs. If we know the resolution of the system is all atom choose 'aa' or we don't know so choose 'auto'",
+        help="Choose the method to calculate the atom pairs. If we know the resolution of the system is all-atom choose 'AA' or we don't know so choose 'auto'",
         default="auto",
     )
     parser.add_argument(
