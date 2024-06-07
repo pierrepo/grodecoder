@@ -1,35 +1,12 @@
-import time
-
-from loguru import logger
-import streamlit as st
+import os
 from pathlib import Path
 import tempfile
-import os
+
+from loguru import logger
+from PIL import Image
+import streamlit as st
 
 import grodecoder as gd
-
-
-class LauncherTime:
-    """Class to measure elapsed time.
-    
-    Modified from:
-    https://github.com/Delgan/loguru/issues/867#issuecomment-1537944764
-    """
-    def __init__(self):
-        self._start = time.perf_counter()
-
-    def reset(self):
-        self._start = time.perf_counter()
-
-    @property
-    def elapsed(self):
-        return f"{time.perf_counter() - self._start:.2f}"
-    
-    
-def print_in_log(iterations):
-    for i in range(iterations):
-        logger.info(f"hello {i}")
-        time.sleep(1)
 
 
 def last_line_log_file():
@@ -44,15 +21,11 @@ def last_line_log_file():
     return last_line
 
 
-if __name__ == "__main__":
-    timer = LauncherTime()
 
+if __name__ == "__main__":
     logger.remove()
-    # logger.add(st.write, format="{time:YYYY-MM-DD HH:mm:ss} | {extra[timer].elapsed} s | {level} | {message}")
-    # logger.add("test.log", format="{time:YYYY-MM-DD HH:mm:ss} | {extra[timer].elapsed} s | {level} | {message}")
-    logger.add(st.write, format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}")
+    logger.add(st.write, format="{time:YYYY-MM-DD HH:mm:ss} | {message}", level="INFO")
     logger.add("test.log", format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}")
-    # logger = logger.bind(timer=timer)
     st.markdown(
         """
         <style>
@@ -61,18 +34,35 @@ if __name__ == "__main__":
         }
         </style>
         """, unsafe_allow_html=True)
-    st.markdown("# First version of GroDecoder app")
+    logo = Image.open("assets/grodecoder_logo.png")
+    st.sidebar.image(logo)
+    st.sidebar.markdown("""
+    **GroDecoder** extracts and identifies
+    the molecular components of a structure file (PDB or GRO)
+    issued from a molecular dynamics simulation.
+
+    ---
+    [Source code](https://github.com/pierrepo/grodecoder)                 
+    """
+    )
+
+    st.markdown("# GroDecoder 📦")
     
 
-    uploaded_file = st.file_uploader("Choose a structural file", type=["pdb", "gro"])
+    uploaded_file = st.file_uploader("Choose a structure file", type=["pdb", "gro"])
 
-    st.write("Choose some options for the analysis : ")
-    draw_graph_option_value = st.checkbox("Draw graph", value=False)
+    st.markdown("""
+    Examples:
+    <a href="https://raw.githubusercontent.com/pierrepo/grodecoder/main/data/examples/barstar.gro" download target="_blank">Barstar</a>
+    <br /><br />
+    """, unsafe_allow_html=True)
+
+    st.write("Options:")
     check_overlapping_residue_value = st.checkbox("Check overlapping residue", value=False)
     check_connectivity_value = st.checkbox("Check connectivity (add degree and number of edge in the fingerprint) ", value=False)
-    bond_threshold_value = st.text_input("Enter auto or a threshold value", value="auto")
+    bond_threshold_value = st.text_input("Threshold value ('auto' or any positive value):", value="auto")
 
-    if (uploaded_file is not None) and st.button("Run new analysis") : 
+    if (uploaded_file is not None) and st.button("Run analysis") : 
         temp_dir = tempfile.mkdtemp()
         path = Path(temp_dir) / uploaded_file.name
         with open(path, "wb") as f:
@@ -81,32 +71,26 @@ if __name__ == "__main__":
         with st.spinner("Running analysis..."):
             gd.main(
                 path,
-                draw_graph_option=draw_graph_option_value,
+                draw_graph_option=False,
                 check_overlapping_residue=check_overlapping_residue_value,
                 check_connectivity=check_connectivity_value,
                 bond_threshold=bond_threshold_value,
                 query_pdb=True,
             )
 
-    # Fetch the last line of the log file
-    last_line = last_line_log_file()
-    last_line_filename = last_line.split()[-1]
+        # Fetch the last line of the log file
+        last_line = last_line_log_file()
+        last_line_filename = last_line.split()[-1]
 
-    # Test if the last line of the log file is a JSON
-    # That also mean that the analysis terminated correctly
-    if last_line_filename.split('.')[-1] == "json":
-        with open(last_line_filename, 'r') as file:
-            file_content = file.read()
-
-        st.download_button(
-            label="Download the inventory file for this structural file",
-            data=file_content,
-            file_name=last_line_filename,
-            mime="text/plain"
-        )
-    
-    # if st.button("Run new analysis"):
-    #     timer.reset()
-    #     with st.spinner("Running analysis..."):
-    #         print_in_log(5)
-    #     st.write("Done!")
+        # Test if the last line of the log file is a JSON
+        # That also mean that the analysis terminated correctly
+        if last_line_filename.split('.')[-1] == "json":
+            with open(last_line_filename, 'r') as file:
+                file_content = file.read()
+            st.toast("Analysis completed successfully 🎉", icon="🥳")
+            st.download_button(
+                label="Download molecular inventory",
+                data=file_content,
+                file_name=last_line_filename,
+                mime="text/plain"
+            )
