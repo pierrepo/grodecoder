@@ -1179,14 +1179,14 @@ def guess_resolution(
     -------
         str
             The resolution of the molecular system:
-            either "aa" (all_atom) or "cg" (coarse-grain).
+            either "AA" (all_atom) or "CG" (coarse-grain).
     """
     residues_to_analyze = [
         residue
         for residue in molecular_system.atoms.residues
         if len(residue.atoms) >= 2
     ]
-    # System is all-atom ("aa") is at least one residue 
+    # System is all-atom ("AA") is at least one residue 
     # has inter-atomic distance below threshold.
     for residue in residues_to_analyze[:number_of_res]:
         distances = self_distance_array(residue.atoms.positions)
@@ -1519,7 +1519,7 @@ def parse_arg() -> argparse.Namespace:
     parser.add_argument(
         "--bondthreshold",
         type=is_a_valid_threshold,
-        help="Choose the method to calculate the atom pairs. If we know the resolution of the system is all atom choose 'aa' or we don't know so choose 'auto'",
+        help="Choose the method to calculate the atom pairs. If we know the resolution of the system is all-atom choose 'AA' or we don't know so choose 'auto'",
         default="auto",
     )
     parser.add_argument(
