@@ -31,6 +31,28 @@
 - resolution: all-atom
 
 
+`1QJ8.gro`
+- molecular inventory:
+    - residues 1 to 148 from OUTER MEMBRANE PROTEIN X (PDB: 1QJ8)
+    - 36 CHL1
+    - 36 DMPE
+    - 36 DDPC
+    - 36 DYPG
+    - 36 POPP2
+    - 36 DMPS
+    - 36 POPS
+    - 36 DOPA
+    - 36 SOPG
+    - 60 Sodium ion
+    - 60 Calcium ion
+    - 60 Magnesium ion
+    - 314 Potassium ion
+    - 360 chloride ion
+    - 21955 water molecules (TIP3P)
+- resolution: all-atom
+- force field: Charmm36m
+
+
 `noriega_AA_CRD_3CAL.gro`
 - molecular inventory:
     - residues 79 to 208 from the human Mincle CRD (PDB: 3WH3)
