@@ -83,6 +83,7 @@ IONS_LIST = [
     {"name": "Magnesium ion", "res_name": "MG", "atom_names": ["MG"]},
     {"name": "Magnesium ion", "res_name": "MG2+", "atom_names": ["MG"]},
     {"name": "Sodium ion", "res_name": "NA", "atom_names": ["NA"]},
+    {"name": "Sodium ion", "res_name": "NAs", "atom_names": ["NA"]},
     {"name": "Sodium ion", "res_name": "NA+", "atom_names": ["NA"]},
     {"name": "Hydroxide ion", "res_name": "OH", "atom_names": ["O1"]},
     {"name": "Plutonium ion", "res_name": "PU3P", "atom_names": ["PU3P"]},
@@ -94,6 +95,7 @@ IONS_LIST = [
     {"name": "Sodium ion", "res_name": "SOD", "atom_names": ["SOD"]},  # NA
     {"name": "SO4 ion - CHARMM", "res_name": "SO4", "atom_names": ["S", "O1", "O2", "O3", "O4"]},
     {"name": "Zinc ion", "res_name": "ZN", "atom_names": ["ZN"]},
+    {"name": "Zinc ion", "res_name": "ZN2", "atom_names": ["ZN"]},
     {"name": "Zinc ion", "res_name": "ZN2+", "atom_names": ["ZN"]}, 
     {"name": "Zinc ion - CHARMM", "res_name": "ZN2", "atom_names": ["ZN2"]},
 
@@ -116,14 +118,17 @@ IONS_LIST = [
     # https://mad.ibcp.fr/explore?categories=MC%3A0008
 SOLVANTS_LIST = [{"name": "water TIP3P solvant", "res_name": "TIP3", "atom_names": ["OH2"]}, 
                  {"name": "water TIP3P solvant", "res_name": "TIP3", "atom_names": ["OW", "HW1", "HW2"]}, 
+                 {"name": "water TIP3P solvant", "res_name": "SOL", "atom_names": ["OH2", "H1", "H2"]},
                  {"name": "water TIP3P/spce solvant", "res_name": "SOL", "atom_names": ["OW", "HW1", "HW2"]},  # TIP3
                  {"name": "water TIP4P/tip4pew solvant", "res_name": "SOL", "atom_names": ["OW", "HW1", "HW2", "MW"]},  # TIP4
                  {"name": "water TIP5P/tip5pe solvant", "res_name": "SOL", "atom_names": ["OW", "HW1", "HW2", "LP1", "LP2"]},  # TIP5
                  {"name": "urea solvant", "res_name": "URE", "atom_names": ["C", "O", "N1", "H11", "H12", "N2", "H21", "H22"]},
                  {"name": "organic solvant methanol/OPLS", "res_name": "MET", "atom_names": ["C", "H", "H", "H", "OA", "HO"]},
+                 {"name": "organic solvant methanol", "res_name": "MET", "atom_names": ["C", "H1", "H2", "H3", "OH", "HO"]},
                  {"name": "organic solvant methanol", "res_name": "MeOH", "atom_names": ["Me1", "O2", "H3"]},
                  {"name": "organic solvant methanol", "res_name": "MOH", "atom_names": ["C", "H", "H", "H", "OA", "HO"]},
                  {"name": "organic solvant ethanol/OPLS", "res_name": "ETH", "atom_names": ["C", "H", "H", "H", "C", "H", "H", "OA", "HO"]},
+                 {"name": "organic solvant ethanol", "res_name": "ETH", "atom_names": ["C", "H1", "H2", "OH", "HO", "C1", "C1", "H3", "H4", "H5"]},
                  {"name": "organic solvant propanol/OPLS", "res_name": "POL", "atom_names": ["C", "H", "H", "H", "C", "H", "H", "C", "H", "H", "OA", "HO"]},
                  {"name": "acetonitrile", "res_name": "ACN", "atom_names": ["C1", "C2", "N"]},
 
