@@ -85,6 +85,7 @@ IONS_LIST = [
     {"name": "Sodium ion", "res_name": "NA", "atom_names": ["NA"]},
     {"name": "Sodium ion", "res_name": "NAs", "atom_names": ["NA"]},
     {"name": "Sodium ion", "res_name": "NA+", "atom_names": ["NA"]},
+    {"name": "Ammonium", "res_name": "NH4", "atom_names": ["HZ1", "NZ", "HZ2", "HZ3", "HZ4"]},
     {"name": "Hydroxide ion", "res_name": "OH", "atom_names": ["O1"]},
     {"name": "Plutonium ion", "res_name": "PU3P", "atom_names": ["PU3P"]},
     {"name": "Potassium ion", "res_name": "POT", "atom_names": ["POT"]},  # K
