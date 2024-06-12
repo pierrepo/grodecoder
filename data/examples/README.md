@@ -79,3 +79,35 @@
 - publication: [Noriega et al., bioRxiv, 2024](https://www.biorxiv.org/content/10.1101/2024.05.17.594645v1).
 
 
+`step7_1.gro`
+- molecular inventory:
+    - 16 GM1
+    - 152 POPC
+    - 80 CHL1
+    - 96 POPE 
+    - 36 PSM
+    - 20 POPS 
+    - 92 Sodium ions
+    - 56 Chloride ions
+    - 19348 water molecules (TIP3P)
+- resolution: all-atom
+- force field: Charmm36m
+- origin: Zenodo [dataset](https://zenodo.org/records/8331752), file `step7_1.gro` 
+- publication: 
+
+
+`DMPC_PI.gro`
+- molecular inventory:
+    - 180 DMPC
+    - 16 POPI
+    - 16 SAPI
+    - 14 SLPI
+    - 104 Sodium ions
+    - 28 Chloride ions
+    - 12800 water molecules (TIP3P)
+- resolution: all-atom
+- force field: Charmm36
+- origin: Zenodo [dataset](https://zenodo.org/records/4651415), file `DMPC_PI.gro` 
+- publication: 
+
+
