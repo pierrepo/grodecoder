@@ -93,7 +93,6 @@
 - resolution: all-atom
 - force field: Charmm36m
 - origin: Zenodo [dataset](https://zenodo.org/records/8331752), file `step7_1.gro` 
-- publication: 
 
 
 `DMPC_PI.gro`
@@ -108,6 +107,79 @@
 - resolution: all-atom
 - force field: Charmm36
 - origin: Zenodo [dataset](https://zenodo.org/records/4651415), file `DMPC_PI.gro` 
-- publication: 
 
 
+`5ZOA.gro`
+- molecular inventory:
+    - residu 1 to 261 from Thermobifida fusca cutinase (PDB: 5ZOA)
+    - 47 CHL1
+    - 15 DPOP
+    - 32 SITO
+    - 15 STIG
+    - 32 DPPI
+    - 47 DLPG
+    - 32 OPPG
+    - 32 TLCL2
+    - 32 POPI14
+    - 34 CHSD
+    - 356 Potassium ion
+    - 49 Sodium ions
+    - 49 Calcium ion
+    - 196 Chloride ions
+    - 17939 water molecules (TIP3P)
+    - resolution: all-atom 
+    - force field: Charmm36m
+    - source: 
+
+
+`4ZRY.gro`
+- molecular inventory:
+    - residu 1 to 456 from Keratin, type I cytoskeletal 10 (PDB: 4ZRY)
+    - residu 386 to 489 from Keratin, type II cytoskeletal 1 (PDB: 4ZRY)
+    - 34 GSITO
+    - 34 DDAOP
+    - 34 SB3-14
+    - 34 ADG
+    - 34 FOS14
+    - 34 DEPS
+    - 34 PLC20
+    - 34 DOPEE
+    - 34 PEPS
+    - 34 MLN1
+    - 34 BMGP
+    - 34 PLESEP
+    - 223 Potassium ion
+    - 141 Sodium ions
+    - 141 Calcium ion
+    - 141 Magnesium ion
+    - 846 Chloride ions
+    - 51436 water molecules (TIP3P)
+- resolution: all-atom
+- force field: Charmm36m
+- source: 
+
+
+`5MBA.gro`
+- molecular inventory:
+    - residu 1 to 146 from BINDING MODE OF AZIDE TO FERRIC APLYSIA LIMACINA MYOGLOBIN (PDB: 5MBA) 
+    - 24 GSTIG
+    - 24 DMPS
+    - 24 CPU12E
+    - 24 UQOL2
+    - 24 PHPGP
+    - 24 PGAR
+    - 24 UQOL7
+    - 24 LOACL2
+    - 24 CER3E
+    - 24 DSM
+    - 24 ESU08L
+    - 24 CPS04C
+    - 42 NH4
+    - 161 Potassium ion
+    - 42 Sodium ions
+    - 42 Magnesium ion
+    - 210 Chloride ions
+    - 15608 water molecules (TIP3P)
+- resolution: all-atom
+- force field: Charmm36m
+- source: 
