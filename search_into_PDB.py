@@ -49,10 +49,25 @@ def API_PDB_search_based_sequence(sequence: str, max_element:int =10) -> list[st
         }
     }
 
-    my_query = json.dumps(my_query)
-    data = requests.get(f"https://search.rcsb.org/rcsbsearch/v2/query?json={my_query}")
-    results = data.json()
-    return results["result_set"][:max_element]
+    try:
+        my_query = json.dumps(my_query)
+        data = requests.get(f"https://search.rcsb.org/rcsbsearch/v2/query?json={my_query}")
+    except requests.exceptions.HTTPError as http_err:
+        logger.error(f"HTTP error occurred: {http_err}")
+        return []
+    except requests.exceptions.RequestException as req_err:
+        logger.error(f"Request error occurred: {req_err}")
+        return []
+
+    try:
+        results = data.json()
+        return results["result_set"][:max_element]
+    except requests.exceptions.JSONDecodeError as json_err:
+        logger.error(f"JSON decode error occurred: {json_err}")
+        return []
+    except KeyError as key_err:
+        logger.error(f"Key error occurred: {key_err}")
+        return []
 
 
 def get_macromolecular_names(PDB_ID, polymer_entity_id, set_names) -> set[str]:
