@@ -1270,7 +1270,7 @@ def export_inventory(
             "is_protein": is_protein,
             "protein_sequence": protein_sequence,
             "putative_pdb_structure": putative_pdb_structure,
-            "putative_pdb_name": putative_name,
+            "putative_name": putative_name,
             "comment": comment,
         }
         list_dict_molecule.append(dict_inventory)
