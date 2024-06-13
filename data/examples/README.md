@@ -10,6 +10,7 @@
     - 5753 water molecules (TIP3P)
 - resolution: all-atom
 - force field: OPLS
+- source: Courtesy of Patrick Fuchs
 
 
 `4MQJ_ABCD.gro`
