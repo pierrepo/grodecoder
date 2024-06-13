@@ -1,4 +1,7 @@
-# Structure files used for testing and evaluation purposes
+# Structure files created of-reused for testing and evaluation purposes
+
+> Please note that ad-hoc created structures are intended for testing and evaluation only, and may not make sense biologically.
+
 
 `barstar.gro`
 - molecular inventory:
