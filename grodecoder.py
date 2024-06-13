@@ -1220,13 +1220,14 @@ def export_inventory(
         graph_count_dict.items(), start=1
     ):
         is_protein, is_lipid, is_ion, is_solvant = False, False, False, False
-        formula, protein_sequence, putative_name, putative_pdb_structure, remark_message = (
+        formula, protein_sequence, putative_name, remark_message, comment = (
             "",
             "",
             "",
             "",
             "",
         )
+        putative_pdb_structure = []
 
         residue_pairs = zip(
             nx.get_node_attributes(graph, "residue_id").values(),
@@ -1253,6 +1254,8 @@ def export_inventory(
             is_ion = information["ion"]
             is_solvant = information["solvant"]
             putative_name = information["name"]
+        if "comment" in information.keys():
+            comment = information["comment"]
 
         dict_inventory = {
             "id": index_graph,
@@ -1261,13 +1264,14 @@ def export_inventory(
             "residue_names": residue_names,
             "residue_ids": " ".join(information["res_id_interval"]),
             "formula_without_h": formula,
+            "is_solvant": is_solvant,
+            "is_ion": is_ion,
+            "is_lipid": is_lipid,
             "is_protein": is_protein,
             "protein_sequence": protein_sequence,
             "putative_pdb_structure": putative_pdb_structure,
-            "is_lipid": is_lipid,
-            "is_solvant": is_solvant,
-            "is_ion": is_ion,
             "putative_pdb_name": putative_name,
+            "comment": comment,
         }
         list_dict_molecule.append(dict_inventory)
 
@@ -1400,6 +1404,8 @@ def main(
             list_dict_info_pdb = []
             if query_pdb:
                 results = search_into_PDB.API_PDB_search_based_sequence(sequence)
+                if not results:
+                    graph_count_dict[graph]["comment"] = "No corresponding structure found in the PDB"
                 for pdb_id in results:
                     list_dict_info_pdb.append(search_into_PDB.get_info_one_pdb_id(pdb_id))
                 graph_count_dict[graph]["putative_pdb_structure"] = list_dict_info_pdb
