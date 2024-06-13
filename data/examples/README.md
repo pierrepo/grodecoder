@@ -1,9 +1,12 @@
-# Structure files used for testing and evaluation purposes
+# Structure files created of-reused for testing and evaluation purposes
+
+> Please note that ad-hoc created structures are intended for testing and evaluation only, and may not make sense biologically.
+
 
 `barstar.gro`
 - molecular inventory:
     - residues 1 to 89 from the barstar (PDB: 1BTA)
-    - 6 Sodium ions
+    - 6 sodium ions
     - 5753 water molecules (TIP3P)
 - resolution: all-atom
 - force field: OPLS
@@ -13,7 +16,7 @@
 - molecular inventory:
     - residues 1 to 141 and 288 to 428 from the hemoglobin subunit alpha (PDB: 4MQJ)
     - residues 142 to 287 and 429 to 574 from the hemoglobin subunit gamma-2 (PDB: 4MQJ)
-    - 55 potassium ion
+    - 55 potassium ions
     - 59 chloride ions
     - 19672 water molecules (TIP3P)
 - resolution: all-atom
@@ -36,20 +39,20 @@
 `1QJ8_membrane.gro`
 - molecular inventory:
     - residues 1 to 148 from OUTER MEMBRANE PROTEIN X (PDB: 1QJ8)
-    - 36 CHL1
-    - 36 DMPE
-    - 36 DDPC
-    - 36 DYPG
-    - 36 POPP2
-    - 36 DMPS
-    - 36 POPS
-    - 36 DOPA
-    - 36 SOPG
-    - 60 Sodium ion
-    - 60 Calcium ion
-    - 60 Magnesium ion
-    - 314 Potassium ion
-    - 360 chloride ion
+    - 36 CHL1 lipids
+    - 36 DMPE lipids
+    - 36 DDPC lipids
+    - 36 DYPG lipids
+    - 36 POPP2 lipids
+    - 36 DMPS lipids
+    - 36 POPS lipids
+    - 36 DOPA lipids
+    - 36 SOPG lipids
+    - 60 sodium ions
+    - 60 calcium ions
+    - 60 magnesium ions
+    - 314 potassium ions
+    - 360 chloride ions
     - 21955 water molecules (TIP3P)
 - resolution: all-atom
 - force field: Charmm36m
@@ -59,9 +62,9 @@
 `1QJ8_solution.gro`
 - molecular inventory:
     - residues 1 to 148 from OUTER MEMBRANE PROTEIN X (PDB: 1QJ8)
-    - 100 DMPC
-    - 23 Sodium ion
-    - 21 chloride ion
+    - 100 DMPC lipids
+    - 23 sodium ions
+    - 21 chloride ions
     - 8080 water molecules (TIP3P)
 - resolution: all-atom
 - force field: Charmm36m
@@ -71,76 +74,74 @@
 `noriega_AA_CRD_3CAL.gro`
 - molecular inventory:
     - residues 79 to 208 from the human Mincle CRD (PDB: 3WH3)
-    - 3 Calcium ions
-    - 19 Sodium ions
-    - 19 Chloride ions
+    - 3 calcium ions
+    - 19 sodium ions
+    - 19 chloride ions
     - 7069 water molecules (TIP3P)
 - resolution: all-atom
 - force field: Charmm36 
-- origin: Zenodo [dataset](https://zenodo.org/records/11204133), archive `noriega_jpcb.zip`, file `noriega_jpcb/AA_simulations/3CAL/AA_CRD_3CAL.gro` 
-- publication: [Noriega et al., bioRxiv, 2024](https://www.biorxiv.org/content/10.1101/2024.05.17.594645v1).
+- source: Zenodo [dataset](https://zenodo.org/records/11204133), archive `noriega_jpcb.zip`, file `noriega_jpcb/AA_simulations/3CAL/AA_CRD_3CAL.gro` (publication: [Noriega et al., bioRxiv, 2024](https://www.biorxiv.org/content/10.1101/2024.05.17.594645v1))
 
 
 `noriega_CG_CRD_3CAL.gro`
 - molecular inventory:
     - residues 79 to 208 from the human Mincle CRD (PDB: 3WH3)
-    - 3 Calcium ions
-    - 16 Sodium ions
-    - 16 Chloride ions
+    - 3 calcium ions
+    - 16 sodium ions
+    - 16 chloride ions
     - 1170 water molecules
 - resolution: coarse grain
 - force field: Martini 3
-- origin: Zenodo [dataset](https://zenodo.org/records/11204133), archive `noriega_jpcb.zip`, file `noriega_jpcb/CG_simulations/elastic_refinement/CG_3CAL.gro` 
-- publication: [Noriega et al., bioRxiv, 2024](https://www.biorxiv.org/content/10.1101/2024.05.17.594645v1).
+- source: Zenodo [dataset](https://zenodo.org/records/11204133), archive `noriega_jpcb.zip`, file `noriega_jpcb/CG_simulations/elastic_refinement/CG_3CAL.gro` (publication: [Noriega et al., bioRxiv, 2024](https://www.biorxiv.org/content/10.1101/2024.05.17.594645v1))
 
 
 `step7_1.gro`
 - molecular inventory:
-    - 16 GM1
-    - 152 POPC
-    - 80 CHL1
-    - 96 POPE 
-    - 36 PSM
-    - 20 POPS 
-    - 92 Sodium ions
-    - 56 Chloride ions
+    - 16 GM1 lipids
+    - 152 POPC lipids
+    - 80 CHL1 lipids
+    - 96 POPE lipids
+    - 36 PSM lipids
+    - 20 POPS lipids
+    - 92 sodium ions
+    - 56 chloride ions
     - 19348 water molecules (TIP3P)
 - resolution: all-atom
 - force field: Charmm36m
-- origin: Zenodo [dataset](https://zenodo.org/records/8331752), file `step7_1.gro` 
+- source: Zenodo [dataset](https://zenodo.org/records/8331752), file `step7_1.gro` 
 
 
 `DMPC_PI.gro`
 - molecular inventory:
-    - 180 DMPC
-    - 16 POPI
-    - 16 SAPI
-    - 14 SLPI
-    - 104 Sodium ions
-    - 28 Chloride ions
+    - 180 DMPC lipids
+    - 16 POPI lipids
+    - 16 SAPI lipids
+    - 14 SLPI lipids
+    - 104 sodium ions
+    - 28 chloride ions
     - 12800 water molecules (TIP3P)
 - resolution: all-atom
 - force field: Charmm36
-- origin: Zenodo [dataset](https://zenodo.org/records/4651415), file `DMPC_PI.gro` 
+- source: Zenodo [dataset](https://zenodo.org/records/4651415), file `DMPC_PI.gro` 
 
 
 `5ZOA.gro`
 - molecular inventory:
-    - residu 1 to 261 from Thermobifida fusca cutinase (PDB: 5ZOA)
-    - 47 CHL1
-    - 15 DPOP
-    - 32 SITO
-    - 15 STIG
-    - 32 DPPI
-    - 47 DLPG
-    - 32 OPPG
-    - 32 TLCL2
-    - 32 POPI14
-    - 34 CHSD
-    - 356 Potassium ion
-    - 49 Sodium ions
-    - 49 Calcium ion
-    - 196 Chloride ions
+    - residues 1 to 261 from Thermobifida fusca cutinase (PDB: 5ZOA)
+    - 47 CHL1 lipids
+    - 15 DPOP lipids
+    - 32 SITO lipids
+    - 15 STIG lipids
+    - 32 DPPI lipids
+    - 47 DLPG lipids
+    - 32 OPPG lipids
+    - 32 TLCL2 lipids
+    - 32 POPI14 lipids
+    - 34 CHSD lipids
+    - 356 potassium ions
+    - 49 sodium ions
+    - 49 calcium ions
+    - 196 chloride ions
     - 17939 water molecules (TIP3P)
     - resolution: all-atom 
     - force field: Charmm36m
@@ -149,25 +150,25 @@
 
 `4ZRY.gro`
 - molecular inventory:
-    - residu 1 to 456 from Keratin, type I cytoskeletal 10 (PDB: 4ZRY)
-    - residu 386 to 489 from Keratin, type II cytoskeletal 1 (PDB: 4ZRY)
-    - 34 GSITO
-    - 34 DDAOP
-    - 34 SB3-14
-    - 34 ADG
-    - 34 FOS14
-    - 34 DEPS
-    - 34 PLC20
-    - 34 DOPEE
-    - 34 PEPS
-    - 34 MLN1
-    - 34 BMGP
-    - 34 PLESEP
-    - 223 Potassium ion
-    - 141 Sodium ions
-    - 141 Calcium ion
-    - 141 Magnesium ion
-    - 846 Chloride ions
+    - residues 1 to 456 from Keratin, type I cytoskeletal 10 (PDB: 4ZRY)
+    - residues 386 to 489 from Keratin, type II cytoskeletal 1 (PDB: 4ZRY)
+    - 34 GSITO lipids
+    - 34 DDAOP lipids
+    - 34 SB3-14 lipids
+    - 34 ADG lipids
+    - 34 FOS14 lipids
+    - 34 DEPS lipids
+    - 34 PLC20 lipids
+    - 34 DOPEE lipids
+    - 34 PEPS lipids
+    - 34 MLN1 lipids
+    - 34 BMGP lipids
+    - 34 PLESEP lipids
+    - 223 potassium ions
+    - 141 sodium ions
+    - 141 calcium ions
+    - 141 magnesium ions
+    - 846 chloride ions
     - 51436 water molecules (TIP3P)
 - resolution: all-atom
 - force field: Charmm36m
@@ -176,24 +177,24 @@
 
 `5MBA.gro`
 - molecular inventory:
-    - residu 1 to 146 from BINDING MODE OF AZIDE TO FERRIC APLYSIA LIMACINA MYOGLOBIN (PDB: 5MBA) 
-    - 24 GSTIG
-    - 24 DMPS
-    - 24 CPU12E
-    - 24 UQOL2
-    - 24 PHPGP
-    - 24 PGAR
-    - 24 UQOL7
-    - 24 LOACL2
-    - 24 CER3E
-    - 24 DSM
-    - 24 ESU08L
-    - 24 CPS04C
-    - 42 NH4
-    - 161 Potassium ion
-    - 42 Sodium ions
-    - 42 Magnesium ion
-    - 210 Chloride ions
+    - residues 1 to 146 from BINDING MODE OF AZIDE TO FERRIC APLYSIA LIMACINA MYOGLOBIN (PDB: 5MBA) 
+    - 24 GSTIG lipids
+    - 24 DMPS lipids
+    - 24 CPU12E lipids
+    - 24 UQOL2 lipids
+    - 24 PHPGP lipids
+    - 24 PGAR lipids
+    - 24 UQOL7 lipids
+    - 24 LOACL2 lipids
+    - 24 CER3E lipids
+    - 24 DSM lipids
+    - 24 ESU08L lipids
+    - 24 CPS04C lipids
+    - 42 NH4 lipids
+    - 161 potassium ions
+    - 42 sodium ions
+    - 42 magnesium ions
+    - 210 chloride ions
     - 15608 water molecules (TIP3P)
 - resolution: all-atom
 - force field: Charmm36m
