@@ -151,8 +151,8 @@
 
 `4ZRY.gro`
 - molecular inventory:
-    - residues 1 to 456 from Keratin, type I cytoskeletal 10 (PDB: 4ZRY)
-    - residues 386 to 489 from Keratin, type II cytoskeletal 1 (PDB: 4ZRY)
+    - residues 1 to 110 from Keratin, type I cytoskeletal 10 (PDB: 4ZRY)
+    - residues 111 to 214 from Keratin, type II cytoskeletal 1 (PDB: 4ZRY)
     - 34 GSITO lipids
     - 34 DDAOP lipids
     - 34 SB3-14 lipids

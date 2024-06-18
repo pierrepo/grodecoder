@@ -62,6 +62,7 @@ IONS_LIST = [
     {"name": "chloride ion", "res_name": "CLA", "atom_names": ["CLA"]},  # CL
     {"name": "chloride ion", "res_name": "CL", "atom_names": ["CL"]},
     {"name": "chloride ion", "res_name": "CL-", "atom_names": ["CL"]},
+    {"name": "chloride ion", "res_name": "CL", "atom_names": ["CA"]},
     {"name": "Caesium ion", "res_name": "CS", "atom_names": ["CS"]},
     {"name": "Caesium ion", "res_name": "Cs+", "atom_names": ["Cs"]},
     {"name": "Fluoride ion", "res_name": "F", "atom_names": ["F"]},
