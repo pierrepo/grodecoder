@@ -1,6 +1,6 @@
 # GROdecoder
 
-GROdecoder is a Python module designed to extract and identify molecules from a .gro file.
+GroDecoder extracts and identifies the molecular components of a structure file (PDB or GRO) issued from a molecular dynamics simulation. 
 
 ## Installation
 
@@ -25,11 +25,6 @@ Run GROdecoder on a test file:
 python grodecoder.py --input data/examples/barstar.gro
 ```
 
-Draw graphs corresponding to the molecules found in the structure file (by default at false):
-```bash
-python grodecoder.py --input data/examples/barstar.gro --drawgraph
-```
-
 Check that all residues exist only one time (by default at false):
 ```bash
 python grodecoder.py --input data/examples/barstar.gro --checkoverlapping
@@ -40,11 +35,15 @@ Add edges and degre in the fingerprint (by default at false)"
 python grodecoder.py --input data/examples/barstar.gro --checkconnectivity
 ```
 
-Choose the method to calculate the atom pairs. If we know the resolution of the system is all atom choose 'aa' or if we don't know choose 'auto' (by default at aa): 
+Choose the method to calculate the atom pairs. If we know the resolution of the system is coarse-grain enter a threshold (a positiv number) or we don't know so choose 'auto' (by default at 'auto'): 
 ```bash
 python grodecoder.py --input data/examples/barstar.gro --bondthreshold
 ```
 
+Add PDB id, their putative name and the organism name in the JSON file for each protein sequence (by default at false):
+```bash
+python grodecoder.py --input data/examples/barstar.gro --querypdb
+```
 
 ## Run the web app
 
@@ -56,3 +55,7 @@ streamlit run streamlit_app.py
 
 then open your web browser at <http://localhost:8501>
 
+or with the URL:
+```bash
+https://grodecoder.streamlit.app/
+```
