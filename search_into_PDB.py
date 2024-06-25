@@ -7,14 +7,14 @@ import requests
 from loguru import logger
 
 
-def API_PDB_search_based_sequence(sequence: str, max_element:int =10) -> list[str]:
+def API_PDB_search_based_sequence(sequence: str, max_element: int = 10) -> list[str]:
     """This function searches the Protein Data Bank (PDB) database based on a given sequence and returns a list of PDB IDs.
 
     Ressources
     ----------
         https://education.molssi.org/python-scripting-biochemistry/chapters/rcsb_api.html
         https://search.rcsb.org/index.html#return-count
-        
+
     Parameters
     ----------
         sequence : str
@@ -36,8 +36,8 @@ def API_PDB_search_based_sequence(sequence: str, max_element:int =10) -> list[st
                 "evalue_cutoff": 0.1,
                 "identity_cutoff": 0,
                 "sequence_type": "protein",
-                "value": sequence
-            }
+                "value": sequence,
+            },
         },
         "return_type": "polymer_entity",
         # "return_type": "entry",
@@ -45,13 +45,15 @@ def API_PDB_search_based_sequence(sequence: str, max_element:int =10) -> list[st
             "results_verbosity": "compact",
             "results_content_type": ["experimental"],
             "scoring_strategy": "combined",
-            "sort": [{"sort_by": "score", "direction": "desc"}]
-        }
+            "sort": [{"sort_by": "score", "direction": "desc"}],
+        },
     }
 
     try:
         my_query = json.dumps(my_query)
-        data = requests.get(f"https://search.rcsb.org/rcsbsearch/v2/query?json={my_query}")
+        data = requests.get(
+            f"https://search.rcsb.org/rcsbsearch/v2/query?json={my_query}"
+        )
     except requests.exceptions.HTTPError as http_err:
         logger.error(f"HTTP error occurred: {http_err}")
         return []
@@ -77,7 +79,7 @@ def get_macromolecular_names(PDB_ID, polymer_entity_id, set_names) -> set[str]:
     ----------
     https://www.rcsb.org/docs/programmatic-access/web-services-overview#data-api
     https://data.rcsb.org/index.html#data-api
-    https://data.rcsb.org/redoc/index.html#tag/Entity-Service/operation/getPolymerEntityById 
+    https://data.rcsb.org/redoc/index.html#tag/Entity-Service/operation/getPolymerEntityById
 
     Parameters
     ----------
@@ -98,18 +100,26 @@ def get_macromolecular_names(PDB_ID, polymer_entity_id, set_names) -> set[str]:
         requests.exceptions.RequestException
             If an error occurs while making the API request.
     """
-    logger.info(f"Retrieving macromolecular name for PDB ID {PDB_ID} polymer {polymer_entity_id}")
-    try : 
-        my_query = requests.get(f"https://data.rcsb.org/rest/v1/core/polymer_entity/{PDB_ID}/{polymer_entity_id}")
+    logger.info(
+        f"Retrieving macromolecular name for PDB ID {PDB_ID} polymer {polymer_entity_id}"
+    )
+    try:
+        my_query = requests.get(
+            f"https://data.rcsb.org/rest/v1/core/polymer_entity/{PDB_ID}/{polymer_entity_id}"
+        )
         my_query.raise_for_status()
-        
+
         results = my_query.json()
-        rcsb_macromolecular_names_combined = results["rcsb_polymer_entity"]["rcsb_macromolecular_names_combined"]
+        rcsb_macromolecular_names_combined = results["rcsb_polymer_entity"][
+            "rcsb_macromolecular_names_combined"
+        ]
         for index in range(len(rcsb_macromolecular_names_combined)):
-            result = results["rcsb_polymer_entity"]["rcsb_macromolecular_names_combined"][index]["name"].upper()
+            result = results["rcsb_polymer_entity"][
+                "rcsb_macromolecular_names_combined"
+            ][index]["name"].upper()
             set_names.add(result)
         return set_names
-    
+
     except requests.exceptions.RequestException as err:
         print(f"Error: {err}")
         return set_names
@@ -129,41 +139,47 @@ def treat_PDB_ID_to_macromolecular_names(PDB_ID_polymer_entity_id: str) -> set[s
             A set containing unique macromolecular names extracted from the specified PDB IDs and polymer entity IDs.
     """
     set_macromolecular_names = set()
-    
+
     for ID_entity in PDB_ID_polymer_entity_id:
         pdb_ID, polymer_entity_id = ID_entity.split("_")
-        get_macromolecular_names(pdb_ID, polymer_entity_id, set_macromolecular_names) 
+        get_macromolecular_names(pdb_ID, polymer_entity_id, set_macromolecular_names)
     return set_macromolecular_names
 
 
 def get_macromolecular_names_bis(my_query_json: dict[str, str]) -> list[str]:
-    """Retrieve all the macromolecular names for this PDB id and this polymer id 
+    """Retrieve all the macromolecular names for this PDB id and this polymer id
 
     Args:
         my_query_json: dict
-            The request from the PDB API 
+            The request from the PDB API
 
     Returns:
         list[str]
-            All the macromolecular names for this PDB id and this polymer id 
+            All the macromolecular names for this PDB id and this polymer id
     """
     list_macromolecular_names = []
-    rcsb_macromolecular_names_combined = my_query_json["rcsb_polymer_entity"]["rcsb_macromolecular_names_combined"]
+    rcsb_macromolecular_names_combined = my_query_json["rcsb_polymer_entity"][
+        "rcsb_macromolecular_names_combined"
+    ]
     for index in range(len(rcsb_macromolecular_names_combined)):
-        list_macromolecular_names.append(my_query_json["rcsb_polymer_entity"]["rcsb_macromolecular_names_combined"][index]["name"].upper())
+        list_macromolecular_names.append(
+            my_query_json["rcsb_polymer_entity"]["rcsb_macromolecular_names_combined"][
+                index
+            ]["name"].upper()
+        )
     return list_macromolecular_names
 
 
 def get_organism_names(my_query_json: dict) -> list:
-    """Retrieve the organism names for this PDB id and this polymer id 
+    """Retrieve the organism names for this PDB id and this polymer id
 
     Args:
         my_query_json: dict
-            The request from the PDB API 
+            The request from the PDB API
 
     Returns:
         list[str]
-            The organism names for this PDB id and this polymer id 
+            The organism names for this PDB id and this polymer id
     """
     return my_query_json["rcsb_entity_source_organism"][0]["ncbi_scientific_name"]
 
@@ -173,7 +189,7 @@ def get_info_one_pdb_id(PDB_ID_polymer_entity_id: str) -> dict[str, list[str]]:
 
     Args:
         PDB_ID_polymer_entity_id: str
-            One PDB id retrieve from the PDB API 
+            One PDB id retrieve from the PDB API
 
     Returns:
         dict[str, list[str]]
@@ -182,24 +198,26 @@ def get_info_one_pdb_id(PDB_ID_polymer_entity_id: str) -> dict[str, list[str]]:
     pdb_ID, polymer_entity_id = PDB_ID_polymer_entity_id.split("_")
     dict_pdb_info = {}
 
-    try : 
-        my_query = requests.get(f"https://data.rcsb.org/rest/v1/core/polymer_entity/{pdb_ID}/{polymer_entity_id}")
+    try:
+        my_query = requests.get(
+            f"https://data.rcsb.org/rest/v1/core/polymer_entity/{pdb_ID}/{polymer_entity_id}"
+        )
         my_query.raise_for_status()
         results = my_query.json()
-        
+
         dict_pdb_info["pdb_ID"] = pdb_ID
         dict_pdb_info["polymer_id"] = polymer_entity_id
         dict_pdb_info["names"] = get_macromolecular_names_bis(results)
         dict_pdb_info["organism"] = get_organism_names(results)
         return dict_pdb_info
-    
+
     except requests.exceptions.RequestException as err:
         print(f"Error: {err}")
         return dict_pdb_info
 
 
 def main(filepath: str):
-    """ Based on sequence from the input FASTA file, search and print the first 10 PDB id (by default) and their macromolecular names.
+    """Based on sequence from the input FASTA file, search and print the first 10 PDB id (by default) and their macromolecular names.
 
     Parameters
     ----------
@@ -213,12 +231,12 @@ def main(filepath: str):
     # dict_IdPDB_seq = {}
     for index, sequence in enumerate(sequences):
         results = API_PDB_search_based_sequence(sequence)
-        for pdb_id in results: 
+        for pdb_id in results:
             list_dict_info_pdb.append(get_info_one_pdb_id(pdb_id))
-    #     set_macromolecular_names = treat_PDB_ID_to_macromolecular_names(results)
-    #     dict_IdPDB_seq[index] = {"PDB_ID": results, 
-    #                             "sequence": sequence, 
-    #                             "macromolecular_names": set_macromolecular_names}
+        #     set_macromolecular_names = treat_PDB_ID_to_macromolecular_names(results)
+        #     dict_IdPDB_seq[index] = {"PDB_ID": results,
+        #                             "sequence": sequence,
+        #                             "macromolecular_names": set_macromolecular_names}
 
         for i in list_dict_info_pdb:
             print(i)
@@ -290,6 +308,4 @@ def parse_arg():
 
 if __name__ == "__main__":
     args = parse_arg()
-    main(
-        args.fasta
-    )
+    main(args.fasta)

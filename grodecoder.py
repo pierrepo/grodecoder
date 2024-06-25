@@ -33,9 +33,7 @@ from scipy.spatial.distance import cdist
 import mol_def
 import search_into_PDB
 
-CSML_CHARMM_GUI = pd.read_csv(
-    "./data/databases/lipid_CHARMM_GUI_CSML.csv", sep=";"
-)
+CSML_CHARMM_GUI = pd.read_csv("./data/databases/lipid_CHARMM_GUI_CSML.csv", sep=";")
 MAD_DB = pd.read_csv("./data/databases//lipid_MAD.csv", sep=";")
 
 
@@ -528,7 +526,6 @@ def get_formula_based_atom_name(atom_name_dict: dict[str, int]) -> str:
     """
     atom_names = []
     for atom_name in atom_name_dict.keys():
-
         # Example:
         # mda.topology.guessers.guess_atom_type("CA") = 'C
         # mda.topology.guessers.guess_atom_type("HB1") = 'H
@@ -953,7 +950,9 @@ def count_remove_ion_solvant(
     # Write the new universe without ions and solvant into a new file
     output_file = f"{Path(input_filepath).stem}_without_H_ions_solvant{Path(input_filepath).suffix}"
     universe.atoms.write(output_file, reindex=False)
-    logger.debug(f" New structure file without hydrogens, ions and solvants : {output_file}")
+    logger.debug(
+        f" New structure file without hydrogens, ions and solvants : {output_file}"
+    )
 
     universe_clean = mda.Universe(output_file)
 
@@ -1030,7 +1029,7 @@ def is_protein(graph: nx.classes.graph.Graph) -> bool:
     -------
         bool
             True if the molecule is a protein, False otherwise.
-    """    
+    """
     set_key_amino_acid_mda = set(mol_def.AMINO_ACID_DICT.keys())
     set_res_name_graph = set(nx.get_node_attributes(graph, "residue_name").values())
     return len(set_key_amino_acid_mda.intersection(set_res_name_graph)) > 3
@@ -1186,7 +1185,7 @@ def guess_resolution(
         for residue in molecular_system.atoms.residues
         if len(residue.atoms) >= 2
     ]
-    # System is all-atom ("AA") is at least one residue 
+    # System is all-atom ("AA") is at least one residue
     # has inter-atomic distance below threshold.
     for residue in residues_to_analyze[:number_of_res]:
         distances = self_distance_array(residue.atoms.positions)
@@ -1200,7 +1199,7 @@ def export_inventory(
     resolution: str,
     filename: str,
     execution_time: float,
-    overlap_residue : None | set[int]
+    overlap_residue: None | set[int],
 ):
     """Exports inventory data from a dictionary of graph objects and their associated information about molecule into JSON file.
 
@@ -1283,7 +1282,10 @@ def export_inventory(
         relative_path = filename
 
         if overlap_residue:
-            remark_message = [f"Residue {x} has been splitted into multiple molecules. This should be wrong." for x in overlap_residue]
+            remark_message = [
+                f"Residue {x} has been splitted into multiple molecules. This should be wrong."
+                for x in overlap_residue
+            ]
 
         final_dict = {
             "inventory": sorted(
@@ -1292,7 +1294,7 @@ def export_inventory(
             "resolution": resolution,
             "date": date_time,
             "execution_time_in_sec": f"{execution_time:.2f}",
-            "remark" : remark_message,
+            "remark": remark_message,
             "file_path": str(relative_path),
             "file_md5sum": hashlib.md5(open(filename, "rb").read()).hexdigest(),
         }
@@ -1405,9 +1407,13 @@ def main(
             if query_pdb:
                 results = search_into_PDB.API_PDB_search_based_sequence(sequence)
                 if not results:
-                    graph_count_dict[graph]["comment"] = "No corresponding structure found in the PDB"
+                    graph_count_dict[graph][
+                        "comment"
+                    ] = "No corresponding structure found in the PDB"
                 for pdb_id in results:
-                    list_dict_info_pdb.append(search_into_PDB.get_info_one_pdb_id(pdb_id))
+                    list_dict_info_pdb.append(
+                        search_into_PDB.get_info_one_pdb_id(pdb_id)
+                    )
                 graph_count_dict[graph]["putative_pdb_structure"] = list_dict_info_pdb
         elif is_lipid(resolution, graph, key):
             graph_count_dict[graph]["is_lipid"] = True
@@ -1415,7 +1421,10 @@ def main(
 
     # execution_time in seconds
     execution_time = time.perf_counter() - start_time
-    export_inventory(graph_count_dict, resolution, input_file_path, execution_time, overlap_residue)
+    logger.info(f"execution_time: {execution_time}")
+    export_inventory(
+        graph_count_dict, resolution, input_file_path, execution_time, overlap_residue
+    )
 
 
 def is_a_structure_file(filepath: str) -> str:
