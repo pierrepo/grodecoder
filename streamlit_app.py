@@ -82,7 +82,6 @@ if __name__ == "__main__":
         with st.spinner("Running analysis..."):
             gd.main(
                 path,
-                draw_graph_option=False,
                 check_overlapping_residue=check_overlapping_residue_value,
                 check_connectivity=check_connectivity_value,
                 bond_threshold=bond_threshold_value,

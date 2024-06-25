@@ -62,8 +62,8 @@ def get_distance_matrix_between_atom(
             matrix of interatomic distances between all atoms
     """
     position = file_gro.atoms.positions
-    taille = len(file_gro.atoms)
-    tmp = np.full((taille, taille), 100.0)
+    size = len(file_gro.atoms)
+    tmp = np.full((size, size), 100.0)
     for index_i, pos_i in enumerate(position):
         for index_j, pos_j in enumerate(position[index_i + 1 :], start=index_i + 1):
             tmp[index_i][index_j] = cdist([pos_i], [pos_j])
@@ -197,6 +197,7 @@ def get_atom_pairs_from_guess_bonds(
     molecular_system: mda.core.universe.Universe,
 ) -> np.ndarray:
     """This function retrieves atom pairs within a specified distance threshold from the given molecular system.
+    This specified distance based on the distance between two selected atoms and their Van der Waals radius.
 
     References
     ----------
@@ -670,60 +671,6 @@ def print_graph_inventory(graph_dict: dict):
     logger.success(f"{total_molecules_count:,} molecules in total")
 
 
-def print_graph(
-    graph: nx.classes.graph.Graph, filepath_name: str, option_color: bool = False
-):
-    """Print and save a graph as PNG
-
-    Ressources
-    ----------
-    - Ressources to explore to increase node spacing with networkx-spring-layout
-    https://stackoverflow.com/questions/14283341/how-to-increase-node-spacing-for-networkx-spring-layout
-
-    Parameters
-    ----------
-        graph : networkx.classes.graph.Graph
-            A NetworkX graph object.
-        filepath_name : str
-            Filepath to where I want to save the output graph
-        option_color: str
-            Either we want to display the nodes of the graph colored. By default, it's False.
-
-    """
-    plt.figure()
-    if option_color:
-        node_colors = []
-        for node in graph.nodes:
-            # To replace number by empty space, for only keep atom name
-            atom_name = re.sub(r"\d", "", graph.nodes[node]["atom_name"])
-            if atom_name in ("C", "CA", "CB", "CD", "CE", "CG", "CH", "CZ"):
-                node_colors.append("black")
-            elif atom_name in ("O", "OD", "OE", "OG", "OH", "OT", "OW"):
-                node_colors.append("red")
-            elif atom_name in ("N", "ND", "NE", "NH", "NZ"):
-                node_colors.append("blue")
-            else:
-                node_colors.append("green")  # Default color for other labels
-        nx.draw(
-            graph,
-            node_color=node_colors,
-            node_size=75,
-            with_labels=True,
-            labels=nx.get_node_attributes(graph, "atom_name"),
-            edge_color="grey",
-        )
-    else:
-        nx.draw(
-            graph,
-            node_color="green",
-            node_size=75,
-            with_labels=True,
-            labels=nx.get_node_attributes(graph, "atom_name"),
-            edge_color="grey",
-        )
-    plt.savefig(filepath_name)
-
-
 def print_first_atoms(
     mda_universe: mda.core.universe.Universe, number_of_atoms: int = 10
 ):
@@ -900,13 +847,6 @@ def find_ion_solvant(
                 selection = f"not (resname {res_name} and (name {' or name '.join(atom_names)}) and resid {start_end[0]}:{start_end[1]})"
 
             universe = universe.select_atoms(f"{selection}")
-
-        # for resID in selected_res_ids:
-        #     # if resID in dict_res_atom_id_methionine:
-        #     #     selection = f"not (resname {res_name} and resid {resID}) and not (id {dict_res_atom_id_methionine[resID][0]}:{dict_res_atom_id_methionine[resID][-1]})"
-        #     # else:
-        #     selection = f"not (resname {res_name} and resid {resID})"
-        #     universe = universe.select_atoms(f"{selection}")
     return (universe, counts)
 
 
@@ -1018,7 +958,7 @@ def is_protein(graph: nx.classes.graph.Graph) -> bool:
     """Check if the molecule represented by the graph is a protein.
 
     This function checks whether the graph represents a protein molecule by
-    verifying the presence of C-alpha (CA) atoms and their corresponding amino acids.
+    verifying if at least 3 residues names are in the the list of residues names given by MDAnalysis.
 
     Parameters
     ----------
@@ -1034,16 +974,12 @@ def is_protein(graph: nx.classes.graph.Graph) -> bool:
     set_res_name_graph = set(nx.get_node_attributes(graph, "residue_name").values())
     return len(set_key_amino_acid_mda.intersection(set_res_name_graph)) > 3
 
-    # nodes, _, atom_names_dict, _, _ = get_graph_fingerprint(graph)
-    # return (nodes > 3) and ("CA" in atom_names_dict)
-
 
 def extract_protein_sequence(graph: nx.classes.graph.Graph) -> dict[str, int]:
     """Extract the protein sequence from a graph.
 
     This function extracts the protein sequence from the molecule represented
-    by the input graph. It looks for the residue names corresponding to the C-alpha
-    (CA) atoms in each node and converts them to single-letter amino acid codes.
+    by the input graph. By getting all the residue name sorted by their residue ids (to be sure it's in the right order). 
 
     Parameters
     ----------
@@ -1140,7 +1076,7 @@ def is_lipid(
 
             # Check if the selection match a row with this condition
             if not selected_row.empty:
-                # dict_count["name"] = str(selected_row["Name"])
+                dict_count["name"] = selected_row["Name"].values
                 return True
     else:
         lipid_MAD = MAD_DB[
@@ -1148,7 +1084,7 @@ def is_lipid(
         ]
         selected_row = lipid_MAD.loc[(lipid_MAD["Alias"] == res_name_graph)]
         if not selected_row.empty:
-            # dict_count["name"] = str(selected_row["Name"])
+            dict_count["name"] = selected_row["Name"].values
             return True
     return False
 
@@ -1219,14 +1155,13 @@ def export_inventory(
         graph_count_dict.items(), start=1
     ):
         is_protein, is_lipid, is_ion, is_solvant = False, False, False, False
-        formula, protein_sequence, putative_name, remark_message, comment = (
-            "",
+        formula, protein_sequence, remark_message, comment = (
             "",
             "",
             "",
             "",
         )
-        putative_pdb_structure = []
+        putative_pdb_structure, putative_name = [], []
 
         residue_pairs = zip(
             nx.get_node_attributes(graph, "residue_id").values(),
@@ -1248,7 +1183,7 @@ def export_inventory(
                 putative_pdb_structure = information["putative_pdb_structure"]
         if "is_lipid" in information.keys():
             is_lipid = information["is_lipid"]
-            # putative_name = information["name"]
+            putative_name = information["name"]
         if "ion" in information.keys():
             is_ion = information["ion"]
             is_solvant = information["solvant"]
@@ -1330,7 +1265,6 @@ def is_met(graph: nx.classes.graph.Graph) -> bool:
 
 def main(
     input_file_path: str,
-    draw_graph_option: bool = False,
     check_overlapping_residue: bool = False,
     check_connectivity: bool = False,
     bond_threshold: str | float = "auto",
@@ -1382,11 +1316,6 @@ def main(
     print_graph_inventory(graph_count_dict)
 
     filename = Path(input_file_path).stem
-    if draw_graph_option:
-        logger.info("Drawing graphs...")
-        filename = Path(input_file_path).stem
-        for index_graph, graph_count in enumerate(graph_count_dict.keys()):
-            print_graph(graph_count, f"{filename}_{index_graph}.png")
 
     protein_sequence_dict = {}
     for index_graph, (graph, key) in enumerate(graph_count_dict.items(), start=1):
@@ -1514,12 +1443,6 @@ def parse_arg() -> argparse.Namespace:
         required=True,
     )
     parser.add_argument(
-        "--drawgraph",
-        help="Draw graph of each molecule. Default: False.",
-        default=False,
-        action="store_true",
-    )
-    parser.add_argument(
         "--checkoverlapping",
         help="Check if some residues are overlapping between residues. Default: False.",
         default=False,
@@ -1550,7 +1473,6 @@ if __name__ == "__main__":
     args = parse_arg()
     main(
         args.input,
-        draw_graph_option=args.drawgraph,
         check_overlapping_residue=args.checkoverlapping,
         check_connectivity=args.checkconnectivity,
         bond_threshold=args.bondthreshold,
