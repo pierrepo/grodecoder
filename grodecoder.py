@@ -1076,7 +1076,7 @@ def is_lipid(
 
             # Check if the selection match a row with this condition
             if not selected_row.empty:
-                dict_count["name"] = selected_row["Name"].values
+                dict_count["name"] = list(selected_row["Name"].values)
                 return True
     else:
         lipid_MAD = MAD_DB[
@@ -1084,7 +1084,7 @@ def is_lipid(
         ]
         selected_row = lipid_MAD.loc[(lipid_MAD["Alias"] == res_name_graph)]
         if not selected_row.empty:
-            dict_count["name"] = selected_row["Name"].values
+            dict_count["name"] = list(selected_row["Name"].values)
             return True
     return False
 
