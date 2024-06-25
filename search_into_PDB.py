@@ -1,3 +1,13 @@
+"""Retrieves information about a specific protein sequence (given by a fasta file) from the RCSB PDB API.
+
+Usage:
+    python search_into_PDB.py --fasta [fasta input file]
+"""
+
+__authors__ = ("Karine DUONG", "Pierre POULAIN")
+__contact__ = "pierre.poulain@u-paris.fr"
+
+
 import argparse
 from Bio import SeqIO
 import json
@@ -185,7 +195,7 @@ def get_organism_names(my_query_json: dict) -> list:
 
 
 def get_info_one_pdb_id(PDB_ID_polymer_entity_id: str) -> dict[str, list[str]]:
-    """_summary_
+    """Retrieves information about a specific PDB ID and its associated polymer entity from the PDB API.
 
     Args:
         PDB_ID_polymer_entity_id: str
