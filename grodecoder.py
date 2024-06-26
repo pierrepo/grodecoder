@@ -1,13 +1,12 @@
 """Extract each molecule of a GRO file and print their occurence.
 
 Usage:
-    import grodecoder as gd
+    python grodecoder.py --input [input file] [other option]
 """
 
 __authors__ = ("Karine DUONG", "Pierre POULAIN")
 __contact__ = "pierre.poulain@u-paris.fr"
 
-from Bio import SeqIO
 from collections import Counter
 import datetime
 import hashlib
@@ -16,14 +15,12 @@ from itertools import groupby
 import json
 import pandas as pd
 from pathlib import Path
-import re
 import time
 
 import argparse
 from loguru import logger
 import MDAnalysis as mda
 from MDAnalysis.analysis.distances import contact_matrix, self_distance_array
-import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
 from networkx.algorithms.components.connected import connected_components
@@ -660,7 +657,7 @@ def print_graph_inventory(graph_dict: dict):
         logger.info(f"- number of atoms: {graph.number_of_nodes():,}")
         logger.info(f"- number of molecules: {count:,}")
 
-        logger.debug(f"- residue ids:")
+        logger.debug("- residue ids:")
         for i in range(min(10, len(res_id_interval))):
             logger.debug(f"\t({res_id_interval[i][:20]})")
 
@@ -1265,7 +1262,6 @@ def is_met(graph: nx.classes.graph.Graph) -> bool:
 
 def main(
     input_file_path: str,
-    check_overlapping_residue: bool = False,
     check_connectivity: bool = False,
     bond_threshold: str | float = "auto",
     query_pdb=False,
@@ -1278,8 +1274,6 @@ def main(
             Filepath of the .gro file we want to analyzed
         draw_graph_option: boolean
             Draw the graph of each molecule and save it as a PNG file. Default: False.
-        check_overlapping_residue: boolean
-            Check of some residues are overlapping between graphs / molecules. Default: False.
     """
     start_time = time.perf_counter()
 
@@ -1303,9 +1297,7 @@ def main(
     graph_with_node_attributes = add_attributes_to_nodes(graph_return, molecular_system)
     graph_list = get_graph_components(graph_with_node_attributes)
 
-    overlap_residue = None
-    if check_overlapping_residue:
-        overlap_residue = check_overlapping_residue_between_graphs(graph_list)
+    overlap_residue = check_overlapping_residue_between_graphs(graph_list)
 
     graph_count_dict = count_molecule(graph_list, check_connectivity)
 
@@ -1407,10 +1399,10 @@ def is_a_valid_threshold(threshold: str) -> str | float:
         return threshold
     try:
         threshold_as_float = float(threshold)
-    except:
-        raise argparse.ArgumentTypeError(f"Argument should 'auto' or a number")
+    except argparse.ArgumentTypeError:
+        raise argparse.ArgumentTypeError("Argument should 'auto' or a number")
     if not threshold_as_float > 0.0:
-        raise argparse.ArgumentTypeError(f"Argument should be > 0")
+        raise argparse.ArgumentTypeError("Argument should be > 0")
     return threshold_as_float
 
 
@@ -1443,12 +1435,6 @@ def parse_arg() -> argparse.Namespace:
         required=True,
     )
     parser.add_argument(
-        "--checkoverlapping",
-        help="Check if some residues are overlapping between residues. Default: False.",
-        default=False,
-        action="store_true",
-    )
-    parser.add_argument(
         "--checkconnectivity",
         help="Add edges and degre in the fingerprint. Default: False.",
         default=False,
@@ -1473,7 +1459,6 @@ if __name__ == "__main__":
     args = parse_arg()
     main(
         args.input,
-        check_overlapping_residue=args.checkoverlapping,
         check_connectivity=args.checkconnectivity,
         bond_threshold=args.bondthreshold,
         query_pdb=args.querypdb,
