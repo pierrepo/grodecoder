@@ -13,6 +13,7 @@ import hashlib
 import itertools
 from itertools import groupby
 import json
+import os
 import pandas as pd
 from pathlib import Path
 import time
@@ -30,8 +31,14 @@ from scipy.spatial.distance import cdist
 import mol_def
 import search_into_PDB
 
-CSML_CHARMM_GUI = pd.read_csv("./data/databases/lipid_CHARMM_GUI_CSML.csv", sep=";")
-MAD_DB = pd.read_csv("./data/databases//lipid_MAD.csv", sep=";")
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+filepath_CSML = os.path.join(current_dir, "data/databases/lipid_CHARMM_GUI_CSML.csv")
+CSML_CHARMM_GUI = pd.read_csv(filepath_CSML, sep=';')
+
+filepath_MAD = os.path.join(current_dir, "data/databases/lipid_MAD.csv")
+MAD_DB = pd.read_csv(filepath_MAD, sep=";")
 
 
 def get_distance_matrix_between_atom(
