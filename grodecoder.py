@@ -1140,7 +1140,7 @@ def export_inventory(
     filename: str,
     execution_time: float,
     overlap_residue: None | set[int],
-):
+) -> str:
     """Exports inventory data from a dictionary of graph objects and their associated information about molecule into JSON file.
 
     Parameters:
@@ -1244,6 +1244,7 @@ def export_inventory(
     json.dump(final_dict, out_file, indent=4)
     out_file.close()
     logger.info(f"JSON filename : {filename_JSON}")
+    return filename_JSON
 
 
 def is_met(graph: nx.classes.graph.Graph) -> bool:
@@ -1350,9 +1351,10 @@ def main(
     # execution_time in seconds
     execution_time = time.perf_counter() - start_time
     logger.info(f"execution_time: {execution_time}")
-    export_inventory(
+    JSON_filepath = export_inventory(
         graph_count_dict, resolution, input_file_path, execution_time, overlap_residue
     )
+    return JSON_filepath
 
 
 def is_a_structure_file(filepath: str) -> str:
