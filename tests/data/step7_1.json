@@ -1,0 +1,171 @@
+{
+    "inventory": [
+        {
+            "id": 6,
+            "number_of_atoms": 105,
+            "number_of_molecules": 16,
+            "residue_names": "CER16 BGLC BGAL BGALN BGAL ANE5A",
+            "residue_ids": "1-6 1-6 1-6 1-6 1-6 1-6 1-6 1-6 1-6 1-6 1-6 1-6 1-6 1-6 1-6 1-6",
+            "formula_without_h": "C45N2O13",
+            "is_solvant": false,
+            "is_ion": false,
+            "is_lipid": false,
+            "is_protein": false,
+            "protein_sequence": "",
+            "putative_pdb_structure": [],
+            "putative_name": [],
+            "comment": ""
+        },
+        {
+            "id": 5,
+            "number_of_atoms": 52,
+            "number_of_molecules": 20,
+            "residue_names": "POPS",
+            "residue_ids": "371-390",
+            "formula_without_h": "C40NO10P",
+            "is_solvant": false,
+            "is_ion": false,
+            "is_lipid": true,
+            "is_protein": false,
+            "protein_sequence": "",
+            "putative_pdb_structure": [],
+            "putative_name": [
+                "3-PALMITOYL-2-OLEOYL-D-GLYCERO-1-PHOSPHATIDYLSERINE"
+            ],
+            "comment": ""
+        },
+        {
+            "id": 2,
+            "number_of_atoms": 48,
+            "number_of_molecules": 36,
+            "residue_names": "PSM",
+            "residue_ids": "335-370",
+            "formula_without_h": "C39N2O6P",
+            "is_solvant": false,
+            "is_ion": false,
+            "is_lipid": true,
+            "is_protein": false,
+            "protein_sequence": "",
+            "putative_pdb_structure": [],
+            "putative_name": [
+                "SPHINGOMYELIN D181/160"
+            ],
+            "comment": ""
+        },
+        {
+            "id": 7,
+            "number_of_atoms": 1,
+            "number_of_molecules": 56,
+            "residue_names": "CLA",
+            "residue_ids": "483-538",
+            "formula_without_h": "",
+            "is_solvant": false,
+            "is_ion": true,
+            "is_lipid": false,
+            "is_protein": false,
+            "protein_sequence": "",
+            "putative_pdb_structure": [],
+            "putative_name": "chloride ion",
+            "comment": ""
+        },
+        {
+            "id": 1,
+            "number_of_atoms": 28,
+            "number_of_molecules": 80,
+            "residue_names": "CHL1",
+            "residue_ids": "159-238",
+            "formula_without_h": "C27O",
+            "is_solvant": false,
+            "is_ion": false,
+            "is_lipid": true,
+            "is_protein": false,
+            "protein_sequence": "",
+            "putative_pdb_structure": [],
+            "putative_name": [
+                "CHOLESTEROL NAME TO AVOID CONFLICT WITH CHOLINE"
+            ],
+            "comment": ""
+        },
+        {
+            "id": 8,
+            "number_of_atoms": 1,
+            "number_of_molecules": 92,
+            "residue_names": "SOD",
+            "residue_ids": "391-482",
+            "formula_without_h": "",
+            "is_solvant": false,
+            "is_ion": true,
+            "is_lipid": false,
+            "is_protein": false,
+            "protein_sequence": "",
+            "putative_pdb_structure": [],
+            "putative_name": "Sodium ion",
+            "comment": ""
+        },
+        {
+            "id": 3,
+            "number_of_atoms": 49,
+            "number_of_molecules": 96,
+            "residue_names": "POPE",
+            "residue_ids": "239-334",
+            "formula_without_h": "C39NO8P",
+            "is_solvant": false,
+            "is_ion": false,
+            "is_lipid": true,
+            "is_protein": false,
+            "protein_sequence": "",
+            "putative_pdb_structure": [],
+            "putative_name": [
+                "3-PALMITOYL-2-OLEOYL-D-GLYCERO-1-PHOSPHATIDYLETHANOLAMINE"
+            ],
+            "comment": ""
+        },
+        {
+            "id": 4,
+            "number_of_atoms": 52,
+            "number_of_molecules": 152,
+            "residue_names": "POPC",
+            "residue_ids": "7-158",
+            "formula_without_h": "C42NO8P",
+            "is_solvant": false,
+            "is_ion": false,
+            "is_lipid": true,
+            "is_protein": false,
+            "protein_sequence": "",
+            "putative_pdb_structure": [],
+            "putative_name": [
+                "3-PALMITOYL-2-OLEOYL-D-GLYCERO-1-PHOSPHATIDYLCHOLINE"
+            ],
+            "comment": ""
+        },
+        {
+            "id": 9,
+            "number_of_atoms": 1,
+            "number_of_molecules": 19348,
+            "residue_names": "TIP3",
+            "residue_ids": "539-19886",
+            "formula_without_h": "",
+            "is_solvant": true,
+            "is_ion": false,
+            "is_lipid": false,
+            "is_protein": false,
+            "protein_sequence": "",
+            "putative_pdb_structure": [],
+            "putative_name": "water TIP3P solvant",
+            "comment": ""
+        }
+    ],
+    "resolution": "AA",
+    "date": "2024-06-26_19-47-07",
+    "execution_time_in_sec": "35.07",
+    "remark": [
+        "Residue 1 has been splitted into multiple molecules. This should be wrong.",
+        "Residue 2 has been splitted into multiple molecules. This should be wrong.",
+        "Residue 3 has been splitted into multiple molecules. This should be wrong.",
+        "Residue 4 has been splitted into multiple molecules. This should be wrong.",
+        "Residue 5 has been splitted into multiple molecules. This should be wrong.",
+        "Residue 6 has been splitted into multiple molecules. This should be wrong."
+    ],
+    "file_path": "/home/karine/Documents/grodecoder/data/examples/step7_1.gro",
+    "file_md5sum": "8b81bef5066a968719fcfaac14a669ba"
+}
