@@ -103,7 +103,9 @@ IONS_LIST = [
 
     {"name": "Calcium ion - CG model with MARTINI", "res_name": "ION", "atom_names": ["CA"]},
     {"name": "chloride ion - CG model with MARTINI", "res_name": "ION", "atom_names": ["CL-"]},
-    {"name": "Sodium ion - CG model with MARTINI", "res_name": "ION", "atom_names": ["NA+"]}, 
+    {"name": "chloride ion - CG model with MARTINI", "res_name": "ION", "atom_names": ["CL"]},
+    {"name": "Sodium ion - CG model with MARTINI", "res_name": "ION", "atom_names": ["NA+"]},
+    {"name": "Sodium ion - CG model with MARTINI", "res_name": "ION", "atom_names": ["NA"]},
     {"name": "Choloneion ion - CG model with MARTINI", "res_name": "ION", "atom_names": ["NC3"]}
 ]
 
