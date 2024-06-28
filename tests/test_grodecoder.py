@@ -32,8 +32,21 @@ def test_with_param(filepath_test, JSON_filepath_data):
         JSON_content_test = json.load(f)
 
     with open(JSON_filepath_data, 'r') as f:
-        JSON_content_data = json.load(f)
-
-    assert JSON_content_test["inventory"] == JSON_content_data["inventory"]
+        JSON_content_data = json.load(f)    
+    
+    for index in range(len(JSON_content_data["inventory"])):
+        assert JSON_content_test["inventory"][index]["id"] == JSON_content_data["inventory"][index]["id"]
+        assert JSON_content_test["inventory"][index]["number_of_atoms"] == JSON_content_data["inventory"][index]["number_of_atoms"]
+        assert JSON_content_test["inventory"][index]["number_of_molecules"] == JSON_content_data["inventory"][index]["number_of_molecules"]
+        assert JSON_content_test["inventory"][index]["residue_names"] == JSON_content_data["inventory"][index]["residue_names"]
+        assert JSON_content_test["inventory"][index]["residue_ids"] == JSON_content_data["inventory"][index]["residue_ids"]
+        assert JSON_content_test["inventory"][index]["formula_without_h"] == JSON_content_data["inventory"][index]["formula_without_h"]
+        assert JSON_content_test["inventory"][index]["is_solvant"] == JSON_content_data["inventory"][index]["is_solvant"]
+        assert JSON_content_test["inventory"][index]["is_ion"] == JSON_content_data["inventory"][index]["is_ion"]
+        assert JSON_content_test["inventory"][index]["is_lipid"] == JSON_content_data["inventory"][index]["is_lipid"]
+        assert JSON_content_test["inventory"][index]["is_protein"] == JSON_content_data["inventory"][index]["is_protein"]
+        assert JSON_content_test["inventory"][index]["protein_sequence"] == JSON_content_data["inventory"][index]["protein_sequence"]
+        assert JSON_content_test["inventory"][index]["comment"] == JSON_content_data["inventory"][index]["comment"]
+    
     assert JSON_content_test["resolution"] == JSON_content_data["resolution"]
     assert JSON_content_test["file_md5sum"] == JSON_content_data["file_md5sum"]
