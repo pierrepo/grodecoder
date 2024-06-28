@@ -658,7 +658,7 @@ def print_graph_inventory(graph_dict: dict):
         if len(key) == 6:
             (_, res_id_interval, _, _, _, count) = key.values()
         else:
-            (_, res_id_interval, _, _, name, count, _, _) = key.values()
+            (_, res_id_interval, _, _, name, count, _, _, _) = key.values()
             logger.info(f"- name: {name}")
 
         logger.info(f"- number of atoms: {graph.number_of_nodes():,}")
@@ -789,6 +789,7 @@ def find_ion_solvant(
                 - the atom_id of the last atom (for each molecule)
                 - the name of this molecule (collected from the dictionary in mol_def.py)
                 - the occurence if this molecule in this system
+                - boolean key for ion, solvant and lipid
     """
     (name, res_name, atom_names) = molecule.values()
 
@@ -811,6 +812,114 @@ def find_ion_solvant(
             graph.add_nodes_from(index_resID.atoms.ids)
             graph = add_attributes_to_nodes(graph, index_resID)
             list_graph.append(graph)
+        
+        # index_resID = selected_atoms.residues[0]
+        # graph = nx.Graph()
+        # graph.add_nodes_from(index_resID.atoms.ids)
+        # graph = add_attributes_to_nodes(graph, index_resID)
+        # list_graph.append(graph)
+        
+        atom_id, res_id = [], []
+        for subgraph in list_graph:
+            residue_pairs = zip(
+                nx.get_node_attributes(subgraph, "residue_id").values(),
+                nx.get_node_attributes(subgraph, "residue_name").values(),
+            )
+            residue_pairs_dict = dict(residue_pairs)
+
+            res_id.extend([key for key in sorted(residue_pairs_dict)])
+            atom_id.extend(nx.get_node_attributes(subgraph, "atom_id").values())
+
+        res_id_interval = get_intervals(res_id)
+        atom_id_interval = get_intervals(atom_id)
+                
+        if solvant_or_ion == "ion":
+            solvant, ion = False, True
+        else:
+            solvant, ion = True, False
+
+        counts[list_graph[0]] = {
+            "res_id": res_id,
+            "res_id_interval": res_id_interval,
+            "atom_id": atom_id,
+            "atom_id_interval": atom_id_interval,
+            "name": name,
+            "graph": res_count,
+            "solvant": solvant,
+            "ion": ion,
+            "lipid": False,
+        }
+
+        # Here we remove all the resIDS (from selected_res_ids) from this universe
+        for interval in res_id_interval:
+            start_end = interval.split("-")
+            if len(start_end) == 1:
+                selection = f"not (resname {res_name} and (name {' or name '.join(atom_names)}) and resid {start_end[0]})"
+            else:
+                selection = f"not (resname {res_name} and (name {' or name '.join(atom_names)}) and resid {start_end[0]}:{start_end[1]})"
+
+            universe = universe.select_atoms(f"{selection}")
+    return (universe, counts)
+
+
+def find_lipids(lipid: list, universe: mda.core.universe.Universe, counts: dict):  
+    """Counts and removes lipid from the MDAnalysis Universe.
+    
+    Parameters
+    ----------
+        lipid: list
+            List that contains information about a lipid (one line from the CSV based on the resolution of the system) to be remove 
+        universe : MDAnalysis.core.universe.Universe
+            MDAnalysis Universe object representing the system.
+        counts : dict
+            Dictionary to store the counts of lipids.
+    
+    Return
+    ------
+        MDAnalysis.core.universe.Universe
+            MDAnalysis Universe object containing only non-lipid.
+        dict
+            Dictionary containing the counts of removed atoms.
+            With the graph (representing this molecule) as key,
+            and in the value :
+                - the atom_id of the first atom (for each molecule)
+                - the atom_id of the last atom (for each molecule)
+                - the name of this molecule (collected from the dictionary in the corresponding CSV based on the system's resolution )
+                - the occurence if this molecule in this system
+                - boolean key for ion, solvant and lipid
+    """  
+    if len(lipid) == 4:
+        (name, alias, category, _) = lipid
+        selection = f"resname {alias}"
+        selected_atoms = universe.select_atoms(selection)
+    else :
+        (category, alias, name, _, _, Formula, resname_PDB) = lipid
+        selection = f"resname {alias} or resname {resname_PDB}"
+        selected_atoms = universe.select_atoms(selection)
+    
+    #select the lipid who have the same resname
+    selection = f"resname {alias}"
+    selected_atoms = universe.select_atoms(selection)
+    
+    #collect all resids from each res selected, to remove it from the universe
+    selected_res_ids = [str(residue.resid) for residue in selected_atoms.residues]
+    res_count = len(selected_res_ids)
+    
+    if res_count > 0: 
+        list_graph = []
+        # For each residues in the selection, create a graph in the same format as a molecule (but added to that a key 'name')
+        # which give us direct acces of their composition
+        for index_resID in selected_atoms.residues:
+            graph = nx.Graph()
+            graph.add_nodes_from(index_resID.atoms.ids)
+            graph = add_attributes_to_nodes(graph, index_resID)
+            list_graph.append(graph)
+        
+        # index_resID = selected_atoms.residues[0]
+        # graph = nx.Graph()
+        # graph.add_nodes_from(index_resID.atoms.ids)
+        # graph = add_attributes_to_nodes(graph, index_resID)
+        # list_graph.append(graph)
 
         atom_id, res_id = [], []
         for subgraph in list_graph:
@@ -826,11 +935,6 @@ def find_ion_solvant(
         res_id_interval = get_intervals(res_id)
         atom_id_interval = get_intervals(atom_id)
 
-        if solvant_or_ion == "ion":
-            solvant, ion = False, True
-        else:
-            solvant, ion = True, False
-
         counts[list_graph[0]] = {
             "res_id": res_id,
             "res_id_interval": res_id_interval,
@@ -838,26 +942,26 @@ def find_ion_solvant(
             "atom_id_interval": atom_id_interval,
             "name": name,
             "graph": res_count,
-            "solvant": solvant,
-            "ion": ion,
+            "ion": False,
+            "solvant": False,
+            "lipid": True,
         }
-
         # Here we remove all the resIDS (from selected_res_ids) from this universe
         for interval in res_id_interval:
             start_end = interval.split("-")
             if len(start_end) == 1:
-                selection = f"not (resname {res_name} and (name {' or name '.join(atom_names)}) and resid {start_end[0]})"
+                selection = f"not (resname {alias} and resid {start_end[0]})"
             else:
-                selection = f"not (resname {res_name} and (name {' or name '.join(atom_names)}) and resid {start_end[0]}:{start_end[1]})"
+                selection = f"not (resname {alias} and resid {start_end[0]}:{start_end[1]})"
 
             universe = universe.select_atoms(f"{selection}")
     return (universe, counts)
 
 
-def count_remove_ion_solvant(
-    universe: mda.core.universe.Universe, input_filepath: str
+def count_remove_ion_solvant_lipid(
+    universe: mda.core.universe.Universe, input_filepath: str, resolution: str, 
 ) -> tuple[mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int]]]:
-    """Count and remove ions and solvents from the MDAnalysis Universe return by
+    """Count and remove ions, solvents, lipid from the MDAnalysis Universe return by
     the function find_ion_solvant().
 
     Parameters
@@ -866,6 +970,8 @@ def count_remove_ion_solvant(
             MDAnalysis Universe object representing the system.
         input_filepath : str
             Path to the input file.
+        resolution: str
+            Resolution of the system, all atom (AA) or coarse grain (CG)
 
     Returns
     -------
@@ -890,6 +996,22 @@ def count_remove_ion_solvant(
         if solvant["res_name"] == "MET":
             continue
         universe, counts = find_ion_solvant(solvant, universe, counts, "solvant")
+
+    if resolution == "CG":
+        logger.info("Searching lipid...")
+        lipid_MAD = MAD_DB[MAD_DB["Category"].str.contains("Lipids", case=False, na=False)]
+        
+        for lipid in lipid_MAD.values:
+            universe, counts = find_lipids(lipid.tolist(), universe, counts)
+    
+    elif resolution == "AA":
+        lipid_csml_charmm_gui = CSML_CHARMM_GUI[
+            CSML_CHARMM_GUI["Category"].str.contains("lipid", case=False, na=False)
+        ]
+        
+        for lipid in lipid_csml_charmm_gui.values:
+            universe, counts = find_lipids(lipid.tolist(), universe, counts)
+
 
     # Write the new universe without ions and solvant into a new file
     output_file = f"{Path(input_filepath).stem}_without_H_ions_solvant{Path(input_filepath).suffix}"
@@ -1185,8 +1307,8 @@ def export_inventory(
             protein_sequence = information["protein_sequence"]
             if "putative_pdb_structure" in information.keys():
                 putative_pdb_structure = information["putative_pdb_structure"]
-        if "is_lipid" in information.keys():
-            is_lipid = information["is_lipid"]
+        if "lipid" in information.keys():
+            is_lipid = information["lipid"]
             putative_name = information["name"]
         if "ion" in information.keys():
             is_ion = information["ion"]
@@ -1288,14 +1410,18 @@ def main(
             If we want to have informations (PDB ID, name, organism) about the protein identified in the PDB API. By default at False.
     """
     start_time = time.perf_counter()
-
+    
     molecular_system = remove_hydrogene(input_file_path)
-    molecular_system, count_ion_solvant = count_remove_ion_solvant(
-        molecular_system, input_file_path
-    )
-
+    
     resolution = guess_resolution(molecular_system)
     logger.info(f"Molecular resolution: {resolution}")
+    
+    molecular_system, count_ion_solvant_lipid = count_remove_ion_solvant_lipid(
+        molecular_system, input_file_path, resolution,
+    )
+
+    # resolution = guess_resolution(molecular_system)
+    # logger.info(f"Molecular resolution: {resolution}")
     if bond_threshold == "auto":
         if resolution == "AA":
             atom_pairs = get_atom_pairs_from_guess_bonds(molecular_system)
@@ -1316,7 +1442,7 @@ def main(
     for index_graph, graph in enumerate(graph_count_dict.keys(), start=1):
         print_graph_fingerprint(graph, index_graph)
 
-    graph_count_dict.update(count_ion_solvant)
+    graph_count_dict.update(count_ion_solvant_lipid)
     print_graph_inventory(graph_count_dict)
 
     filename = Path(input_file_path).stem
@@ -1348,8 +1474,8 @@ def main(
                         search_into_PDB.get_info_one_pdb_id(pdb_id)
                     )
                 graph_count_dict[graph]["putative_pdb_structure"] = list_dict_info_pdb
-        elif is_lipid(resolution, graph, key):
-            graph_count_dict[graph]["is_lipid"] = True
+        # elif is_lipid(resolution, graph, key):
+        #     graph_count_dict[graph]["is_lipid"] = True
     export_protein_sequence_into_FASTA(protein_sequence_dict, f"{filename}.fasta")
 
     # execution_time in seconds
