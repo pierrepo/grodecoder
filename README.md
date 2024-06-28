@@ -25,19 +25,14 @@ Run GROdecoder on a test file:
 python grodecoder.py --input data/examples/barstar.gro
 ```
 
-Check that all residues exist only one time (by default at false):
-```bash
-python grodecoder.py --input data/examples/barstar.gro --checkoverlapping
-```
-
 Add edges and degre in the fingerprint (by default at false)"
 ```bash
 python grodecoder.py --input data/examples/barstar.gro --checkconnectivity
 ```
 
-Choose the method to calculate the atom pairs. If we know the resolution of the system is coarse-grain enter a threshold (a positiv number) or we don't know so choose 'auto' (by default at 'auto'): 
+Choose the method to calculate the atom pairs. If we know the resolution of the system is coarse-grain enter a threshold (a positiv float number) or we don't know so choose 'auto' (by default at 'auto'): 
 ```bash
-python grodecoder.py --input data/examples/barstar.gro --bondthreshold
+python grodecoder.py --input data/examples/barstar.gro --bondthreshold [auto or a threshold]
 ```
 
 Add PDB id, their putative name and the organism name in the JSON file for each protein sequence (by default at false):
