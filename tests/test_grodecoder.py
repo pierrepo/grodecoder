@@ -35,5 +35,5 @@ def test_with_param(filepath_test, JSON_filepath_data):
         JSON_content_data = json.load(f)
 
     assert JSON_content_test["inventory"] == JSON_content_data["inventory"]
-    assert JSON_content_test["file_path"] == JSON_content_data["file_path"]
+    assert JSON_content_test["resolution"] == JSON_content_data["resolution"]
     assert JSON_content_test["file_md5sum"] == JSON_content_data["file_md5sum"]
