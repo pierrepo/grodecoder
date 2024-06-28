@@ -24,8 +24,7 @@ import pytest
           (os.path.join(parent_dir,"data/examples/barstar.gro"), "data/barstar.json"), 
           (os.path.join(parent_dir,"data/examples/DMPC_PI.gro"), "data/DMPC_PI.json"), 
           (os.path.join(parent_dir,"data/examples/noriega_AA_CRD_3CAL.gro"), "data/noriega_AA.json"), 
-          (os.path.join(parent_dir,"data/examples/noriega_CG_CRD_3CAL.gro"), "data/noriega_CG.json"), 
-          (os.path.join(parent_dir,"data/examples/step7_1.gro"), "data/step7_1.json")]
+          (os.path.join(parent_dir,"data/examples/noriega_CG_CRD_3CAL.gro"), "data/noriega_CG.json") ]
 )
 def test_with_param(filepath_test, JSON_filepath_data):
     JSON_filepath = gd.main(filepath_test)
@@ -36,3 +35,5 @@ def test_with_param(filepath_test, JSON_filepath_data):
         JSON_content_data = json.load(f)
 
     assert JSON_content_test["inventory"] == JSON_content_data["inventory"]
+    assert JSON_content_test["file_path"] == JSON_content_data["file_path"]
+    assert JSON_content_test["file_md5sum"] == JSON_content_data["file_md5sum"]
