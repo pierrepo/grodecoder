@@ -1280,8 +1280,12 @@ def main(
     ----------
         input_file_path: str
             Filepath of the .gro file we want to analyzed
-        draw_graph_option: boolean
-            Draw the graph of each molecule and save it as a PNG file. Default: False.
+        check_connectivity: boolean
+            If we want to add degrees and the number of edges of each graph in their fingerprint. By default at False.
+        bond_threshold : str | float
+            Choose the method used to get the atom pairs, there is two options: 'auto' if we don't know the resolution of the system and we detect it or enter a threshold (a positiv float number) if we know it's a corse grain model.
+        query_pdb: boolean
+            If we want to have informations (PDB ID, name, organism) about the protein identified in the PDB API. By default at False.
     """
     start_time = time.perf_counter()
 
@@ -1452,7 +1456,7 @@ def parse_arg() -> argparse.Namespace:
     parser.add_argument(
         "--bondthreshold",
         type=is_a_valid_threshold,
-        help="Choose the method to calculate the atom pairs. If we know the resolution of the system is all-atom choose 'AA' or we don't know so choose 'auto'",
+        help="Choose the method to calculate the atom pairs. If we know the resolution of the system is coarse grain enter a threshold (a positiv float number) or we don't know so choose 'auto'",
         default="auto",
     )
     parser.add_argument(
