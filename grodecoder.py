@@ -888,15 +888,10 @@ def find_lipids(lipid: list, universe: mda.core.universe.Universe, counts: dict)
                 - the occurence if this molecule in this system
                 - boolean key for ion, solvant and lipid
     """  
-    if len(lipid) == 4:
-        (name, alias, category, _) = lipid
-        selection = f"resname {alias}"
-        selected_atoms = universe.select_atoms(selection)
-    else :
-        (category, alias, name, _, _, Formula, resname_PDB) = lipid
-        selection = f"resname {alias} or resname {resname_PDB}"
-        selected_atoms = universe.select_atoms(selection)
-    
+    (name, alias, category, _) = lipid
+    selection = f"resname {alias}"
+    selected_atoms = universe.select_atoms(selection)
+
     #select the lipid who have the same resname
     selection = f"resname {alias}"
     selected_atoms = universe.select_atoms(selection)
@@ -904,6 +899,11 @@ def find_lipids(lipid: list, universe: mda.core.universe.Universe, counts: dict)
     #collect all resids from each res selected, to remove it from the universe
     selected_res_ids = [str(residue.resid) for residue in selected_atoms.residues]
     res_count = len(selected_res_ids)
+    
+    # atom_names = Counter(selected_atoms.atoms.names)
+    # atom_names = dict(sorted(atom_names.most_common()))
+    # formula = get_formula_based_atom_name(atom_names)
+    # print(atom_names)
     
     if res_count > 0: 
         list_graph = []
@@ -1003,15 +1003,6 @@ def count_remove_ion_solvant_lipid(
         
         for lipid in lipid_MAD.values:
             universe, counts = find_lipids(lipid.tolist(), universe, counts)
-    
-    elif resolution == "AA":
-        lipid_csml_charmm_gui = CSML_CHARMM_GUI[
-            CSML_CHARMM_GUI["Category"].str.contains("lipid", case=False, na=False)
-        ]
-        
-        for lipid in lipid_csml_charmm_gui.values:
-            universe, counts = find_lipids(lipid.tolist(), universe, counts)
-
 
     # Write the new universe without ions and solvant into a new file
     output_file = f"{Path(input_filepath).stem}_without_H_ions_solvant{Path(input_filepath).suffix}"
@@ -1474,8 +1465,8 @@ def main(
                         search_into_PDB.get_info_one_pdb_id(pdb_id)
                     )
                 graph_count_dict[graph]["putative_pdb_structure"] = list_dict_info_pdb
-        # elif is_lipid(resolution, graph, key):
-        #     graph_count_dict[graph]["is_lipid"] = True
+        elif is_lipid(resolution, graph, key):
+            graph_count_dict[graph]["is_lipid"] = True
     export_protein_sequence_into_FASTA(protein_sequence_dict, f"{filename}.fasta")
 
     # execution_time in seconds
