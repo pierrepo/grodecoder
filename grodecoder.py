@@ -1434,24 +1434,24 @@ def main(
     """
     start_time = time.perf_counter()
     
-    molecular_system_h = remove_hydrogene(input_file_path)
-    molecular_system_ion_solvant, count_ion_solvant = count_remove_ion_solvant(
-        molecular_system_h, input_file_path,
+    molecular_system = remove_hydrogene(input_file_path)
+    molecular_system, count_ion_solvant = count_remove_ion_solvant(
+        molecular_system, input_file_path,
     )
     
-    resolution = guess_resolution(molecular_system_ion_solvant)
+    resolution = guess_resolution(molecular_system)
     logger.info(f"Molecular resolution: {resolution}")
     if bond_threshold == "auto":
         if resolution == "AA":
-            atom_pairs = get_atom_pairs_from_guess_bonds(molecular_system_ion_solvant)
+            atom_pairs = get_atom_pairs_from_guess_bonds(molecular_system)
         else:
             molecular_system, count_lipid = count_remove_lipid(
-                molecular_system_ion_solvant, input_file_path, 
+                molecular_system, input_file_path, 
             )
             count_ion_solvant.update(count_lipid)
             atom_pairs = get_atom_pairs_from_threshold(molecular_system, 5.0)
     else:
-        atom_pairs = get_atom_pairs_from_threshold(molecular_system_ion_solvant, bond_threshold)
+        atom_pairs = get_atom_pairs_from_threshold(molecular_system, bond_threshold)
 
     graph_return = convert_atom_pairs_to_graph(atom_pairs, molecular_system)
 
