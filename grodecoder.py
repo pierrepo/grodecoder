@@ -862,6 +862,70 @@ def find_ion_solvant(
     return (universe, counts)
 
 
+def count_remove_ion_solvant(
+    universe: mda.core.universe.Universe, input_filepath: str,
+) -> tuple[mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int]]]:
+    """Count and remove ions, solvents from the MDAnalysis Universe return by
+    the function find_ion_solvant().
+
+    Parameters
+    ----------
+        universe : MDAnalysis.core.universe.Universe
+            MDAnalysis Universe object representing the system.
+        input_filepath : str
+            Path to the input file.
+
+    Returns
+    -------
+        tuple
+            Containing :
+                - the new Universe without ions and solvants.
+                - a dictionary where
+                    - the key is a graph
+                    - and the value is an other dictionary with: atom_start, atom_end, name of the ion-solvant, the counts of removed ions-solvant
+    """
+    counts = {}
+
+    logger.info("Searching ions...")
+    for ion in mol_def.IONS_LIST:
+        universe, counts = find_ion_solvant(ion, universe, counts, "ion")
+
+    logger.info("Searching solvant molecules...")
+    for solvant in mol_def.SOLVANTS_LIST:
+        # Solvant methanol and the residue methionine could be confused
+        # because their share the same residue name 'MET'.
+        # We ignore methanol for now.
+        if solvant["res_name"] == "MET":
+            continue
+        universe, counts = find_ion_solvant(solvant, universe, counts, "solvant")
+
+    # Write the new universe without ions and solvant into a new file
+    output_file = f"{Path(input_filepath).stem}_without_H_ions_solvant{Path(input_filepath).suffix}"
+    universe.atoms.write(output_file, reindex=False)
+    logger.debug(
+        f" New structure file without hydrogens, ions and solvants : {output_file}"
+    )
+
+    universe_clean = mda.Universe(output_file)
+
+    # Print which ion and solvant we find, and how many
+    for molecule, dict_count in counts.items():
+        name = dict_count.get("name")
+        count = dict_count.get("graph")
+        res_name = " ".join(
+            set(nx.get_node_attributes(molecule, "residue_name").values())
+        )
+        logger.success(f"Found: {count} {name} ({res_name})")
+
+    # Check if there is other residue with the resname SOL in the updated MDAnalysis.core.universe.Universe
+    selected_atoms = universe_clean.select_atoms("resname SOL")
+    count = len(selected_atoms.residues)
+    logger.info(f"{count} residues SOL remaining")
+
+    logger.info(f"{len(universe_clean.atoms):,} atoms remaining")
+    return (universe_clean, counts)
+
+
 def find_lipids(lipid: list, universe: mda.core.universe.Universe, counts: dict):  
     """Counts and removes lipid from the MDAnalysis Universe.
     
@@ -900,11 +964,6 @@ def find_lipids(lipid: list, universe: mda.core.universe.Universe, counts: dict)
     selected_res_ids = [str(residue.resid) for residue in selected_atoms.residues]
     res_count = len(selected_res_ids)
     
-    # atom_names = Counter(selected_atoms.atoms.names)
-    # atom_names = dict(sorted(atom_names.most_common()))
-    # formula = get_formula_based_atom_name(atom_names)
-    # print(atom_names)
-    
     if res_count > 0: 
         list_graph = []
         # For each residues in the selection, create a graph in the same format as a molecule (but added to that a key 'name')
@@ -914,12 +973,6 @@ def find_lipids(lipid: list, universe: mda.core.universe.Universe, counts: dict)
             graph.add_nodes_from(index_resID.atoms.ids)
             graph = add_attributes_to_nodes(graph, index_resID)
             list_graph.append(graph)
-        
-        # index_resID = selected_atoms.residues[0]
-        # graph = nx.Graph()
-        # graph.add_nodes_from(index_resID.atoms.ids)
-        # graph = add_attributes_to_nodes(graph, index_resID)
-        # list_graph.append(graph)
 
         atom_id, res_id = [], []
         for subgraph in list_graph:
@@ -958,11 +1011,11 @@ def find_lipids(lipid: list, universe: mda.core.universe.Universe, counts: dict)
     return (universe, counts)
 
 
-def count_remove_ion_solvant_lipid(
-    universe: mda.core.universe.Universe, input_filepath: str, resolution: str, 
+def count_remove_lipid(
+    universe: mda.core.universe.Universe, input_filepath: str,
 ) -> tuple[mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int]]]:
-    """Count and remove ions, solvents, lipid from the MDAnalysis Universe return by
-    the function find_ion_solvant().
+    """Count and remove lipid from the MDAnalysis Universe return by
+    the function find_ion_lipid().
 
     Parameters
     ----------
@@ -970,45 +1023,29 @@ def count_remove_ion_solvant_lipid(
             MDAnalysis Universe object representing the system.
         input_filepath : str
             Path to the input file.
-        resolution: str
-            Resolution of the system, all atom (AA) or coarse grain (CG)
 
     Returns
     -------
         tuple
             Containing :
-                - the new Universe without ions and solvants.
+                - the new Universe without lipid.
                 - a dictionary where
                     - the key is a graph
-                    - and the value is an other dictionary with: atom_start, atom_end, name of the ion-solvant, the counts of removed ions-solvant
+                    - and the value is an other dictionary with: atom_start, atom_end, name of the lipid, the counts of removed lipid
     """
     counts = {}
 
-    logger.info("Searching ions...")
-    for ion in mol_def.IONS_LIST:
-        universe, counts = find_ion_solvant(ion, universe, counts, "ion")
-
-    logger.info("Searching solvant molecules...")
-    for solvant in mol_def.SOLVANTS_LIST:
-        # Solvant methanol and the residue methionine could be confused
-        # because their share the same residue name 'MET'.
-        # We ignore methanol for now.
-        if solvant["res_name"] == "MET":
-            continue
-        universe, counts = find_ion_solvant(solvant, universe, counts, "solvant")
-
-    if resolution == "CG":
-        logger.info("Searching lipid...")
-        lipid_MAD = MAD_DB[MAD_DB["Category"].str.contains("Lipids", case=False, na=False)]
-        
-        for lipid in lipid_MAD.values:
-            universe, counts = find_lipids(lipid.tolist(), universe, counts)
+    logger.info("Searching lipid...")
+    lipid_MAD = MAD_DB[MAD_DB["Category"].str.contains("Lipids", case=False, na=False)]
+    
+    for lipid in lipid_MAD.values:
+        universe, counts = find_lipids(lipid.tolist(), universe, counts)
 
     # Write the new universe without ions and solvant into a new file
     output_file = f"{Path(input_filepath).stem}_without_H_ions_solvant{Path(input_filepath).suffix}"
     universe.atoms.write(output_file, reindex=False)
     logger.debug(
-        f" New structure file without hydrogens, ions and solvants : {output_file}"
+        f" New structure file without hydrogens, ions and solvants, lipids : {output_file}"
     )
 
     universe_clean = mda.Universe(output_file)
@@ -1021,11 +1058,6 @@ def count_remove_ion_solvant_lipid(
             set(nx.get_node_attributes(molecule, "residue_name").values())
         )
         logger.success(f"Found: {count} {name} ({res_name})")
-
-    # Check if there is other residue with the resname SOL in the updated MDAnalysis.core.universe.Universe
-    selected_atoms = universe_clean.select_atoms("resname SOL")
-    count = len(selected_atoms.residues)
-    logger.info(f"{count} residues SOL remaining")
 
     logger.info(f"{len(universe_clean.atoms):,} atoms remaining")
     return (universe_clean, counts)
@@ -1402,24 +1434,24 @@ def main(
     """
     start_time = time.perf_counter()
     
-    molecular_system = remove_hydrogene(input_file_path)
-    
-    resolution = guess_resolution(molecular_system)
-    logger.info(f"Molecular resolution: {resolution}")
-    
-    molecular_system, count_ion_solvant_lipid = count_remove_ion_solvant_lipid(
-        molecular_system, input_file_path, resolution,
+    molecular_system_h = remove_hydrogene(input_file_path)
+    molecular_system_ion_solvant, count_ion_solvant = count_remove_ion_solvant(
+        molecular_system_h, input_file_path,
     )
-
-    # resolution = guess_resolution(molecular_system)
-    # logger.info(f"Molecular resolution: {resolution}")
+    
+    resolution = guess_resolution(molecular_system_ion_solvant)
+    logger.info(f"Molecular resolution: {resolution}")
     if bond_threshold == "auto":
         if resolution == "AA":
-            atom_pairs = get_atom_pairs_from_guess_bonds(molecular_system)
+            atom_pairs = get_atom_pairs_from_guess_bonds(molecular_system_ion_solvant)
         else:
+            molecular_system, count_lipid = count_remove_lipid(
+                molecular_system_ion_solvant, input_file_path, 
+            )
+            count_ion_solvant.update(count_lipid)
             atom_pairs = get_atom_pairs_from_threshold(molecular_system, 5.0)
     else:
-        atom_pairs = get_atom_pairs_from_threshold(molecular_system, bond_threshold)
+        atom_pairs = get_atom_pairs_from_threshold(molecular_system_ion_solvant, bond_threshold)
 
     graph_return = convert_atom_pairs_to_graph(atom_pairs, molecular_system)
 
@@ -1433,7 +1465,7 @@ def main(
     for index_graph, graph in enumerate(graph_count_dict.keys(), start=1):
         print_graph_fingerprint(graph, index_graph)
 
-    graph_count_dict.update(count_ion_solvant_lipid)
+    graph_count_dict.update(count_ion_solvant)
     print_graph_inventory(graph_count_dict)
 
     filename = Path(input_file_path).stem
