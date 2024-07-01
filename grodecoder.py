@@ -658,7 +658,7 @@ def print_graph_inventory(graph_dict: dict):
         if len(key) == 6:
             (_, res_id_interval, _, _, _, count) = key.values()
         else:
-            (_, res_id_interval, _, _, name, count, _, _) = key.values()
+            (_, res_id_interval, _, _, name, count, _, _, _) = key.values()
             logger.info(f"- name: {name}")
 
         logger.info(f"- number of atoms: {graph.number_of_nodes():,}")
@@ -789,6 +789,7 @@ def find_ion_solvant(
                 - the atom_id of the last atom (for each molecule)
                 - the name of this molecule (collected from the dictionary in mol_def.py)
                 - the occurence if this molecule in this system
+                - boolean key for ion, solvant and lipid
     """
     (name, res_name, atom_names) = molecule.values()
 
@@ -825,7 +826,7 @@ def find_ion_solvant(
 
         res_id_interval = get_intervals(res_id)
         atom_id_interval = get_intervals(atom_id)
-
+ 
         if solvant_or_ion == "ion":
             solvant, ion = False, True
         else:
@@ -855,7 +856,7 @@ def find_ion_solvant(
 
 
 def count_remove_ion_solvant(
-    universe: mda.core.universe.Universe, input_filepath: str
+    universe: mda.core.universe.Universe, input_filepath: str,
 ) -> tuple[mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int]]]:
     """Count and remove ions and solvents from the MDAnalysis Universe return by
     the function find_ion_solvant().
@@ -936,7 +937,18 @@ def check_overlapping_residue_between_graphs(graph_list: list[nx.classes.graph.G
     res_id_common = []
 
     for graph in graph_list:
-        res_id_set = set((nx.get_node_attributes(graph, "residue_id").values()))
+        # Here it only compare the residue id
+        # But in some case, the residue id is reinitialize 
+        # So some molecule will have the same id but it's not the same
+        # res_id_set = set((nx.get_node_attributes(graph, "residue_id").values()))
+        
+        # Here I add the residue name to the comparaison 
+        # So we see the overlapping with the residue id and the residue name
+        res_id_set = set((nx.get_node_attributes(graph, "residue_id").values()))        
+        res_id_name_list = [ (nx.get_node_attributes(graph, "residue_name").values()) ]        
+        res_id_set = set( (tuple(res_id_set), tuple(res_id_name_list)) )
+        # print(res_id_set)
+        
         res_id_intersect = res_id_set_all.intersection(res_id_set)
         res_id_set_all.update(res_id_set)
         if res_id_intersect:
@@ -1288,12 +1300,12 @@ def main(
             If we want to have informations (PDB ID, name, organism) about the protein identified in the PDB API. By default at False.
     """
     start_time = time.perf_counter()
-
+    
     molecular_system = remove_hydrogene(input_file_path)
     molecular_system, count_ion_solvant = count_remove_ion_solvant(
-        molecular_system, input_file_path
+        molecular_system, input_file_path,
     )
-
+    
     resolution = guess_resolution(molecular_system)
     logger.info(f"Molecular resolution: {resolution}")
     if bond_threshold == "auto":
