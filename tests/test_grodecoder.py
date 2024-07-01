@@ -1,14 +1,14 @@
 import json
 import os
+from pathlib import Path
 import sys
 
+import pytest
 
-parent_dir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
-print(parent_dir)
-sys.path.append(parent_dir)
+parent_dir = Path(__file__).resolve().parents[1]
+sys.path.append(str(parent_dir))
 
 import grodecoder as gd
-import pytest
 
 
 @pytest.mark.parametrize(
@@ -34,19 +34,14 @@ def test_with_param(filepath_test, JSON_filepath_data):
     with open(JSON_filepath_data, 'r') as f:
         JSON_content_data = json.load(f)    
     
+    key_to_check = ["id", "number_of_atoms", "number_of_molecules", 
+                    "residue_names", "residue_ids", "formula_without_h", 
+                    "is_solvant", "is_ion", "is_lipid", "is_protein", 
+                    "protein_sequence", "comment"]
+    
     for index in range(len(JSON_content_data["inventory"])):
-        assert JSON_content_test["inventory"][index]["id"] == JSON_content_data["inventory"][index]["id"]
-        assert JSON_content_test["inventory"][index]["number_of_atoms"] == JSON_content_data["inventory"][index]["number_of_atoms"]
-        assert JSON_content_test["inventory"][index]["number_of_molecules"] == JSON_content_data["inventory"][index]["number_of_molecules"]
-        assert JSON_content_test["inventory"][index]["residue_names"] == JSON_content_data["inventory"][index]["residue_names"]
-        assert JSON_content_test["inventory"][index]["residue_ids"] == JSON_content_data["inventory"][index]["residue_ids"]
-        assert JSON_content_test["inventory"][index]["formula_without_h"] == JSON_content_data["inventory"][index]["formula_without_h"]
-        assert JSON_content_test["inventory"][index]["is_solvant"] == JSON_content_data["inventory"][index]["is_solvant"]
-        assert JSON_content_test["inventory"][index]["is_ion"] == JSON_content_data["inventory"][index]["is_ion"]
-        assert JSON_content_test["inventory"][index]["is_lipid"] == JSON_content_data["inventory"][index]["is_lipid"]
-        assert JSON_content_test["inventory"][index]["is_protein"] == JSON_content_data["inventory"][index]["is_protein"]
-        assert JSON_content_test["inventory"][index]["protein_sequence"] == JSON_content_data["inventory"][index]["protein_sequence"]
-        assert JSON_content_test["inventory"][index]["comment"] == JSON_content_data["inventory"][index]["comment"]
+        for key in key_to_check: 
+            assert JSON_content_test["inventory"][index][key] == JSON_content_data["inventory"][index][key]
     
     assert JSON_content_test["resolution"] == JSON_content_data["resolution"]
     assert JSON_content_test["file_md5sum"] == JSON_content_data["file_md5sum"]

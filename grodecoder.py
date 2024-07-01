@@ -1165,7 +1165,7 @@ def export_inventory(
             "",
             "",
         )
-        putative_pdb_structure, putative_name = [], []
+        putative_pdb, putative_name = [], []
 
         residue_pairs = zip(
             nx.get_node_attributes(graph, "residue_id").values(),
@@ -1183,8 +1183,8 @@ def export_inventory(
         if "is_protein" in information.keys():
             is_protein = information["is_protein"]
             protein_sequence = information["protein_sequence"]
-            if "putative_pdb_structure" in information.keys():
-                putative_pdb_structure = information["putative_pdb_structure"]
+            if "putative_pdb" in information.keys():
+                putative_pdb = information["putative_pdb"]
         if "is_lipid" in information.keys():
             is_lipid = information["is_lipid"]
             putative_name = information["name"]
@@ -1207,7 +1207,7 @@ def export_inventory(
             "is_lipid": is_lipid,
             "is_protein": is_protein,
             "protein_sequence": protein_sequence,
-            "putative_pdb_structure": putative_pdb_structure,
+            "putative_pdb": putative_pdb,
             "putative_name": putative_name,
             "comment": comment,
         }
@@ -1343,7 +1343,7 @@ def main(
                     list_dict_info_pdb.append(
                         search_into_PDB.get_info_one_pdb_id(pdb_id)
                     )
-                graph_count_dict[graph]["putative_pdb_structure"] = list_dict_info_pdb
+                graph_count_dict[graph]["putative_pdb"] = list_dict_info_pdb
         elif is_lipid(resolution, graph, key):
             graph_count_dict[graph]["is_lipid"] = True
     export_protein_sequence_into_FASTA(protein_sequence_dict, f"{filename}.fasta")
