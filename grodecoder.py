@@ -1207,7 +1207,7 @@ def export_inventory(
             "is_lipid": is_lipid,
             "is_protein": is_protein,
             "protein_sequence": protein_sequence,
-            "putative_pdb": putative_pdb,
+            "putative_pdb": putative_pdb, 
             "putative_name": putative_name,
             "comment": comment,
         }
