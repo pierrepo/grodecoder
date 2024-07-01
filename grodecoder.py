@@ -657,6 +657,9 @@ def print_graph_inventory(graph_dict: dict):
 
         if len(key) == 6:
             (_, res_id_interval, _, _, _, count) = key.values()
+        elif len(key)== 8:
+            (_, res_id_interval, _, _, name, count, _, _) = key.values()
+            logger.info(f"- name: {name}")
         else:
             (_, res_id_interval, _, _, name, count, _, _, _) = key.values()
             logger.info(f"- name: {name}")
