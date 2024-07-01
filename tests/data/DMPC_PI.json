@@ -1,0 +1,130 @@
+{
+    "inventory": [
+        {
+            "id": 3,
+            "number_of_atoms": 59,
+            "number_of_molecules": 14,
+            "residue_names": "SLPI",
+            "residue_ids": "243-256",
+            "formula_without_h": "C45O13P",
+            "is_solvant": false,
+            "is_ion": false,
+            "is_lipid": true,
+            "is_protein": false,
+            "protein_sequence": "",
+            "putative_pdb_structure": [],
+            "putative_name": [
+                "1-STEAROYL-2-LINOLEOYL-PHOSPHATIDYLCHOLINE"
+            ],
+            "comment": ""
+        },
+        {
+            "id": 2,
+            "number_of_atoms": 57,
+            "number_of_molecules": 16,
+            "residue_names": "POPI",
+            "residue_ids": "181-196",
+            "formula_without_h": "C43O13P",
+            "is_solvant": false,
+            "is_ion": false,
+            "is_lipid": true,
+            "is_protein": false,
+            "protein_sequence": "",
+            "putative_pdb_structure": [],
+            "putative_name": [
+                "1-PALMITOYL-2-OLEOYL-INOSITOL"
+            ],
+            "comment": ""
+        },
+        {
+            "id": 5,
+            "number_of_atoms": 1,
+            "number_of_molecules": 28,
+            "residue_names": "CLA",
+            "residue_ids": "361-388",
+            "formula_without_h": "",
+            "is_solvant": false,
+            "is_ion": true,
+            "is_lipid": false,
+            "is_protein": false,
+            "protein_sequence": "",
+            "putative_pdb_structure": [],
+            "putative_name": "chloride ion",
+            "comment": ""
+        },
+        {
+            "id": 4,
+            "number_of_atoms": 61,
+            "number_of_molecules": 46,
+            "residue_names": "SAPI",
+            "residue_ids": "197-242",
+            "formula_without_h": "C47O13P",
+            "is_solvant": false,
+            "is_ion": false,
+            "is_lipid": true,
+            "is_protein": false,
+            "protein_sequence": "",
+            "putative_pdb_structure": [],
+            "putative_name": [
+                "PHOSPHATIDYLINOSITOL"
+            ],
+            "comment": ""
+        },
+        {
+            "id": 6,
+            "number_of_atoms": 1,
+            "number_of_molecules": 104,
+            "residue_names": "SOD",
+            "residue_ids": "257-360",
+            "formula_without_h": "",
+            "is_solvant": false,
+            "is_ion": true,
+            "is_lipid": false,
+            "is_protein": false,
+            "protein_sequence": "",
+            "putative_pdb_structure": [],
+            "putative_name": "Sodium ion",
+            "comment": ""
+        },
+        {
+            "id": 1,
+            "number_of_atoms": 46,
+            "number_of_molecules": 180,
+            "residue_names": "DMPC",
+            "residue_ids": "1-180",
+            "formula_without_h": "C36NO8P",
+            "is_solvant": false,
+            "is_ion": false,
+            "is_lipid": true,
+            "is_protein": false,
+            "protein_sequence": "",
+            "putative_pdb_structure": [],
+            "putative_name": [
+                "2,3 DIMYRISTOYL-D-GLYCERO-1-PHOSPHATIDYLCHOLINE"
+            ],
+            "comment": ""
+        },
+        {
+            "id": 7,
+            "number_of_atoms": 1,
+            "number_of_molecules": 12800,
+            "residue_names": "TIP3",
+            "residue_ids": "389-13188",
+            "formula_without_h": "",
+            "is_solvant": true,
+            "is_ion": false,
+            "is_lipid": false,
+            "is_protein": false,
+            "protein_sequence": "",
+            "putative_pdb_structure": [],
+            "putative_name": "water TIP3P solvant",
+            "comment": ""
+        }
+    ],
+    "resolution": "AA",
+    "date": "2024-06-26_19-45-11",
+    "execution_time_in_sec": "20.12",
+    "remark": "",
+    "file_path": "/home/karine/Documents/grodecoder/data/examples/DMPC_PI.gro",
+    "file_md5sum": "17e49e893431728d5151f7ebb3709ef2"
+}

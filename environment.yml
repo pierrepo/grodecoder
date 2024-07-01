@@ -26,6 +26,7 @@ dependencies:
   # Web interface
   - streamlit
   - pillow
+  - pytest
   - pip:
     # watermark: keep track of dependency versions
     - watermark

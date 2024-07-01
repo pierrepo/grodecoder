@@ -1,0 +1,92 @@
+{
+    "inventory": [
+        {
+            "id": 2,
+            "number_of_atoms": 1158,
+            "number_of_molecules": 1,
+            "residue_names": "ALA THR SER THR VAL THR GLY GLY TYR ALA GLN SER ASP ALA GLN GLY GLN MET ASN LYS MET GLY GLY PHE ASN LEU LYS TYR ARG TYR GLU GLU ASP ASN SER PRO LEU GLY VAL ILE GLY SER PHE THR TYR THR GLU LYS SER ARG THR ALA SER SER GLY ASP TYR ASN LYS ASN GLN TYR TYR GLY ILE THR ALA GLY PRO ALA TYR ARG ILE ASN ASP TRP ALA SER ILE TYR GLY VAL VAL GLY VAL GLY TYR GLY LYS PHE GLN THR THR GLU TYR PRO THR TYR LYS ASN ASP THR SER ASP TYR GLY PHE SER TYR GLY ALA GLY LEU GLN PHE ASN PRO MET GLU ASN VAL ALA LEU ASP PHE SER TYR GLU GLN SER ARG ILE ARG SER VAL ASP VAL GLY THR TRP ILE ALA GLY VAL GLY TYR ARG PHE",
+            "residue_ids": "1-148",
+            "formula_without_h": "C17N8O10S",
+            "is_solvant": false,
+            "is_ion": false,
+            "is_lipid": false,
+            "is_protein": true,
+            "protein_sequence": "ATSTVTGGYAQSDAQGQMNKMGGFNLKYRYEEDNSPLGVIGSFTYTEKSRTASSGDYNKNQYYGITAGPAYRINDWASIYGVVGVGYGKFQTTEYPTYKNDTSDYGFSYGAGLQFNPMENVALDFSYEQSRIRSVDVGTWIAGVGYRF",
+            "putative_pdb_structure": [],
+            "putative_name": [],
+            "comment": ""
+        },
+        {
+            "id": 3,
+            "number_of_atoms": 1,
+            "number_of_molecules": 21,
+            "residue_names": "CLA",
+            "residue_ids": "272-292",
+            "formula_without_h": "",
+            "is_solvant": false,
+            "is_ion": true,
+            "is_lipid": false,
+            "is_protein": false,
+            "protein_sequence": "",
+            "putative_pdb_structure": [],
+            "putative_name": "chloride ion",
+            "comment": ""
+        },
+        {
+            "id": 4,
+            "number_of_atoms": 1,
+            "number_of_molecules": 23,
+            "residue_names": "SOD",
+            "residue_ids": "249-271",
+            "formula_without_h": "",
+            "is_solvant": false,
+            "is_ion": true,
+            "is_lipid": false,
+            "is_protein": false,
+            "protein_sequence": "",
+            "putative_pdb_structure": [],
+            "putative_name": "Sodium ion",
+            "comment": ""
+        },
+        {
+            "id": 1,
+            "number_of_atoms": 46,
+            "number_of_molecules": 100,
+            "residue_names": "DMPC",
+            "residue_ids": "149-248",
+            "formula_without_h": "C36NO8P",
+            "is_solvant": false,
+            "is_ion": false,
+            "is_lipid": true,
+            "is_protein": false,
+            "protein_sequence": "",
+            "putative_pdb_structure": [],
+            "putative_name": [
+                "2,3 DIMYRISTOYL-D-GLYCERO-1-PHOSPHATIDYLCHOLINE"
+            ],
+            "comment": ""
+        },
+        {
+            "id": 5,
+            "number_of_atoms": 1,
+            "number_of_molecules": 8080,
+            "residue_names": "TIP3",
+            "residue_ids": "293-8372",
+            "formula_without_h": "",
+            "is_solvant": true,
+            "is_ion": false,
+            "is_lipid": false,
+            "is_protein": false,
+            "protein_sequence": "",
+            "putative_pdb_structure": [],
+            "putative_name": "water TIP3P solvant",
+            "comment": ""
+        }
+    ],
+    "resolution": "AA",
+    "date": "2024-06-26_19-37-35",
+    "execution_time_in_sec": "8.74",
+    "remark": "",
+    "file_path": "/home/karine/Documents/grodecoder/data/examples/1QJ8_solution.gro",
+    "file_md5sum": "4c4ef4070105129cbebf10a31ad6316c"
+}
