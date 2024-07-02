@@ -36,7 +36,7 @@ import search_into_PDB
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 filepath_CSML = os.path.join(current_dir, "data/databases/lipid_CHARMM_GUI_CSML.csv")
-CSML_CHARMM_GUI = pd.read_csv(filepath_CSML, sep=';')
+CSML_CHARMM_GUI = pd.read_csv(filepath_CSML, sep=";")
 
 filepath_MAD = os.path.join(current_dir, "data/databases/lipid_MAD.csv")
 MAD_DB = pd.read_csv(filepath_MAD, sep=";")
@@ -658,7 +658,7 @@ def print_graph_inventory(graph_dict: dict):
 
         if len(key) == 6:
             (_, res_id_interval, _, _, _, count) = key.values()
-        elif len(key)== 8:
+        elif len(key) == 8:
             (_, res_id_interval, _, _, name, count, _) = key.values()
             logger.info(f"- name: {name}")
         # else:
@@ -830,7 +830,7 @@ def find_ion_solvant(
 
         res_id_interval = get_intervals(res_id)
         atom_id_interval = get_intervals(atom_id)
-        
+
         if solvant_or_ion == "ion":
             molecular_type = "ion"
         else:
@@ -859,8 +859,9 @@ def find_ion_solvant(
 
 
 def count_remove_ion_solvant(
-    universe: mda.core.universe.Universe, input_filepath: str,
-) -> tuple[mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int]]]:
+    universe: mda.core.universe.Universe,
+    input_filepath: str,
+) -> tuple[mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int | str]]]:
     """Count and remove ions and solvents from the MDAnalysis Universe return by
     the function find_ion_solvant().
 
@@ -941,17 +942,17 @@ def check_overlapping_residue_between_graphs(graph_list: list[nx.classes.graph.G
 
     for graph in graph_list:
         # Here it only compare the residue id
-        # But in some case, the residue id is reinitialize 
+        # But in some case, the residue id is reinitialize
         # So some molecule will have the same id but it's not the same
         # res_id_set = set((nx.get_node_attributes(graph, "residue_id").values()))
-        
-        # Here I add the residue name to the comparaison 
+
+        # Here I add the residue name to the comparaison
         # So we see the overlapping with the residue id and the residue name
-        res_id_set = set((nx.get_node_attributes(graph, "residue_id").values()))        
-        res_id_name_list = [ (nx.get_node_attributes(graph, "residue_name").values()) ]        
-        res_id_set = set( (tuple(res_id_set), tuple(res_id_name_list)) )
+        res_id_set = set((nx.get_node_attributes(graph, "residue_id").values()))
+        res_id_name_list = [(nx.get_node_attributes(graph, "residue_name").values())]
+        res_id_set = set((tuple(res_id_set), tuple(res_id_name_list)))
         # print(res_id_set)
-        
+
         res_id_intersect = res_id_set_all.intersection(res_id_set)
         res_id_set_all.update(res_id_set)
         if res_id_intersect:
@@ -998,7 +999,7 @@ def extract_protein_sequence(graph: nx.classes.graph.Graph) -> dict[str, int]:
     """Extract the protein sequence from a graph.
 
     This function extracts the protein sequence from the molecule represented
-    by the input graph. By getting all the residue name sorted by their residue ids (to be sure it's in the right order). 
+    by the input graph. By getting all the residue name sorted by their residue ids (to be sure it's in the right order).
 
     Parameters
     ----------
@@ -1061,7 +1062,7 @@ def export_protein_sequence_into_FASTA(
 
 
 def is_lipid(
-    resolution: str, graph: nx.classes.graph.Graph, dict_count: dict[str, str]
+    resolution: str, graph: nx.classes.graph.Graph, dict_count: dict[str, int|str]
 ) -> bool:
     """Determines if the given graph represents a lipid.
 
@@ -1235,7 +1236,7 @@ def export_inventory(
             "formula_without_h": formula,
             "molecular_type": molecular_type,
             "protein_sequence": protein_sequence,
-            "putative_pdb": putative_pdb, 
+            "putative_pdb": putative_pdb,
             "putative_name": putative_name,
             "comment": comment,
         }
@@ -1318,12 +1319,13 @@ def main(
             If we want to have informations (PDB ID, name, organism) about the protein identified in the PDB API. By default at False.
     """
     start_time = time.perf_counter()
-    
+
     molecular_system = remove_hydrogene(input_file_path)
     molecular_system, count_ion_solvant = count_remove_ion_solvant(
-        molecular_system, input_file_path,
+        molecular_system,
+        input_file_path,
     )
-    
+
     resolution = guess_resolution(molecular_system)
     logger.info(f"Molecular resolution: {resolution}")
     if bond_threshold == "auto":
