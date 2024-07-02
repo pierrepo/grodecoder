@@ -659,11 +659,11 @@ def print_graph_inventory(graph_dict: dict):
         if len(key) == 6:
             (_, res_id_interval, _, _, _, count) = key.values()
         elif len(key)== 8:
-            (_, res_id_interval, _, _, name, count, _, _) = key.values()
+            (_, res_id_interval, _, _, name, count, _) = key.values()
             logger.info(f"- name: {name}")
-        else:
-            (_, res_id_interval, _, _, name, count, _, _, _) = key.values()
-            logger.info(f"- name: {name}")
+        # else:
+        #     (_, res_id_interval, _, _, name, count, _, _, _) = key.values()
+        #     logger.info(f"- name: {name}")
 
         logger.info(f"- number of atoms: {graph.number_of_nodes():,}")
         logger.info(f"- number of molecules: {count:,}")
@@ -830,11 +830,11 @@ def find_ion_solvant(
 
         res_id_interval = get_intervals(res_id)
         atom_id_interval = get_intervals(atom_id)
- 
+        
         if solvant_or_ion == "ion":
-            solvant, ion = False, True
+            molecular_type = "ion"
         else:
-            solvant, ion = True, False
+            molecular_type = "solvant"
 
         counts[list_graph[0]] = {
             "res_id": res_id,
@@ -843,8 +843,7 @@ def find_ion_solvant(
             "atom_id_interval": atom_id_interval,
             "name": name,
             "graph": res_count,
-            "solvant": solvant,
-            "ion": ion,
+            "molecular_type": molecular_type,
         }
 
         # Here we remove all the resIDS (from selected_res_ids) from this universe
@@ -1194,9 +1193,9 @@ def export_inventory(
     for index_graph, (graph, information) in enumerate(
         graph_count_dict.items(), start=1
     ):
-        is_protein, is_lipid, is_ion, is_solvant = False, False, False, False
-        formula, protein_sequence, remark_message, comment = (
+        formula, molecular_type, protein_sequence, remark_message, comment = (
             "",
+            "unknown",
             "",
             "",
             "",
@@ -1216,18 +1215,14 @@ def export_inventory(
 
         if "formula_no_h" in information.keys():
             formula = information["formula_no_h"]
-        if "is_protein" in information.keys():
-            is_protein = information["is_protein"]
-            protein_sequence = information["protein_sequence"]
-            if "putative_pdb" in information.keys():
-                putative_pdb = information["putative_pdb"]
-        if "is_lipid" in information.keys():
-            is_lipid = information["is_lipid"]
-            putative_name = information["name"]
-        if "ion" in information.keys():
-            is_ion = information["ion"]
-            is_solvant = information["solvant"]
-            putative_name = information["name"]
+        if "molecular_type" in information.keys():
+            molecular_type = information["molecular_type"]
+            if molecular_type == "protein":
+                protein_sequence = information["protein_sequence"]
+                if "putative_pdb" in information.keys():
+                    putative_pdb = information["putative_pdb"]
+            elif molecular_type in ["lipid", "ion", "solvant"]:
+                putative_name = information["name"]
         if "comment" in information.keys():
             comment = information["comment"]
 
@@ -1238,10 +1233,7 @@ def export_inventory(
             "residue_names": residue_names,
             "residue_ids": " ".join(information["res_id_interval"]),
             "formula_without_h": formula,
-            "is_solvant": is_solvant,
-            "is_ion": is_ion,
-            "is_lipid": is_lipid,
-            "is_protein": is_protein,
+            "molecular_type": molecular_type,
             "protein_sequence": protein_sequence,
             "putative_pdb": putative_pdb, 
             "putative_name": putative_name,
@@ -1362,8 +1354,7 @@ def main(
     protein_sequence_dict = {}
     for index_graph, (graph, key) in enumerate(graph_count_dict.items(), start=1):
         if is_met(graph):
-            graph_count_dict[graph]["solvant"] = True
-            graph_count_dict[graph]["ion"] = False
+            graph_count_dict[graph]["molecular_type"] = "solvant"
             graph_count_dict[graph]["name"] = "organic solvant methanol/OPLS"
 
         elif is_protein(graph):
@@ -1371,7 +1362,7 @@ def main(
             sequence = sequence_nbres["sequence"]
 
             protein_sequence_dict[index_graph] = sequence_nbres
-            graph_count_dict[graph]["is_protein"] = True
+            graph_count_dict[graph]["molecular_type"] = "protein"
             graph_count_dict[graph]["protein_sequence"] = sequence
 
             list_dict_info_pdb = []
@@ -1387,7 +1378,7 @@ def main(
                     )
                 graph_count_dict[graph]["putative_pdb"] = list_dict_info_pdb
         elif is_lipid(resolution, graph, key):
-            graph_count_dict[graph]["is_lipid"] = True
+            graph_count_dict[graph]["molecular_type"] = "lipid"
     export_protein_sequence_into_FASTA(protein_sequence_dict, f"{filename}.fasta")
 
     # execution_time in seconds
