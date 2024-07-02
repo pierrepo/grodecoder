@@ -1,0 +1,58 @@
+{
+    "inventory": [
+        {
+            "id": 1,
+            "number_of_atoms": 720,
+            "number_of_molecules": 1,
+            "residue_names": "LYSH LYSH ALA VAL ILE ASN GLY GLU GLN ILE ARG SER ILE SER ASP LEU HISB GLN THR LEU LYSH LYSH GLU LEU ALA LEU PRO GLU TYR TYR GLY GLU ASN LEU ASP ALA LEU TRP ASP CYSH LEU THR GLY TRP VAL GLU TYR PRO LEU VAL LEU GLU TRP ARG GLN PHE GLU GLN SER LYSH GLN LEU THR GLU ASN GLY ALA GLU SER VAL LEU GLN VAL PHE ARG GLU ALA LYSH ALA GLU GLY CYSH ASP ILE THR ILE ILE LEU SER",
+            "residue_ids": "1-89",
+            "formula_without_h": "C17N9O10S",
+            "is_solvant": false,
+            "is_ion": false,
+            "is_lipid": false,
+            "is_protein": true,
+            "protein_sequence": "KKAVINGEQIRSISDLHQTLKKELALPEYYGENLDALWDCLTGWVEYPLVLEWRQFEQSKQLTENGAESVLQVFREAKAEGCDITIILS",
+            "putative_pdb_structure": [],
+            "putative_name": [],
+            "comment": ""
+        },
+        {
+            "id": 2,
+            "number_of_atoms": 1,
+            "number_of_molecules": 6,
+            "residue_names": "NA+",
+            "residue_ids": "5843-5848",
+            "formula_without_h": "",
+            "is_solvant": false,
+            "is_ion": true,
+            "is_lipid": false,
+            "is_protein": false,
+            "protein_sequence": "",
+            "putative_pdb_structure": [],
+            "putative_name": "Sodium ion",
+            "comment": ""
+        },
+        {
+            "id": 3,
+            "number_of_atoms": 1,
+            "number_of_molecules": 5753,
+            "residue_names": "SOL",
+            "residue_ids": "90-5842",
+            "formula_without_h": "",
+            "is_solvant": true,
+            "is_ion": false,
+            "is_lipid": false,
+            "is_protein": false,
+            "protein_sequence": "",
+            "putative_pdb_structure": [],
+            "putative_name": "water TIP3P/spce solvant",
+            "comment": ""
+        }
+    ],
+    "resolution": "AA",
+    "date": "2024-06-26_19-44-38",
+    "execution_time_in_sec": "2.53",
+    "remark": "",
+    "file_path": "/home/karine/Documents/grodecoder/data/examples/barstar.gro",
+    "file_md5sum": "c87ff086ce16c0e422151a0f346e14e1"
+}
