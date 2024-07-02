@@ -16,6 +16,7 @@ import json
 import os
 import pandas as pd
 from pathlib import Path
+import subprocess
 import time
 
 import argparse
@@ -1149,6 +1150,26 @@ def guess_resolution(
     return "CG"
 
 
+def get_git_last_commit_date() -> str:
+    """Get the last commit date from the git repository."""
+    try:
+        command = "git show --no-patch --no-notes --pretty='%cI' HEAD"
+        git_date = subprocess.check_output(command.split()).decode("ascii").strip()
+        return git_date
+    except subprocess.CalledProcessError:
+        return ""
+
+
+def get_git_last_commit_hash() -> str:
+    """Get the last commit hash from the git repository."""
+    try:
+        command = "git show --no-patch --no-notes --pretty='%H' HEAD"
+        git_hash = subprocess.check_output(command.split()).decode("ascii").strip()
+        return git_hash
+    except subprocess.CalledProcessError:
+        return ""
+
+
 def export_inventory(
     graph_count_dict: dict[nx.classes.graph.Graph, dict[str, int]],
     resolution: str,
@@ -1251,6 +1272,8 @@ def export_inventory(
             "remark": remark_message,
             "file_path": str(relative_path),
             "file_md5sum": hashlib.md5(open(filename, "rb").read()).hexdigest(),
+            "git_last_commit_date": get_git_last_commit_date(),
+            "git_last_commit_hash": get_git_last_commit_hash(),
         }
 
     logger.info("Exporting inventory into JSON file...")
