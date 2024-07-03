@@ -38,6 +38,69 @@ AMINO_ACID_DICT["HSP"] = "H"
 AMINO_ACID_DICT["CYSP"] = "C"
 
 
+NUCLEIC_ACIDS_DNA = {"DA": 'A',
+                     "DT": 'T', 
+                     "DC": 'C', 
+                     "DG": 'G', 
+
+                     "DA5": 'A',
+                     "DA3": 'A',
+                     "DT5": 'T', 
+                     "DT3": 'T', 
+                     "DC5": 'C', 
+                     "DC3": 'C', 
+                     "DG5": 'G', 
+                     "DG3": 'G', 
+                    }
+
+
+NUCLEIC_ACIDS_RNA ={"RA": 'A', 
+                    "RU": 'U', 
+                    "RC": 'C', 
+                    "RG": 'G', 
+
+                    "RA5": 'A', 
+                    "RA3": 'A', 
+                    "RU5": 'U', 
+                    "RU3": 'U', 
+                    "RC5": 'C', 
+                    "RC3": 'C', 
+                    "RG5": 'G', 
+                    "RG3": 'G', 
+                    }
+
+
+NUCLEIC_ACIDS = {"DA": 'A',
+                "DT": 'T', 
+                "DC": 'C', 
+                "DG": 'G', 
+
+                "DA5": 'A',
+                "DA3": 'A',
+                "DT5": 'T', 
+                "DT3": 'T', 
+                "DC5": 'C', 
+                "DC3": 'C', 
+                "DG5": 'G', 
+                "DG3": 'G', 
+                
+                "RA": 'A', 
+                "RU": 'U', 
+                "RC": 'C', 
+                "RG": 'G', 
+
+                "RA5": 'A', 
+                "RA3": 'A', 
+                "RU5": 'U', 
+                "RU3": 'U', 
+                "RC5": 'C', 
+                "RC3": 'C', 
+                "RG5": 'G', 
+                "RG3": 'G', 
+                }
+
+
+
 # The reference for each res_name and atom_names in IONS_LIST:
 # https://github.com/gromacs/gromacs/tree/main/share/top
 # https://mad.ibcp.fr/explore?categories=MC%3A0006
@@ -125,6 +188,7 @@ SOLVANTS_LIST = [{"name": "water TIP3P solvant", "res_name": "TIP3", "atom_names
                  {"name": "water TIP3P solvant", "res_name": "SOL", "atom_names": ["OH2", "H1", "H2"]},
                  {"name": "water TIP3P/spce solvant", "res_name": "SOL", "atom_names": ["OW", "HW1", "HW2"]},  # TIP3
                  {"name": "water TIP4P/tip4pew solvant", "res_name": "SOL", "atom_names": ["OW", "HW1", "HW2", "MW"]},  # TIP4
+                 {"name": "water TIP4P/tip4pew solvant", "res_name": "SOL", "atom_names": ["OW1", "HW2", "HW3", "MW4"]},  # TIP4
                  {"name": "water TIP5P/tip5pe solvant", "res_name": "SOL", "atom_names": ["OW", "HW1", "HW2", "LP1", "LP2"]},  # TIP5
                  {"name": "urea solvant", "res_name": "URE", "atom_names": ["C", "O", "N1", "H11", "H12", "N2", "H21", "H22"]},
                  {"name": "organic solvant methanol/OPLS", "res_name": "MET", "atom_names": ["C", "H", "H", "H", "OA", "HO"]},

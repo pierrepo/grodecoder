@@ -1224,6 +1224,8 @@ def export_inventory(
                     putative_pdb = information["putative_pdb"]
             elif molecular_type in ["lipid", "ion", "solvant"]:
                 putative_name = information["name"]
+            elif molecular_type in ["DNA", "RNA"]:
+                protein_sequence = information["protein_sequence"]
         if "comment" in information.keys():
             comment = information["comment"]
 
@@ -1297,6 +1299,31 @@ def is_met(graph: nx.classes.graph.Graph) -> bool:
     if res_name == "MET" and nb_atom == 2:
         return True
     return False
+
+
+def is_nucleic_acids(graph: nx.classes.graph.Graph) -> bool:
+    set_key_amino_acid_mda = set(mol_def.NUCLEIC_ACIDS.keys())
+    set_res_name_graph = set(nx.get_node_attributes(graph, "residue_name").values())
+    return len(set_key_amino_acid_mda.intersection(set_res_name_graph)) > 3
+
+
+def extract_nucleic_acids_sequence(graph: nx.classes.graph.Graph) -> str:
+    logger.info("Extracting nucleic acids sequence...")
+    info_seq = {}
+    nucleic_acids_sequence = []
+
+    residue_pairs = zip(
+        nx.get_node_attributes(graph, "residue_id").values(),
+        nx.get_node_attributes(graph, "residue_name").values(),
+    )
+    residue_pairs_dict = dict(residue_pairs)
+    residue_names = [residue_pairs_dict[key] for key in sorted(residue_pairs_dict)]
+    for resname in residue_names:
+        nucleic_acids_sequence.append(mol_def.NUCLEIC_ACIDS.get(resname, "?"))
+
+    info_seq["sequence"] = "".join(nucleic_acids_sequence)
+    info_seq["molecular_type"] = "RNA" if residue_names[0][0]=='R' else "DNA"
+    return info_seq
 
 
 def main(
@@ -1381,6 +1408,11 @@ def main(
                 graph_count_dict[graph]["putative_pdb"] = list_dict_info_pdb
         elif is_lipid(resolution, graph, key):
             graph_count_dict[graph]["molecular_type"] = "lipid"
+        elif is_nucleic_acids(graph):
+            na_sequence_molecular_type = extract_nucleic_acids_sequence(graph)
+            graph_count_dict[graph]["molecular_type"] = na_sequence_molecular_type["molecular_type"]
+            graph_count_dict[graph]["protein_sequence"] = na_sequence_molecular_type["sequence"]
+
     export_protein_sequence_into_FASTA(protein_sequence_dict, f"{filename}.fasta")
 
     # execution_time in seconds
