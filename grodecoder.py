@@ -1090,9 +1090,8 @@ def is_lipid(
         if "formula_no_h" in dict_count.keys():
             formula_graph = dict_count["formula_no_h"]
             selected_row = lipid_csml_charmm_gui.loc[
-                (lipid_csml_charmm_gui["Alias"] == res_name_graph)
-                & (lipid_csml_charmm_gui["Formula"] == formula_graph)
-            ]
+                (lipid_csml_charmm_gui["Alias"].apply(lambda x: res_name_graph in x)) 
+                & (lipid_csml_charmm_gui["Formula"] == formula_graph)]
 
             # Check if the selection match a row with this condition
             if not selected_row.empty:
