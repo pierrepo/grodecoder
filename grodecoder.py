@@ -1318,7 +1318,7 @@ def main(
         query_pdb: boolean
             If we want to have informations (PDB ID, name, organism) about the protein identified in the PDB API. By default at False.
     """
-    start_time = time.perf_counter()
+    start_time = time.perf_counter() 
 
     molecular_system = remove_hydrogene(input_file_path)
     molecular_system, count_ion_solvant = count_remove_ion_solvant(
