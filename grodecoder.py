@@ -1194,7 +1194,7 @@ def export_inventory(
     for index_graph, (graph, information) in enumerate(
         graph_count_dict.items(), start=1
     ):
-        formula, molecular_type, protein_sequence, remark_message, comment = (
+        formula, molecular_type, sequence, remark_message, comment = (
             "",
             "unknown",
             "",
@@ -1219,13 +1219,13 @@ def export_inventory(
         if "molecular_type" in information.keys():
             molecular_type = information["molecular_type"]
             if molecular_type == "protein":
-                protein_sequence = information["protein_sequence"]
+                sequence = information["sequence"]
                 if "putative_pdb" in information.keys():
                     putative_pdb = information["putative_pdb"]
             elif molecular_type in ["lipid", "ion", "solvant"]:
                 putative_name = information["name"]
             elif molecular_type in ["DNA", "RNA"]:
-                protein_sequence = information["protein_sequence"]
+                sequence = information["sequence"]
         if "comment" in information.keys():
             comment = information["comment"]
 
@@ -1237,7 +1237,7 @@ def export_inventory(
             "residue_ids": " ".join(information["res_id_interval"]),
             "formula_without_h": formula,
             "molecular_type": molecular_type,
-            "protein_sequence": protein_sequence,
+            "sequence": sequence,
             "putative_pdb": putative_pdb,
             "putative_name": putative_name,
             "comment": comment,
@@ -1322,7 +1322,7 @@ def extract_nucleic_acids_sequence(graph: nx.classes.graph.Graph) -> str:
         nucleic_acids_sequence.append(mol_def.NUCLEIC_ACIDS.get(resname, "?"))
 
     info_seq["sequence"] = "".join(nucleic_acids_sequence)
-    info_seq["molecular_type"] = "RNA" if residue_names[0][0]=='R' else "DNA"
+    info_seq["molecular_type"] = "nucleic acids"
     return info_seq
 
 
@@ -1392,7 +1392,7 @@ def main(
 
             protein_sequence_dict[index_graph] = sequence_nbres
             graph_count_dict[graph]["molecular_type"] = "protein"
-            graph_count_dict[graph]["protein_sequence"] = sequence
+            graph_count_dict[graph]["sequence"] = sequence
 
             list_dict_info_pdb = []
             if query_pdb:
@@ -1411,7 +1411,7 @@ def main(
         elif is_nucleic_acids(graph):
             na_sequence_molecular_type = extract_nucleic_acids_sequence(graph)
             graph_count_dict[graph]["molecular_type"] = na_sequence_molecular_type["molecular_type"]
-            graph_count_dict[graph]["protein_sequence"] = na_sequence_molecular_type["sequence"]
+            graph_count_dict[graph]["sequence"] = na_sequence_molecular_type["sequence"]
 
     export_protein_sequence_into_FASTA(protein_sequence_dict, f"{filename}.fasta")
 

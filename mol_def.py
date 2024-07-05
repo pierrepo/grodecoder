@@ -38,6 +38,9 @@ AMINO_ACID_DICT["HSP"] = "H"
 AMINO_ACID_DICT["CYSP"] = "C"
 
 
+# The resname for DNA and RNA according rna.rtp and dna.rtp files of each force field 
+# (mostly AMBER and CHARMM, the other don't have these files) 
+# in https://github.com/gromacs/gromacs/blob/main/share/top/)
 NUCLEIC_ACIDS_DNA = {"DA": 'A',
                      "DT": 'T', 
                      "DC": 'C', 
@@ -52,7 +55,6 @@ NUCLEIC_ACIDS_DNA = {"DA": 'A',
                      "DG5": 'G', 
                      "DG3": 'G', 
                     }
-
 
 NUCLEIC_ACIDS_RNA ={"RA": 'A', 
                     "RU": 'U', 
@@ -69,36 +71,7 @@ NUCLEIC_ACIDS_RNA ={"RA": 'A',
                     "RG3": 'G', 
                     }
 
-
-NUCLEIC_ACIDS = {"DA": 'A',
-                "DT": 'T', 
-                "DC": 'C', 
-                "DG": 'G', 
-
-                "DA5": 'A',
-                "DA3": 'A',
-                "DT5": 'T', 
-                "DT3": 'T', 
-                "DC5": 'C', 
-                "DC3": 'C', 
-                "DG5": 'G', 
-                "DG3": 'G', 
-                
-                "RA": 'A', 
-                "RU": 'U', 
-                "RC": 'C', 
-                "RG": 'G', 
-
-                "RA5": 'A', 
-                "RA3": 'A', 
-                "RU5": 'U', 
-                "RU3": 'U', 
-                "RC5": 'C', 
-                "RC3": 'C', 
-                "RG5": 'G', 
-                "RG3": 'G', 
-                }
-
+NUCLEIC_ACIDS = NUCLEIC_ACIDS_DNA | NUCLEIC_ACIDS_RNA
 
 
 # The reference for each res_name and atom_names in IONS_LIST:

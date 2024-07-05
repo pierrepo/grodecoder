@@ -61,11 +61,8 @@ def test_with_param(path_structure_file, path_reference_json):
         "residue_names",
         "residue_ids",
         "formula_without_h",
-        "is_solvant",
-        "is_ion",
-        "is_lipid",
-        "is_protein",
-        "protein_sequence",
+        "molecular_type",
+        "sequence",
         "comment",
     ]
 
