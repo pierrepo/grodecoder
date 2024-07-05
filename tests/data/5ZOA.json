@@ -8,7 +8,7 @@
             "residue_ids": "1-261",
             "formula_without_h": "C17N9O10S2",
             "molecular_type": "protein",
-            "protein_sequence": "ANPYERGPNPTDALLEASSGPFSVSEENVSRLSASGFGGGTIYYPRENNTYGAVAISPGYTGTEASIAWLGERIASHGFVVITIDTITTLDQPDSRAEQLNAALNHMINRASSTVRSRIDSSRLAVMGHSMGGGGTLRLASQRPDLKAAIPLTPWHLNKNWSSVTVPTLIIGADLDTIAPVATHAKPFYNSLPSSISKAYLELDGATHFAPNIPNKIIGKYSVAWLKRFVDNDTRYTQFLCPGPRDGLFGEVEEYRSTCPF",
+            "sequence": "ANPYERGPNPTDALLEASSGPFSVSEENVSRLSASGFGGGTIYYPRENNTYGAVAISPGYTGTEASIAWLGERIASHGFVVITIDTITTLDQPDSRAEQLNAALNHMINRASSTVRSRIDSSRLAVMGHSMGGGGTLRLASQRPDLKAAIPLTPWHLNKNWSSVTVPTLIIGADLDTIAPVATHAKPFYNSLPSSISKAYLELDGATHFAPNIPNKIIGKYSVAWLKRFVDNDTRYTQFLCPGPRDGLFGEVEEYRSTCPF",
             "putative_pdb": [],
             "putative_name": [],
             "comment": ""
@@ -21,7 +21,7 @@
             "residue_ids": "356-370",
             "formula_without_h": "C29O",
             "molecular_type": "lipid",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": [
                 "STIGMASTEROL"
@@ -36,7 +36,7 @@
             "residue_ids": "309-323",
             "formula_without_h": "C30O",
             "molecular_type": "unknown",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": [],
             "comment": ""
@@ -49,7 +49,7 @@
             "residue_ids": "324-355",
             "formula_without_h": "C29O",
             "molecular_type": "lipid",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": [
                 "BETA-SITOSTEROL"
@@ -64,7 +64,7 @@
             "residue_ids": "450-481",
             "formula_without_h": "C40O10P",
             "molecular_type": "unknown",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": [],
             "comment": ""
@@ -77,7 +77,7 @@
             "residue_ids": "371-402",
             "formula_without_h": "C41O13P",
             "molecular_type": "lipid",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": [
                 "2,3 DIPALMITOYL-D-GLYCERO-1-PHOSPHATIDYLCHOLINE"
@@ -92,7 +92,7 @@
             "residue_ids": "514-545",
             "formula_without_h": "C43O16P2",
             "molecular_type": "unknown",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": [],
             "comment": ""
@@ -105,7 +105,7 @@
             "residue_ids": "482-513",
             "formula_without_h": "C81O17P2",
             "molecular_type": "lipid",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": [
                 "TETRALINOLEOYL CARDIOLIPIN WITH HEAD GROUP CHARGE = -2"
@@ -120,7 +120,7 @@
             "residue_ids": "546-579",
             "formula_without_h": "C31O4",
             "molecular_type": "lipid",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": [
                 "CHOLESTERYL HEMISUCCINATE DEPROTONATED Y01"
@@ -135,7 +135,7 @@
             "residue_ids": "262-308",
             "formula_without_h": "C27O",
             "molecular_type": "lipid",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": [
                 "CHOLESTEROL NAME TO AVOID CONFLICT WITH CHOLINE"
@@ -150,7 +150,7 @@
             "residue_ids": "403-449",
             "formula_without_h": "C30O10P",
             "molecular_type": "lipid",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": [
                 "2,3 DILAUROYL-D-GLYCERO-1-PHOSPHATIDYLGLYCEROL"
@@ -165,7 +165,7 @@
             "residue_ids": "985-1033",
             "formula_without_h": "",
             "molecular_type": "ion",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": "Calcium ion",
             "comment": ""
@@ -178,7 +178,7 @@
             "residue_ids": "936-984",
             "formula_without_h": "",
             "molecular_type": "ion",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": "Sodium ion",
             "comment": ""
@@ -191,7 +191,7 @@
             "residue_ids": "1034-1229",
             "formula_without_h": "",
             "molecular_type": "ion",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": "chloride ion",
             "comment": ""
@@ -204,7 +204,7 @@
             "residue_ids": "580-935",
             "formula_without_h": "",
             "molecular_type": "ion",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": "Potassium ion",
             "comment": ""
@@ -217,18 +217,18 @@
             "residue_ids": "1230-19168",
             "formula_without_h": "",
             "molecular_type": "solvant",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": "water TIP3P solvant",
             "comment": ""
         }
     ],
     "resolution": "AA",
-    "date": "2024-07-03_13-32-38",
-    "execution_time_in_sec": "31.37",
+    "date": "2024-07-05_14-15-41",
+    "execution_time_in_sec": "28.69",
     "remark": "",
     "file_path": "data/examples/5ZOA.gro",
     "file_md5sum": "ca2ed2d3f69e80fc5b135107fa4cf060",
-    "git_last_commit_date": "'2024-07-02T18:57:54+02:00'",
-    "git_last_commit_hash": "'0b9536305b9197af897c52adbd6a238e238991c3'"
+    "git_last_commit_date": "'2024-07-03T20:23:24+02:00'",
+    "git_last_commit_hash": "'f44166da6e94e3ab9b6328f6ddf8c129e94c2000'"
 }
