@@ -36,10 +36,10 @@ import search_into_PDB
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 filepath_CSML = os.path.join(current_dir, "data/databases/lipid_CHARMM_GUI_CSML.csv")
-CSML_CHARMM_GUI = pd.read_csv(filepath_CSML, sep=";")
+CSML_CHARMM_GUI = pd.read_csv(filepath_CSML, sep=",")
 
 filepath_MAD = os.path.join(current_dir, "data/databases/lipid_MAD.csv")
-MAD_DB = pd.read_csv(filepath_MAD, sep=";")
+MAD_DB = pd.read_csv(filepath_MAD, sep=",")
 
 
 def get_distance_matrix_between_atom(
@@ -1207,7 +1207,7 @@ def export_inventory(
     for index_graph, (graph, information) in enumerate(
         graph_count_dict.items(), start=1
     ):
-        formula, molecular_type, protein_sequence, remark_message, comment = (
+        formula, molecular_type, sequence, remark_message, comment = (
             "",
             "unknown",
             "",
@@ -1232,11 +1232,13 @@ def export_inventory(
         if "molecular_type" in information.keys():
             molecular_type = information["molecular_type"]
             if molecular_type == "protein":
-                protein_sequence = information["protein_sequence"]
+                sequence = information["sequence"]
                 if "putative_pdb" in information.keys():
                     putative_pdb = information["putative_pdb"]
             elif molecular_type in ["lipid", "ion", "solvant"]:
                 putative_name = information["name"]
+            elif molecular_type == "nucleic acids":
+                sequence = information["sequence"]
         if "comment" in information.keys():
             comment = information["comment"]
 
@@ -1248,7 +1250,7 @@ def export_inventory(
             "residue_ids": " ".join(information["res_id_interval"]),
             "formula_without_h": formula,
             "molecular_type": molecular_type,
-            "protein_sequence": protein_sequence,
+            "sequence": sequence,
             "putative_pdb": putative_pdb,
             "putative_name": putative_name,
             "comment": comment,
@@ -1310,6 +1312,31 @@ def is_met(graph: nx.classes.graph.Graph) -> bool:
     if res_name == "MET" and nb_atom == 2:
         return True
     return False
+
+
+def is_nucleic_acids(graph: nx.classes.graph.Graph) -> bool:
+    set_key_amino_acid_mda = set(mol_def.NUCLEIC_ACIDS.keys())
+    set_res_name_graph = set(nx.get_node_attributes(graph, "residue_name").values())
+    return len(set_key_amino_acid_mda.intersection(set_res_name_graph)) > 3
+
+
+def extract_nucleic_acids_sequence(graph: nx.classes.graph.Graph) -> str:
+    logger.info("Extracting nucleic acids sequence...")
+    info_seq = {}
+    nucleic_acids_sequence = []
+
+    residue_pairs = zip(
+        nx.get_node_attributes(graph, "residue_id").values(),
+        nx.get_node_attributes(graph, "residue_name").values(),
+    )
+    residue_pairs_dict = dict(residue_pairs)
+    residue_names = [residue_pairs_dict[key] for key in sorted(residue_pairs_dict)]
+    for resname in residue_names:
+        nucleic_acids_sequence.append(mol_def.NUCLEIC_ACIDS.get(resname, "?"))
+
+    info_seq["sequence"] = "".join(nucleic_acids_sequence)
+    info_seq["molecular_type"] = "nucleic acids"
+    return info_seq
 
 
 def main(
@@ -1378,7 +1405,7 @@ def main(
 
             protein_sequence_dict[index_graph] = sequence_nbres
             graph_count_dict[graph]["molecular_type"] = "protein"
-            graph_count_dict[graph]["protein_sequence"] = sequence
+            graph_count_dict[graph]["sequence"] = sequence
 
             list_dict_info_pdb = []
             if query_pdb:
@@ -1394,6 +1421,11 @@ def main(
                 graph_count_dict[graph]["putative_pdb"] = list_dict_info_pdb
         elif is_lipid(resolution, graph, key):
             graph_count_dict[graph]["molecular_type"] = "lipid"
+        elif is_nucleic_acids(graph):
+            na_sequence_molecular_type = extract_nucleic_acids_sequence(graph)
+            graph_count_dict[graph]["molecular_type"] = na_sequence_molecular_type["molecular_type"]
+            graph_count_dict[graph]["sequence"] = na_sequence_molecular_type["sequence"]
+
     export_protein_sequence_into_FASTA(protein_sequence_dict, f"{filename}.fasta")
 
     # execution_time in seconds
