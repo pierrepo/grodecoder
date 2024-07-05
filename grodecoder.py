@@ -36,10 +36,10 @@ import search_into_PDB
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 filepath_CSML = os.path.join(current_dir, "data/databases/lipid_CHARMM_GUI_CSML.csv")
-CSML_CHARMM_GUI = pd.read_csv(filepath_CSML, sep=";")
+CSML_CHARMM_GUI = pd.read_csv(filepath_CSML, sep=",")
 
 filepath_MAD = os.path.join(current_dir, "data/databases/lipid_MAD.csv")
-MAD_DB = pd.read_csv(filepath_MAD, sep=";")
+MAD_DB = pd.read_csv(filepath_MAD, sep=",")
 
 
 def get_distance_matrix_between_atom(
