@@ -1098,7 +1098,7 @@ def is_lipid(
             # (https://manual.gromacs.org/archive/5.0.3/online/gro.html),
             # - in PDB files, residue names are trimed at 3 characters
             # (https://www.cgl.ucsf.edu/chimera/docs/UsersGuide/tutorials/pdbintro.html).
-            # Thus we check that rsidue name (called alias) from the database starts
+            # Thus we check that residue name (called alias) from the database starts
             # with the residue name from the structure file.
             # In case of ambiguity (for instance SB3-10, SB3-12, and SB3-14,
             # all trimed at SB3-1 in a GRO file, the formula is used to solve this ambiguity.
