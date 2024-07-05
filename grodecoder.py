@@ -1224,7 +1224,7 @@ def export_inventory(
                     putative_pdb = information["putative_pdb"]
             elif molecular_type in ["lipid", "ion", "solvant"]:
                 putative_name = information["name"]
-            elif molecular_type in ["DNA", "RNA"]:
+            elif molecular_type == "nucleic acids":
                 sequence = information["sequence"]
         if "comment" in information.keys():
             comment = information["comment"]
