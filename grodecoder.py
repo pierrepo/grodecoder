@@ -1090,14 +1090,16 @@ def is_lipid(
         if "formula_no_h" in dict_count.keys():
             formula_graph = dict_count["formula_no_h"]
 
-
-            # Sometimes the file alias and database alias do not match (because the GRO file trims 
-            # the name if it's more than 4 characters).
-            # So with the last method, even if the formula is in the database but the resname/alias does not match (because was cut) 
-            # it will not select a lipid, then the molecular_type will stay unknown. 
-            # So now we check if the resname/alias from the database start with the one in the file.
-            # For example: SB3-14 is cut to SB3-1 in the GRO file 4ZRY.gro, and I know it's 
-            # this one (because there are also SB3-10 and SB3-12) because the formula matches.
+            # Sometimes, the residue name found in the database does not match 
+            # with the one found in the strcture file, because:
+            # - in GRO files, residue names are trimed at 5 characters 
+            #   (https://manual.gromacs.org/archive/5.0.3/online/gro.html),
+            # - in PDB files, residue names are trimed at 3 characters 
+            # (https://www.cgl.ucsf.edu/chimera/docs/UsersGuide/tutorials/pdbintro.html).
+            # Thus we check that rsidue name (called alias) from the database starts 
+            # with the residue name from the structure file.
+            # In case of ambiguity (for instance SB3-10, SB3-12, and SB3-14,
+            # all trimed at SB3-1 in a GRO file, the formula is used to solve this ambiguity.
             selected_row = lipid_csml_charmm_gui.loc[
                 (lipid_csml_charmm_gui["Alias"].str.startswith(res_name_graph))
                 & (lipid_csml_charmm_gui["Formula"] == formula_graph)]
