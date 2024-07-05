@@ -16,7 +16,7 @@ import grodecoder as gd
     [
         (os.path.join(parent_dir, "data/examples/1BRS.gro"), "data/1BRS.json"),
         (
-            os.path.join(parent_dir, "data/examples/1QJ8_ETH_ACN_MET_URE.pdb"),
+            os.path.join(parent_dir, "data/examples/1QJ8_ETH_ACN_MET_URE_SOL.pdb"),
             "data/1QJ8_PACKMOL.json",
         ),
         (
@@ -44,6 +44,7 @@ import grodecoder as gd
             os.path.join(parent_dir, "data/examples/noriega_CG_CRD_3CAL.gro"),
             "data/3CAL_CG.json",
         ),
+        (os.path.join(parent_dir, "data/examples/2MAT.gro"),"data/2MAT.json",),
     ],
 )
 def test_with_param(path_structure_file, path_reference_json):
