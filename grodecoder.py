@@ -861,7 +861,9 @@ def find_ion_solvant(
 def count_remove_ion_solvant(
     universe: mda.core.universe.Universe,
     input_filepath: str,
-) -> tuple[mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int | str]]]:
+) -> tuple[
+    mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int | str]]
+]:
     """Count and remove ions and solvents from the MDAnalysis Universe return by
     the function find_ion_solvant().
 
@@ -1062,7 +1064,7 @@ def export_protein_sequence_into_FASTA(
 
 
 def is_lipid(
-    resolution: str, graph: nx.classes.graph.Graph, dict_count: dict[str, int|str]
+    resolution: str, graph: nx.classes.graph.Graph, dict_count: dict[str, int | str]
 ) -> bool:
     """Determines if the given graph represents a lipid.
 
@@ -1090,19 +1092,20 @@ def is_lipid(
         if "formula_no_h" in dict_count.keys():
             formula_graph = dict_count["formula_no_h"]
 
-            # Sometimes, the residue name found in the database does not match 
+            # Sometimes, the residue name found in the database does not match
             # with the one found in the strcture file, because:
-            # - in GRO files, residue names are trimed at 5 characters 
-            #   (https://manual.gromacs.org/archive/5.0.3/online/gro.html),
-            # - in PDB files, residue names are trimed at 3 characters 
+            # - in GRO files, residue names are trimed at 5 characters
+            # (https://manual.gromacs.org/archive/5.0.3/online/gro.html),
+            # - in PDB files, residue names are trimed at 3 characters
             # (https://www.cgl.ucsf.edu/chimera/docs/UsersGuide/tutorials/pdbintro.html).
-            # Thus we check that rsidue name (called alias) from the database starts 
+            # Thus we check that rsidue name (called alias) from the database starts
             # with the residue name from the structure file.
             # In case of ambiguity (for instance SB3-10, SB3-12, and SB3-14,
             # all trimed at SB3-1 in a GRO file, the formula is used to solve this ambiguity.
             selected_row = lipid_csml_charmm_gui.loc[
                 (lipid_csml_charmm_gui["Alias"].str.startswith(res_name_graph))
-                & (lipid_csml_charmm_gui["Formula"] == formula_graph)]
+                & (lipid_csml_charmm_gui["Formula"] == formula_graph)
+            ]
 
             # Check if the selection match a row with this condition
             if not selected_row.empty:
@@ -1328,7 +1331,7 @@ def main(
         query_pdb: boolean
             If we want to have informations (PDB ID, name, organism) about the protein identified in the PDB API. By default at False.
     """
-    start_time = time.perf_counter() 
+    start_time = time.perf_counter()
 
     molecular_system = remove_hydrogene(input_file_path)
     molecular_system, count_ion_solvant = count_remove_ion_solvant(
