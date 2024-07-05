@@ -1089,8 +1089,17 @@ def is_lipid(
         ]
         if "formula_no_h" in dict_count.keys():
             formula_graph = dict_count["formula_no_h"]
+
+
+            # Sometimes the file alias and database alias do not match (because the GRO file trims 
+            # the name if it's more than 4 characters).
+            # So with the last method, even if the formula is in the database but the resname/alias does not match (because was cut) 
+            # it will not select a lipid, then the molecular_type will stay unknown. 
+            # So now we check if the resname/alias from the database start with the one in the file.
+            # For example: SB3-14 is cut to SB3-1 in the GRO file 4ZRY.gro, and I know it's 
+            # this one (because there are also SB3-10 and SB3-12) because the formula matches.
             selected_row = lipid_csml_charmm_gui.loc[
-                (lipid_csml_charmm_gui["Alias"].str.contains(res_name_graph))
+                (lipid_csml_charmm_gui["Alias"].str.startswith(res_name_graph))
                 & (lipid_csml_charmm_gui["Formula"] == formula_graph)]
 
             # Check if the selection match a row with this condition
