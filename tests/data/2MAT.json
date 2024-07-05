@@ -2,13 +2,13 @@
     "inventory": [
         {
             "id": 2,
-            "number_of_atoms": 1158,
+            "number_of_atoms": 1991,
             "number_of_molecules": 1,
-            "residue_names": "ALA THR SER THR VAL THR GLY GLY TYR ALA GLN SER ASP ALA GLN GLY GLN MET ASN LYS MET GLY GLY PHE ASN LEU LYS TYR ARG TYR GLU GLU ASP ASN SER PRO LEU GLY VAL ILE GLY SER PHE THR TYR THR GLU LYS SER ARG THR ALA SER SER GLY ASP TYR ASN LYS ASN GLN TYR TYR GLY ILE THR ALA GLY PRO ALA TYR ARG ILE ASN ASP TRP ALA SER ILE TYR GLY VAL VAL GLY VAL GLY TYR GLY LYS PHE GLN THR THR GLU TYR PRO THR TYR LYS ASN ASP THR SER ASP TYR GLY PHE SER TYR GLY ALA GLY LEU GLN PHE ASN PRO MET GLU ASN VAL ALA LEU ASP PHE SER TYR GLU GLN SER ARG ILE ARG SER VAL ASP VAL GLY THR TRP ILE ALA GLY VAL GLY TYR ARG PHE",
-            "residue_ids": "1-148",
-            "formula_without_h": "C17N8O9S",
+            "residue_names": "ALA ILE SER ILE LYS THR PRO GLU ASP ILE GLU LYS MET ARG VAL ALA GLY ARG LEU ALA ALA GLU VAL LEU GLU MET ILE GLU PRO TYR VAL LYS PRO GLY VAL SER THR GLY GLU LEU ASP ARG ILE CYS ASN ASP TYR ILE VAL ASN GLU GLN HIS ALA VAL SER ALA CYS LEU GLY TYR HIS GLY TYR PRO LYS SER VAL CYS ILE SER ILE ASN GLU VAL VAL CYS HIS GLY ILE PRO ASP ASP ALA LYS LEU LEU LYS ASP GLY ASP ILE VAL ASN ILE ASP VAL THR VAL ILE LYS ASP GLY PHE HIS GLY ASP THR SER LYS MET PHE ILE VAL GLY LYS PRO THR ILE MET GLY GLU ARG LEU CYS ARG ILE THR GLN GLU SER LEU TYR LEU ALA LEU ARG MET VAL LYS PRO GLY ILE ASN LEU ARG GLU ILE GLY ALA ALA ILE GLN LYS PHE VAL GLU ALA GLU GLY PHE SER VAL VAL ARG GLU TYR CYS GLY HIS GLY ILE GLY GLN GLY PHE HIS GLU GLU PRO GLN VAL LEU HIS TYR ASP SER ARG GLU THR ASN VAL VAL LEU LYS PRO GLY MET THR PHE THR ILE GLU PRO MET VAL ASN ALA GLY LYS LYS GLU ILE ARG THR MET LYS ASP GLY TRP THR VAL LYS THR LYS ASP ARG SER LEU SER ALA GLN TYR GLU HIS THR ILE VAL VAL THR ASP ASN GLY CYS GLU ILE LEU THR LEU ARG LYS ASP ASP THR ILE PRO ALA ILE ILE SER HIS ASP",
+            "residue_ids": "2-263",
+            "formula_without_h": "C17N9O8S2",
             "molecular_type": "protein",
-            "protein_sequence": "ATSTVTGGYAQSDAQGQMNKMGGFNLKYRYEEDNSPLGVIGSFTYTEKSRTASSGDYNKNQYYGITAGPAYRINDWASIYGVVGVGYGKFQTTEYPTYKNDTSDYGFSYGAGLQFNPMENVALDFSYEQSRIRSVDVGTWIAGVGYRF",
+            "protein_sequence": "AISIKTPEDIEKMRVAGRLAAEVLEMIEPYVKPGVSTGELDRICNDYIVNEQHAVSACLGYHGYPKSVCISINEVVCHGIPDDAKLLKDGDIVNIDVTVIKDGFHGDTSKMFIVGKPTIMGERLCRITQESLYLALRMVKPGINLREIGAAIQKFVEAEGFSVVREYCGHGIGQGFHEEPQVLHYDSRETNVVLKPGMTFTIEPMVNAGKKEIRTMKDGWTVKTKDRSLSAQYEHTIVVTDNGCEILTLRKDDTIPAIISHD",
             "putative_pdb": [],
             "putative_name": [],
             "comment": ""
@@ -64,27 +64,14 @@
             "putative_pdb": [],
             "putative_name": "organic solvant ethanol/OPLS",
             "comment": ""
-        },
-        {
-            "id": 6,
-            "number_of_atoms": 3,
-            "number_of_molecules": 200,
-            "residue_names": "ACN",
-            "residue_ids": "1-200",
-            "formula_without_h": "",
-            "molecular_type": "solvant",
-            "protein_sequence": "",
-            "putative_pdb": [],
-            "putative_name": "acetonitrile",
-            "comment": ""
         }
     ],
     "resolution": "AA",
-    "date": "2024-07-05_17-51-04",
-    "execution_time_in_sec": "1.46",
+    "date": "2024-07-05_16-22-09",
+    "execution_time_in_sec": "2.66",
     "remark": "",
-    "file_path": "/home/karine/Documents/grodecoder/fileGRO/PACKMOL/final/1QJ8_ETH_ACN_MET_URE_SOL.pdb",
-    "file_md5sum": "928208afaebf97f45d4d8096b7c9ab41",
-    "git_last_commit_date": "'2024-07-05T17:49:36+02:00'",
-    "git_last_commit_hash": "'2e92ce086604746475f0def94b7fb23fb7bb597b'"
+    "file_path": "/home/karine/Documents/grodecoder/fileGRO/PACKMOL/2MAT/output.pdb",
+    "file_md5sum": "a9ac84cf0f98261c9fa9ff4fed8cd0ea",
+    "git_last_commit_date": "'2024-07-05T16:08:51+02:00'",
+    "git_last_commit_hash": "'adaf52e6bb74b5a06f0f9b15897a3464aeaf44d9'"
 }
