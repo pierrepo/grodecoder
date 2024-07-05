@@ -148,7 +148,7 @@ def treat_PDB_ID_to_macromolecular_names(PDB_ID_polymer_entity_id: str) -> set[s
         set
             A set containing unique macromolecular names extracted from the specified PDB IDs and polymer entity IDs.
     """
-    set_macromolecular_names = set()
+    set_macromolecular_names: set[str] = set()
 
     for ID_entity in PDB_ID_polymer_entity_id:
         pdb_ID, polymer_entity_id = ID_entity.split("_")
