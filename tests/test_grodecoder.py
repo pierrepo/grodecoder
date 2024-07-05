@@ -38,11 +38,11 @@ import grodecoder as gd
         (os.path.join(parent_dir, "data/examples/DMPC_PI.gro"), "data/DMPC_PI.json"),
         (
             os.path.join(parent_dir, "data/examples/noriega_AA_CRD_3CAL.gro"),
-            "data/noriega_AA.json",
+            "data/3CAL_AA.json",
         ),
         (
             os.path.join(parent_dir, "data/examples/noriega_CG_CRD_3CAL.gro"),
-            "data/noriega_CG.json",
+            "data/3CAL_CG.json",
         ),
         (os.path.join(parent_dir, "data/examples/2MAT.gro"),"data/2MAT.json",),
     ],
@@ -62,10 +62,7 @@ def test_with_param(path_structure_file, path_reference_json):
         "residue_names",
         "residue_ids",
         "formula_without_h",
-        "is_solvant",
-        "is_ion",
-        "is_lipid",
-        "is_protein",
+        "molecular_type",
         "protein_sequence",
         "comment",
     ]

@@ -80,11 +80,11 @@
         }
     ],
     "resolution": "AA",
-    "date": "2024-07-05_17-51-04",
-    "execution_time_in_sec": "1.46",
+    "date": "2024-07-03_13-27-12",
+    "execution_time_in_sec": "1.44",
     "remark": "",
-    "file_path": "/home/karine/Documents/grodecoder/fileGRO/PACKMOL/final/1QJ8_ETH_ACN_MET_URE_SOL.pdb",
-    "file_md5sum": "928208afaebf97f45d4d8096b7c9ab41",
-    "git_last_commit_date": "'2024-07-05T17:49:36+02:00'",
-    "git_last_commit_hash": "'2e92ce086604746475f0def94b7fb23fb7bb597b'"
+    "file_path": "data/examples/1QJ8_ETH_ACN_MET_URE.pdb",
+    "file_md5sum": "aaa798d748bed40b23d7fe1a0d03b37c",
+    "git_last_commit_date": "'2024-07-02T18:57:54+02:00'",
+    "git_last_commit_hash": "'0b9536305b9197af897c52adbd6a238e238991c3'"
 }
