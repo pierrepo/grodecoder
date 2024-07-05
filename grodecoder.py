@@ -36,10 +36,10 @@ import search_into_PDB
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 filepath_CSML = os.path.join(current_dir, "data/databases/lipid_CHARMM_GUI_CSML.csv")
-CSML_CHARMM_GUI = pd.read_csv(filepath_CSML, sep=";")
+CSML_CHARMM_GUI = pd.read_csv(filepath_CSML, sep=",")
 
 filepath_MAD = os.path.join(current_dir, "data/databases/lipid_MAD.csv")
-MAD_DB = pd.read_csv(filepath_MAD, sep=";")
+MAD_DB = pd.read_csv(filepath_MAD, sep=",")
 
 
 def get_distance_matrix_between_atom(
@@ -1090,7 +1090,7 @@ def is_lipid(
         if "formula_no_h" in dict_count.keys():
             formula_graph = dict_count["formula_no_h"]
             selected_row = lipid_csml_charmm_gui.loc[
-                (lipid_csml_charmm_gui["Alias"] == res_name_graph)
+                (lipid_csml_charmm_gui["Alias"].str.contains(res_name_graph))
                 & (lipid_csml_charmm_gui["Formula"] == formula_graph)
             ]
 
@@ -1345,7 +1345,7 @@ def main(
         query_pdb: boolean
             If we want to have informations (PDB ID, name, organism) about the protein identified in the PDB API. By default at False.
     """
-    start_time = time.perf_counter()
+    start_time = time.perf_counter() 
 
     molecular_system = remove_hydrogene(input_file_path)
     molecular_system, count_ion_solvant = count_remove_ion_solvant(

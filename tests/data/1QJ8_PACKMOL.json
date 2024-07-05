@@ -28,6 +28,19 @@
         },
         {
             "id": 3,
+            "number_of_atoms": 1,
+            "number_of_molecules": 200,
+            "residue_names": "SOL",
+            "residue_ids": "1-200",
+            "formula_without_h": "",
+            "molecular_type": "solvant",
+            "protein_sequence": "",
+            "putative_pdb": [],
+            "putative_name": "water TIP3P/spce solvant",
+            "comment": ""
+        },
+        {
+            "id": 4,
             "number_of_atoms": 4,
             "number_of_molecules": 200,
             "residue_names": "URE",
@@ -54,6 +67,19 @@
         },
         {
             "id": 5,
+            "number_of_atoms": 3,
+            "number_of_molecules": 200,
+            "residue_names": "ETH",
+            "residue_ids": "1-200",
+            "formula_without_h": "",
+            "molecular_type": "solvant",
+            "protein_sequence": "",
+            "putative_pdb": [],
+            "putative_name": "organic solvant ethanol/OPLS",
+            "comment": ""
+        },
+        {
+            "id": 6,
             "number_of_atoms": 3,
             "number_of_molecules": 200,
             "residue_names": "ACN",
