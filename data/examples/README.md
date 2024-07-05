@@ -27,7 +27,7 @@
 
 `1QJ8_ETH_ACN_MET_URE.gro`
 - molecular inventory:
-    - residues 1 to 148 from OUTER MEMBRANE PROTEIN X (PDB: 1QJ8)
+    - residues 1 to 148 from outer membrane protein X (PDB: 1QJ8)
     - 200 urea molecules
     - 200 methanol molecules
     - 200 ethanol molecules 
@@ -38,7 +38,7 @@
 
 `1QJ8_membrane.gro`
 - molecular inventory:
-    - residues 1 to 148 from OUTER MEMBRANE PROTEIN X (PDB: 1QJ8)
+    - residues 1 to 148 from outer membrane protein X (PDB: 1QJ8)
     - 36 CHL1 lipids
     - 36 DMPE lipids
     - 36 DDPC lipids
@@ -61,7 +61,7 @@
 
 `1QJ8_solution.gro`
 - molecular inventory:
-    - residues 1 to 148 from OUTER MEMBRANE PROTEIN X (PDB: 1QJ8)
+    - residues 1 to 148 from outer membrane protein X (PDB: 1QJ8)
     - 100 DMPC lipids
     - 23 sodium ions
     - 21 chloride ions
@@ -161,7 +161,7 @@
 
 `5MBA.gro`
 - molecular inventory:
-    - residues 1 to 146 from BINDING MODE OF AZIDE TO FERRIC APLYSIA LIMACINA MYOGLOBIN (PDB: 5MBA) 
+    - residues 1 to 146 from binding mode of azide to ferric aplysia limacina myoglobin (PDB: 5MBA) 
     - 24 GSTIG lipids
     - 24 DMPS lipids
     - 24 CPU12E lipids
@@ -187,10 +187,10 @@
 
 `1BRS.gro`
 - molecular inventory:
-    - residues 416 to 503 from PROTEIN (BARSTAR) (PDB: 1BRS)
-    - residues 109 to 218 from PROTEIN (BARNASE) (PDB: 1BRS)
-    - residues 327 to 415 and 504 to 592 from PROTEIN (BARSTAR) (PDB: 1BRS)
-    - residues 1 to 108 and 219 to 326 from PROTEIN (BARNASE) (PDB: 1BRS)
+    - residues 416 to 503 from protein (BARSTAR) (PDB: 1BRS)
+    - residues 109 to 218 from protein (BARNASE) (PDB: 1BRS)
+    - residues 327 to 415 and 504 to 592 from protein (BARSTAR) (PDB: 1BRS)
+    - residues 1 to 108 and 219 to 326 from protein (BARNASE) (PDB: 1BRS)
     - 282 hydroxide ions
     - 154 potassium ions
     - 141 sodium ions
@@ -204,8 +204,8 @@
 
 
 `2MAT.gro`
-- molecular inventory:
-    - residues 2 to 263 from E.COLI METHIONINE AMINOPEPTIDASE (PDB: 2MAT)
+- molecular inventory: 
+    - residues 2 to 263 from E.coli methionine aminopeptidase (PDB: 2MAT)
     - 200 urea molecules
     - 200 methanol molecules
     - 200 ethanol molecules 
