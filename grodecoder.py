@@ -793,7 +793,7 @@ def find_ion_solvant(
                 - the atom_id of the last atom (for each molecule)
                 - the name of this molecule (collected from the dictionary in mol_def.py)
                 - the occurence if this molecule in this system
-                - boolean key for ion, solvant and lipid
+                - molecular type (ion, solvant, lipid, protein, nucelic acids)
     """
     (name, res_name, atom_names) = molecule.values()
 
@@ -946,7 +946,7 @@ def find_lipids(lipid: list, universe: mda.core.universe.Universe, counts: dict)
                 - the atom_id of the last atom (for each molecule)
                 - the name of this molecule (collected from the dictionary in the corresponding CSV based on the system's resolution )
                 - the occurence if this molecule in this system
-                - boolean key for ion, solvant and lipid
+                - molecular type (ion, solvant, lipid, protein, nucelic acids)
     """  
     (name, alias, category, _) = lipid
     selection = f"resname {alias}"
