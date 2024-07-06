@@ -991,9 +991,7 @@ def find_lipids(lipid: list, universe: mda.core.universe.Universe, counts: dict)
             "atom_id_interval": atom_id_interval,
             "name": name,
             "graph": res_count,
-            "ion": False,
-            "solvant": False,
-            "lipid": True,
+            "molecular_type": "lipid",
         }
         # Here we remove all the resIDS (from selected_res_ids) from this universe
         for interval in res_id_interval:
@@ -1036,16 +1034,7 @@ def count_remove_lipid(
     for lipid in lipid_MAD.values:
         universe, counts = find_lipids(lipid.tolist(), universe, counts)
 
-    # Write the new universe without ions and solvant into a new file
-    output_file = f"{Path(input_filepath).stem}_without_H_ions_solvant{Path(input_filepath).suffix}"
-    universe.atoms.write(output_file, reindex=False)
-    logger.debug(
-        f" New structure file without hydrogens, ions and solvants, lipids : {output_file}"
-    )
-
-    universe_clean = mda.Universe(output_file)
-
-    # Print which ion and solvant we find, and how many
+    # Print which lipid we find, and how many
     for molecule, dict_count in counts.items():
         name = dict_count.get("name")
         count = dict_count.get("graph")
@@ -1054,8 +1043,8 @@ def count_remove_lipid(
         )
         logger.success(f"Found: {count} {name} ({res_name})")
 
-    logger.info(f"{len(universe_clean.atoms):,} atoms remaining")
-    return (universe_clean, counts)
+    logger.info(f"{len(universe.atoms):,} atoms remaining")
+    return (universe, counts)
 
 
 def check_overlapping_residue_between_graphs(graph_list: list[nx.classes.graph.Graph]):
