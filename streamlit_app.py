@@ -34,8 +34,8 @@ if __name__ == "__main__":
     ---
     [Source code](https://github.com/pierrepo/grodecoder)  
 
-    **Last commit date**: `{gd.get_git_last_commit_date()}`  
-    **Last commit hash**: `{gd.get_git_last_commit_hash()}`
+    Last commit date: `{gd.get_git_last_commit_date()[1:-1]}`  
+    Last commit hash: `{gd.get_git_last_commit_hash()[1:7]}`
     """
     )
 
