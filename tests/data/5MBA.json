@@ -8,7 +8,7 @@
             "residue_ids": "1-146",
             "formula_without_h": "C19N9O10S",
             "molecular_type": "protein",
-            "protein_sequence": "SLSAAEADLAGKSWAPVFANKNANGLDFLVALFEKFPDSANFFADFKGKSVADIKASPKLRDVSSRIFTRLNEFVNNAANAGKMSAMLSQFAKEHVGFGVGSAQFENVRSMFPGFVASVAAPPAGADAAWTKLFGLIIDALKAAGA",
+            "sequence": "SLSAAEADLAGKSWAPVFANKNANGLDFLVALFEKFPDSANFFADFKGKSVADIKASPKLRDVSSRIFTRLNEFVNNAANAGKMSAMLSQFAKEHVGFGVGSAQFENVRSMFPGFVASVAAPPAGADAAWTKLFGLIIDALKAAGA",
             "putative_pdb": [],
             "putative_name": [],
             "comment": ""
@@ -21,7 +21,7 @@
             "residue_ids": "219-242",
             "formula_without_h": "C19O4",
             "molecular_type": "lipid",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": [
                 "UBIQUINOL-2"
@@ -36,7 +36,7 @@
             "residue_ids": "411-434",
             "formula_without_h": "C28NO10P",
             "molecular_type": "unknown",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": [],
             "comment": ""
@@ -49,7 +49,7 @@
             "residue_ids": "147-170",
             "formula_without_h": "C35O6",
             "molecular_type": "lipid",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": [
                 "STIGMASTERYL GLUCOSIDE"
@@ -64,7 +64,7 @@
             "residue_ids": "339-362",
             "formula_without_h": "C37NO4",
             "molecular_type": "lipid",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": [
                 "CERAMIDE T162/181"
@@ -79,7 +79,7 @@
             "residue_ids": "387-410",
             "formula_without_h": "C31NO10P",
             "molecular_type": "unknown",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": [],
             "comment": ""
@@ -92,7 +92,7 @@
             "residue_ids": "171-194",
             "formula_without_h": "C34NO10P",
             "molecular_type": "lipid",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": [
                 "2,3 DIMYRISTOYL-D-GLYCERO-1-PHOSPHATIDYLSERINE"
@@ -107,7 +107,7 @@
             "residue_ids": "291-314",
             "formula_without_h": "C44O4",
             "molecular_type": "lipid",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": [
                 "UBIQUINOL-7"
@@ -122,7 +122,7 @@
             "residue_ids": "195-218",
             "formula_without_h": "C36NO11P",
             "molecular_type": "unknown",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": [],
             "comment": ""
@@ -135,7 +135,7 @@
             "residue_ids": "267-290",
             "formula_without_h": "C46O8P",
             "molecular_type": "lipid",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": [
                 "PHOSPHOGLYCERO-ARCHAEOL PHOSPHOGLYCERO-DI-O-PHYTANYLGLYCEROL"
@@ -150,7 +150,7 @@
             "residue_ids": "363-386",
             "formula_without_h": "C47N2O6P",
             "molecular_type": "lipid",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": [
                 "SPHINGOMYELIN D180/240"
@@ -165,7 +165,7 @@
             "residue_ids": "243-266",
             "formula_without_h": "C53O11P",
             "molecular_type": "unknown",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": [],
             "comment": ""
@@ -178,7 +178,7 @@
             "residue_ids": "315-338",
             "formula_without_h": "C81O17P2",
             "molecular_type": "unknown",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": [],
             "comment": ""
@@ -191,7 +191,7 @@
             "residue_ids": "680-721",
             "formula_without_h": "",
             "molecular_type": "ion",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": "Magnesium ion",
             "comment": ""
@@ -204,7 +204,7 @@
             "residue_ids": "435-476",
             "formula_without_h": "",
             "molecular_type": "ion",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": "Ammonium",
             "comment": ""
@@ -217,7 +217,7 @@
             "residue_ids": "638-679",
             "formula_without_h": "",
             "molecular_type": "ion",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": "Sodium ion",
             "comment": ""
@@ -230,7 +230,7 @@
             "residue_ids": "477-637",
             "formula_without_h": "",
             "molecular_type": "ion",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": "Potassium ion",
             "comment": ""
@@ -243,7 +243,7 @@
             "residue_ids": "722-931",
             "formula_without_h": "",
             "molecular_type": "ion",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": "chloride ion",
             "comment": ""
@@ -256,18 +256,18 @@
             "residue_ids": "932-16539",
             "formula_without_h": "",
             "molecular_type": "solvant",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": "water TIP3P solvant",
             "comment": ""
         }
     ],
     "resolution": "AA",
-    "date": "2024-07-03_13-31-51",
-    "execution_time_in_sec": "24.74",
+    "date": "2024-07-05_14-16-52",
+    "execution_time_in_sec": "24.10",
     "remark": "",
     "file_path": "data/examples/5MBA.gro",
     "file_md5sum": "377d1fa614707db6006e770b22d972be",
-    "git_last_commit_date": "'2024-07-02T18:57:54+02:00'",
-    "git_last_commit_hash": "'0b9536305b9197af897c52adbd6a238e238991c3'"
+    "git_last_commit_date": "'2024-07-03T20:23:24+02:00'",
+    "git_last_commit_hash": "'f44166da6e94e3ab9b6328f6ddf8c129e94c2000'"
 }

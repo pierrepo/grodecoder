@@ -8,7 +8,7 @@
             "residue_ids": "1-148",
             "formula_without_h": "C17N8O9S",
             "molecular_type": "protein",
-            "protein_sequence": "ATSTVTGGYAQSDAQGQMNKMGGFNLKYRYEEDNSPLGVIGSFTYTEKSRTASSGDYNKNQYYGITAGPAYRINDWASIYGVVGVGYGKFQTTEYPTYKNDTSDYGFSYGAGLQFNPMENVALDFSYEQSRIRSVDVGTWIAGVGYRF",
+            "sequence": "ATSTVTGGYAQSDAQGQMNKMGGFNLKYRYEEDNSPLGVIGSFTYTEKSRTASSGDYNKNQYYGITAGPAYRINDWASIYGVVGVGYGKFQTTEYPTYKNDTSDYGFSYGAGLQFNPMENVALDFSYEQSRIRSVDVGTWIAGVGYRF",
             "putative_pdb": [],
             "putative_name": [],
             "comment": ""
@@ -21,7 +21,7 @@
             "residue_ids": "1-200",
             "formula_without_h": "CO",
             "molecular_type": "solvant",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": "organic solvant methanol/OPLS",
             "comment": ""
@@ -47,9 +47,22 @@
             "residue_ids": "1-200",
             "formula_without_h": "",
             "molecular_type": "solvant",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": "urea solvant",
+            "comment": ""
+        },
+        {
+            "id": 4,
+            "number_of_atoms": 3,
+            "number_of_molecules": 200,
+            "residue_names": "ETH",
+            "residue_ids": "1-200",
+            "formula_without_h": "",
+            "molecular_type": "solvant",
+            "sequence": "",
+            "putative_pdb": [],
+            "putative_name": "organic solvant ethanol/OPLS",
             "comment": ""
         },
         {
@@ -73,18 +86,18 @@
             "residue_ids": "1-200",
             "formula_without_h": "",
             "molecular_type": "solvant",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": "acetonitrile",
             "comment": ""
         }
     ],
     "resolution": "AA",
-    "date": "2024-07-03_13-27-12",
+    "date": "2024-07-05_14-21-43",
     "execution_time_in_sec": "1.44",
     "remark": "",
     "file_path": "data/examples/1QJ8_ETH_ACN_MET_URE.pdb",
     "file_md5sum": "aaa798d748bed40b23d7fe1a0d03b37c",
-    "git_last_commit_date": "'2024-07-02T18:57:54+02:00'",
-    "git_last_commit_hash": "'0b9536305b9197af897c52adbd6a238e238991c3'"
+    "git_last_commit_date": "'2024-07-03T20:23:24+02:00'",
+    "git_last_commit_hash": "'f44166da6e94e3ab9b6328f6ddf8c129e94c2000'"
 }

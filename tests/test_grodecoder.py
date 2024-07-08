@@ -63,7 +63,7 @@ def test_with_param(path_structure_file, path_reference_json):
         "residue_ids",
         "formula_without_h",
         "molecular_type",
-        "protein_sequence",
+        "sequence",
         "comment",
     ]
 

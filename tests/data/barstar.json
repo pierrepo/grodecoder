@@ -8,7 +8,7 @@
             "residue_ids": "1-89",
             "formula_without_h": "C17N9O10S",
             "molecular_type": "protein",
-            "protein_sequence": "KKAVINGEQIRSISDLHQTLKKELALPEYYGENLDALWDCLTGWVEYPLVLEWRQFEQSKQLTENGAESVLQVFREAKAEGCDITIILS",
+            "sequence": "KKAVINGEQIRSISDLHQTLKKELALPEYYGENLDALWDCLTGWVEYPLVLEWRQFEQSKQLTENGAESVLQVFREAKAEGCDITIILS",
             "putative_pdb": [],
             "putative_name": [],
             "comment": ""
@@ -21,7 +21,7 @@
             "residue_ids": "5843-5848",
             "formula_without_h": "",
             "molecular_type": "ion",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": "Sodium ion",
             "comment": ""
@@ -34,18 +34,18 @@
             "residue_ids": "90-5842",
             "formula_without_h": "",
             "molecular_type": "solvant",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": "water TIP3P/spce solvant",
             "comment": ""
         }
     ],
     "resolution": "AA",
-    "date": "2024-07-03_13-33-22",
-    "execution_time_in_sec": "2.49",
+    "date": "2024-07-05_12-25-11",
+    "execution_time_in_sec": "2.50",
     "remark": "",
     "file_path": "data/examples/barstar.gro",
     "file_md5sum": "c87ff086ce16c0e422151a0f346e14e1",
-    "git_last_commit_date": "'2024-07-02T18:57:54+02:00'",
-    "git_last_commit_hash": "'0b9536305b9197af897c52adbd6a238e238991c3'"
+    "git_last_commit_date": "'2024-07-03T20:23:24+02:00'",
+    "git_last_commit_hash": "'f44166da6e94e3ab9b6328f6ddf8c129e94c2000'"
 }

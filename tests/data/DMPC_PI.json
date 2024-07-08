@@ -8,7 +8,7 @@
             "residue_ids": "243-256",
             "formula_without_h": "C45O13P",
             "molecular_type": "lipid",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": [
                 "1-STEAROYL-2-LINOLEOYL-PHOSPHATIDYLCHOLINE"
@@ -23,7 +23,7 @@
             "residue_ids": "181-196",
             "formula_without_h": "C43O13P",
             "molecular_type": "lipid",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": [
                 "1-PALMITOYL-2-OLEOYL-INOSITOL"
@@ -38,7 +38,7 @@
             "residue_ids": "361-388",
             "formula_without_h": "",
             "molecular_type": "ion",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": "chloride ion",
             "comment": ""
@@ -51,7 +51,7 @@
             "residue_ids": "197-242",
             "formula_without_h": "C47O13P",
             "molecular_type": "lipid",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": [
                 "PHOSPHATIDYLINOSITOL"
@@ -66,7 +66,7 @@
             "residue_ids": "257-360",
             "formula_without_h": "",
             "molecular_type": "ion",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": "Sodium ion",
             "comment": ""
@@ -79,7 +79,7 @@
             "residue_ids": "1-180",
             "formula_without_h": "C36NO8P",
             "molecular_type": "lipid",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": [
                 "2,3 DIMYRISTOYL-D-GLYCERO-1-PHOSPHATIDYLCHOLINE"
@@ -94,18 +94,18 @@
             "residue_ids": "389-13188",
             "formula_without_h": "",
             "molecular_type": "solvant",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": "water TIP3P solvant",
             "comment": ""
         }
     ],
     "resolution": "AA",
-    "date": "2024-07-03_13-33-46",
-    "execution_time_in_sec": "19.40",
+    "date": "2024-07-05_14-14-39",
+    "execution_time_in_sec": "19.21",
     "remark": "",
     "file_path": "data/examples/DMPC_PI.gro",
     "file_md5sum": "17e49e893431728d5151f7ebb3709ef2",
-    "git_last_commit_date": "'2024-07-02T18:57:54+02:00'",
-    "git_last_commit_hash": "'0b9536305b9197af897c52adbd6a238e238991c3'"
+    "git_last_commit_date": "'2024-07-03T20:23:24+02:00'",
+    "git_last_commit_hash": "'f44166da6e94e3ab9b6328f6ddf8c129e94c2000'"
 }
