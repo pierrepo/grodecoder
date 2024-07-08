@@ -16,6 +16,7 @@ import json
 import os
 import pandas as pd
 from pathlib import Path
+import subprocess
 import time
 
 import argparse
@@ -660,6 +661,9 @@ def print_graph_inventory(graph_dict: dict):
         else:
             (_, res_id_interval, _, _, name, count, _) = key.values()
             logger.info(f"- name: {name}")
+        # else:
+        #     (_, res_id_interval, _, _, name, count, _, _, _) = key.values()
+        #     logger.info(f"- name: {name}")
 
         logger.info(f"- number of atoms: {graph.number_of_nodes():,}")
         logger.info(f"- number of molecules: {count:,}")
@@ -855,7 +859,8 @@ def find_ion_solvant(
 
 
 def count_remove_ion_solvant(
-    universe: mda.core.universe.Universe, input_filepath: str,
+    universe: mda.core.universe.Universe,
+    input_filepath: str,
 ) -> tuple[mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int]]]:
     """Count and remove ions, solvents from the MDAnalysis Universe return by
     the function find_ion_solvant().
@@ -918,18 +923,18 @@ def count_remove_ion_solvant(
     return (universe_clean, counts)
 
 
-def find_lipids(lipid: list, universe: mda.core.universe.Universe, counts: dict):  
+def find_lipids(lipid: list, universe: mda.core.universe.Universe, counts: dict):
     """Counts and removes lipid from the MDAnalysis Universe.
-    
+
     Parameters
     ----------
         lipid: list
-            List that contains information about a lipid (one line from the CSV based on the resolution of the system) to be remove 
+            List that contains information about a lipid (one line from the CSV based on the resolution of the system) to be remove
         universe : MDAnalysis.core.universe.Universe
             MDAnalysis Universe object representing the system.
         counts : dict
             Dictionary to store the counts of lipids.
-    
+
     Return
     ------
         MDAnalysis.core.universe.Universe
@@ -943,20 +948,20 @@ def find_lipids(lipid: list, universe: mda.core.universe.Universe, counts: dict)
                 - the name of this molecule (collected from the dictionary in the corresponding CSV based on the system's resolution )
                 - the occurence if this molecule in this system
                 - molecular type (ion, solvant, lipid, protein, nucelic acids)
-    """  
+    """
     (name, alias, category, _) = lipid
     selection = f"resname {alias}"
     selected_atoms = universe.select_atoms(selection)
 
-    #select the lipid who have the same resname
+    # select the lipid who have the same resname
     selection = f"resname {alias}"
     selected_atoms = universe.select_atoms(selection)
 
     # collect all resids from each res selected, to remove it from the universe
     selected_res_ids = [str(residue.resid) for residue in selected_atoms.residues]
     res_count = len(selected_res_ids)
-    
-    if res_count > 0: 
+
+    if res_count > 0:
         list_graph = []
         # For each residues in the selection, create a graph in the same format as a molecule (but added to that a key 'name')
         # which give us direct acces of their composition
@@ -995,14 +1000,17 @@ def find_lipids(lipid: list, universe: mda.core.universe.Universe, counts: dict)
             if len(start_end) == 1:
                 selection = f"not (resname {alias} and resid {start_end[0]})"
             else:
-                selection = f"not (resname {alias} and resid {start_end[0]}:{start_end[1]})"
+                selection = (
+                    f"not (resname {alias} and resid {start_end[0]}:{start_end[1]})"
+                )
 
             universe = universe.select_atoms(f"{selection}")
     return (universe, counts)
 
 
 def count_remove_lipid(
-    universe: mda.core.universe.Universe, input_filepath: str,
+    universe: mda.core.universe.Universe,
+    input_filepath: str,
 ) -> tuple[mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int]]]:
     """Count and remove lipid from the MDAnalysis Universe return by
     the function find_ion_lipid().
@@ -1026,7 +1034,7 @@ def count_remove_lipid(
     counts = {}
     logger.info("Searching lipid...")
     lipid_MAD = MAD_DB[MAD_DB["Category"].str.contains("Lipids", case=False, na=False)]
-    
+
     for lipid in lipid_MAD.values:
         universe, counts = find_lipids(lipid.tolist(), universe, counts)
 
@@ -1182,7 +1190,7 @@ def export_protein_sequence_into_FASTA(
 
 
 def is_lipid(
-    resolution: str, graph: nx.classes.graph.Graph, dict_count: dict[str, int|str]
+    resolution: str, graph: nx.classes.graph.Graph, dict_count: dict[str, int | str]
 ) -> bool:
     """Determines if the given graph represents a lipid.
 
@@ -1270,6 +1278,26 @@ def guess_resolution(
     return "CG"
 
 
+def get_git_last_commit_date() -> str:
+    """Get the last commit date from the git repository."""
+    try:
+        command = "git show --no-patch --no-notes --pretty='%cI' HEAD"
+        git_date = subprocess.check_output(command.split()).decode("ascii").strip()
+        return git_date
+    except subprocess.CalledProcessError:
+        return ""
+
+
+def get_git_last_commit_hash() -> str:
+    """Get the last commit hash from the git repository."""
+    try:
+        command = "git show --no-patch --no-notes --pretty='%H' HEAD"
+        git_hash = subprocess.check_output(command.split()).decode("ascii").strip()
+        return git_hash
+    except subprocess.CalledProcessError:
+        return ""
+
+
 def export_inventory(
     graph_count_dict: dict[nx.classes.graph.Graph, dict[str, int]],
     resolution: str,
@@ -1294,14 +1322,14 @@ def export_inventory(
     for index_graph, (graph, information) in enumerate(
         graph_count_dict.items(), start=1
     ):
-        is_protein, is_lipid, is_ion, is_solvant = False, False, False, False
-        formula, protein_sequence, remark_message, comment = (
+        formula, molecular_type, protein_sequence, remark_message, comment = (
             "",
+            "unknown",
             "",
             "",
             "",
         )
-        putative_pdb_structure, putative_name = [], []
+        putative_pdb, putative_name = [], []
 
         residue_pairs = zip(
             nx.get_node_attributes(graph, "residue_id").values(),
@@ -1316,18 +1344,14 @@ def export_inventory(
 
         if "formula_no_h" in information.keys():
             formula = information["formula_no_h"]
-        if "is_protein" in information.keys():
-            is_protein = information["is_protein"]
-            protein_sequence = information["protein_sequence"]
-            if "putative_pdb_structure" in information.keys():
-                putative_pdb_structure = information["putative_pdb_structure"]
-        if "lipid" in information.keys():
-            is_lipid = information["lipid"]
-            putative_name = information["name"]
-        if "ion" in information.keys():
-            is_ion = information["ion"]
-            is_solvant = information["solvant"]
-            putative_name = information["name"]
+        if "molecular_type" in information.keys():
+            molecular_type = information["molecular_type"]
+            if molecular_type == "protein":
+                protein_sequence = information["protein_sequence"]
+                if "putative_pdb" in information.keys():
+                    putative_pdb = information["putative_pdb"]
+            elif molecular_type in ["lipid", "ion", "solvant"]:
+                putative_name = information["name"]
         if "comment" in information.keys():
             comment = information["comment"]
 
@@ -1338,12 +1362,9 @@ def export_inventory(
             "residue_names": residue_names,
             "residue_ids": " ".join(information["res_id_interval"]),
             "formula_without_h": formula,
-            "is_solvant": is_solvant,
-            "is_ion": is_ion,
-            "is_lipid": is_lipid,
-            "is_protein": is_protein,
+            "molecular_type": molecular_type,
             "protein_sequence": protein_sequence,
-            "putative_pdb_structure": putative_pdb_structure,
+            "putative_pdb": putative_pdb,
             "putative_name": putative_name,
             "comment": comment,
         }
@@ -1372,6 +1393,8 @@ def export_inventory(
             "remark": remark_message,
             "file_path": str(relative_path),
             "file_md5sum": hashlib.md5(open(filename, "rb").read()).hexdigest(),
+            "git_last_commit_date": get_git_last_commit_date(),
+            "git_last_commit_hash": get_git_last_commit_hash(),
         }
 
     logger.info("Exporting inventory into JSON file...")
@@ -1424,12 +1447,12 @@ def main(
             If we want to have informations (PDB ID, name, organism) about the protein identified in the PDB API. By default at False.
     """
     start_time = time.perf_counter()
-    
+
     molecular_system = remove_hydrogene(input_file_path)
     molecular_system, count_ion_solvant = count_remove_ion_solvant(
-        molecular_system, input_file_path,
+        molecular_system,
+        input_file_path,
     )
-    
     resolution = guess_resolution(molecular_system)
     logger.info(f"Molecular resolution: {resolution}")
     if bond_threshold == "auto":
@@ -1437,7 +1460,8 @@ def main(
             atom_pairs = get_atom_pairs_from_guess_bonds(molecular_system)
         else:
             molecular_system, count_lipid = count_remove_lipid(
-                molecular_system, input_file_path, 
+                molecular_system,
+                input_file_path,
             )
             count_ion_solvant.update(count_lipid)
             atom_pairs = get_atom_pairs_from_threshold(molecular_system, 5.0)
@@ -1464,8 +1488,7 @@ def main(
     protein_sequence_dict = {}
     for index_graph, (graph, key) in enumerate(graph_count_dict.items(), start=1):
         if is_met(graph):
-            graph_count_dict[graph]["solvant"] = True
-            graph_count_dict[graph]["ion"] = False
+            graph_count_dict[graph]["molecular_type"] = "solvant"
             graph_count_dict[graph]["name"] = "organic solvant methanol/OPLS"
 
         elif is_protein(graph):
@@ -1473,7 +1496,7 @@ def main(
             sequence = sequence_nbres["sequence"]
 
             protein_sequence_dict[index_graph] = sequence_nbres
-            graph_count_dict[graph]["is_protein"] = True
+            graph_count_dict[graph]["molecular_type"] = "protein"
             graph_count_dict[graph]["protein_sequence"] = sequence
 
             list_dict_info_pdb = []
@@ -1487,9 +1510,9 @@ def main(
                     list_dict_info_pdb.append(
                         search_into_PDB.get_info_one_pdb_id(pdb_id)
                     )
-                graph_count_dict[graph]["putative_pdb_structure"] = list_dict_info_pdb
+                graph_count_dict[graph]["putative_pdb"] = list_dict_info_pdb
         elif is_lipid(resolution, graph, key):
-            graph_count_dict[graph]["is_lipid"] = True
+            graph_count_dict[graph]["molecular_type"] = "lipid"
     export_protein_sequence_into_FASTA(protein_sequence_dict, f"{filename}.fasta")
 
     # execution_time in seconds
