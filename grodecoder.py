@@ -1237,7 +1237,7 @@ def export_inventory(
                     putative_pdb = information["putative_pdb"]
             elif molecular_type in ["lipid", "ion", "solvant"]:
                 putative_name = information["name"]
-            elif molecular_type == "nucleic acids":
+            elif molecular_type == "nucleic acid":
                 sequence = information["sequence"]
         if "comment" in information.keys():
             comment = information["comment"]
@@ -1314,16 +1314,44 @@ def is_met(graph: nx.classes.graph.Graph) -> bool:
     return False
 
 
-def is_nucleic_acids(graph: nx.classes.graph.Graph) -> bool:
+def is_nucleic_acid(graph: nx.classes.graph.Graph) -> bool:
+    """Check if the molecule represented by the graph is a nucleic acid.
+
+    Parameters
+    ----------
+        graph: networkx.Graph
+            The input graph representing the molecule.
+
+    Returns
+    -------
+        bool
+            True if the molecule is a nucleic acid, False otherwise.
+    """
     set_key_amino_acid_mda = set(mol_def.NUCLEIC_ACIDS.keys())
     set_res_name_graph = set(nx.get_node_attributes(graph, "residue_name").values())
     return len(set_key_amino_acid_mda.intersection(set_res_name_graph)) > 3
 
 
-def extract_nucleic_acids_sequence(graph: nx.classes.graph.Graph) -> str:
-    logger.info("Extracting nucleic acids sequence...")
+def extract_nucleic_acid_sequence(graph: nx.classes.graph.Graph) -> dict[str, int]:
+    """Extract the nucleic acid sequence from a graph.
+
+    Parameters
+    ----------
+        graph: networkx.Graph
+            The input graph representing the molecule.
+
+    Returns
+    -------
+        dict
+            A dictionary containing the following keys:
+                - 'sequence': str
+                    The protein sequence extracted from the molecule.
+                - 'molecular_type': str
+                    The molecule type of this graph (here it will be 'nucleic acid')
+    """
+    logger.info("Extracting nucleic acid sequence...")
     info_seq = {}
-    nucleic_acids_sequence = []
+    nucleic_acid_sequence = []
 
     residue_pairs = zip(
         nx.get_node_attributes(graph, "residue_id").values(),
@@ -1332,10 +1360,10 @@ def extract_nucleic_acids_sequence(graph: nx.classes.graph.Graph) -> str:
     residue_pairs_dict = dict(residue_pairs)
     residue_names = [residue_pairs_dict[key] for key in sorted(residue_pairs_dict)]
     for resname in residue_names:
-        nucleic_acids_sequence.append(mol_def.NUCLEIC_ACIDS.get(resname, "?"))
+        nucleic_acid_sequence.append(mol_def.NUCLEIC_ACIDS.get(resname, "?"))
 
-    info_seq["sequence"] = "".join(nucleic_acids_sequence)
-    info_seq["molecular_type"] = "nucleic acids"
+    info_seq["sequence"] = "".join(nucleic_acid_sequence)
+    info_seq["molecular_type"] = "nucleic acid"
     return info_seq
 
 
@@ -1421,8 +1449,8 @@ def main(
                 graph_count_dict[graph]["putative_pdb"] = list_dict_info_pdb
         elif is_lipid(resolution, graph, key):
             graph_count_dict[graph]["molecular_type"] = "lipid"
-        elif is_nucleic_acids(graph):
-            na_sequence_molecular_type = extract_nucleic_acids_sequence(graph)
+        elif is_nucleic_acid(graph):
+            na_sequence_molecular_type = extract_nucleic_acid_sequence(graph)
             graph_count_dict[graph]["molecular_type"] = na_sequence_molecular_type["molecular_type"]
             graph_count_dict[graph]["sequence"] = na_sequence_molecular_type["sequence"]
 
