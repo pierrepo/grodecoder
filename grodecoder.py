@@ -35,10 +35,10 @@ import search_into_PDB
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 filepath_CSML = os.path.join(current_dir, "data/databases/lipid_CHARMM_GUI_CSML.csv")
-CSML_CHARMM_GUI = pd.read_csv(filepath_CSML, sep=";")
+CSML_CHARMM_GUI = pd.read_csv(filepath_CSML, sep=",")
 
 filepath_MAD = os.path.join(current_dir, "data/databases/lipid_MAD.csv")
-MAD_DB = pd.read_csv(filepath_MAD, sep=";")
+MAD_DB = pd.read_csv(filepath_MAD, sep=",")
 
 
 def get_distance_matrix_between_atom(
@@ -658,7 +658,7 @@ def print_graph_inventory(graph_dict: dict):
         if len(key) == 6:
             (_, res_id_interval, _, _, _, count) = key.values()
         else:
-            (_, res_id_interval, _, _, name, count, _, _, _) = key.values()
+            (_, res_id_interval, _, _, name, count, _) = key.values()
             logger.info(f"- name: {name}")
 
         logger.info(f"- number of atoms: {graph.number_of_nodes():,}")
@@ -789,7 +789,7 @@ def find_ion_solvant(
                 - the atom_id of the last atom (for each molecule)
                 - the name of this molecule (collected from the dictionary in mol_def.py)
                 - the occurence if this molecule in this system
-                - boolean key for ion, solvant and lipid
+                - molecular type (ion, solvant, lipid, protein, nucelic acids)
     """
     (name, res_name, atom_names) = molecule.values()
 
@@ -813,12 +813,6 @@ def find_ion_solvant(
             graph = add_attributes_to_nodes(graph, index_resID)
             list_graph.append(graph)
 
-        # index_resID = selected_atoms.residues[0]
-        # graph = nx.Graph()
-        # graph.add_nodes_from(index_resID.atoms.ids)
-        # graph = add_attributes_to_nodes(graph, index_resID)
-        # list_graph.append(graph)
-
         atom_id, res_id = [], []
         for subgraph in list_graph:
             residue_pairs = zip(
@@ -834,9 +828,9 @@ def find_ion_solvant(
         atom_id_interval = get_intervals(atom_id)
 
         if solvant_or_ion == "ion":
-            solvant, ion = False, True
+            molecular_type = "ion"
         else:
-            solvant, ion = True, False
+            molecular_type = "solvant"
 
         counts[list_graph[0]] = {
             "res_id": res_id,
@@ -845,9 +839,7 @@ def find_ion_solvant(
             "atom_id_interval": atom_id_interval,
             "name": name,
             "graph": res_count,
-            "solvant": solvant,
-            "ion": ion,
-            "lipid": False,
+            "molecular_type": molecular_type,
         }
 
         # Here we remove all the resIDS (from selected_res_ids) from this universe
@@ -863,8 +855,7 @@ def find_ion_solvant(
 
 
 def count_remove_ion_solvant(
-    universe: mda.core.universe.Universe,
-    input_filepath: str,
+    universe: mda.core.universe.Universe, input_filepath: str,
 ) -> tuple[mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int]]]:
     """Count and remove ions, solvents from the MDAnalysis Universe return by
     the function find_ion_solvant().
@@ -927,18 +918,18 @@ def count_remove_ion_solvant(
     return (universe_clean, counts)
 
 
-def find_lipids(lipid: list, universe: mda.core.universe.Universe, counts: dict):
+def find_lipids(lipid: list, universe: mda.core.universe.Universe, counts: dict):  
     """Counts and removes lipid from the MDAnalysis Universe.
-
+    
     Parameters
     ----------
         lipid: list
-            List that contains information about a lipid (one line from the CSV based on the resolution of the system) to be remove
+            List that contains information about a lipid (one line from the CSV based on the resolution of the system) to be remove 
         universe : MDAnalysis.core.universe.Universe
             MDAnalysis Universe object representing the system.
         counts : dict
             Dictionary to store the counts of lipids.
-
+    
     Return
     ------
         MDAnalysis.core.universe.Universe
@@ -951,21 +942,21 @@ def find_lipids(lipid: list, universe: mda.core.universe.Universe, counts: dict)
                 - the atom_id of the last atom (for each molecule)
                 - the name of this molecule (collected from the dictionary in the corresponding CSV based on the system's resolution )
                 - the occurence if this molecule in this system
-                - boolean key for ion, solvant and lipid
-    """
+                - molecular type (ion, solvant, lipid, protein, nucelic acids)
+    """  
     (name, alias, category, _) = lipid
     selection = f"resname {alias}"
     selected_atoms = universe.select_atoms(selection)
 
-    # select the lipid who have the same resname
+    #select the lipid who have the same resname
     selection = f"resname {alias}"
     selected_atoms = universe.select_atoms(selection)
 
     # collect all resids from each res selected, to remove it from the universe
     selected_res_ids = [str(residue.resid) for residue in selected_atoms.residues]
     res_count = len(selected_res_ids)
-
-    if res_count > 0:
+    
+    if res_count > 0: 
         list_graph = []
         # For each residues in the selection, create a graph in the same format as a molecule (but added to that a key 'name')
         # which give us direct acces of their composition
@@ -996,9 +987,7 @@ def find_lipids(lipid: list, universe: mda.core.universe.Universe, counts: dict)
             "atom_id_interval": atom_id_interval,
             "name": name,
             "graph": res_count,
-            "ion": False,
-            "solvant": False,
-            "lipid": True,
+            "molecular_type": "lipid",
         }
         # Here we remove all the resIDS (from selected_res_ids) from this universe
         for interval in res_id_interval:
@@ -1006,17 +995,14 @@ def find_lipids(lipid: list, universe: mda.core.universe.Universe, counts: dict)
             if len(start_end) == 1:
                 selection = f"not (resname {alias} and resid {start_end[0]})"
             else:
-                selection = (
-                    f"not (resname {alias} and resid {start_end[0]}:{start_end[1]})"
-                )
+                selection = f"not (resname {alias} and resid {start_end[0]}:{start_end[1]})"
 
             universe = universe.select_atoms(f"{selection}")
     return (universe, counts)
 
 
 def count_remove_lipid(
-    universe: mda.core.universe.Universe,
-    input_filepath: str,
+    universe: mda.core.universe.Universe, input_filepath: str,
 ) -> tuple[mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int]]]:
     """Count and remove lipid from the MDAnalysis Universe return by
     the function find_ion_lipid().
@@ -1038,23 +1024,13 @@ def count_remove_lipid(
                     - and the value is an other dictionary with: atom_start, atom_end, name of the lipid, the counts of removed lipid
     """
     counts = {}
-
     logger.info("Searching lipid...")
     lipid_MAD = MAD_DB[MAD_DB["Category"].str.contains("Lipids", case=False, na=False)]
-
+    
     for lipid in lipid_MAD.values:
         universe, counts = find_lipids(lipid.tolist(), universe, counts)
 
-    # Write the new universe without ions and solvant into a new file
-    output_file = f"{Path(input_filepath).stem}_without_H_ions_solvant{Path(input_filepath).suffix}"
-    universe.atoms.write(output_file, reindex=False)
-    logger.debug(
-        f" New structure file without hydrogens, ions and solvants, lipids : {output_file}"
-    )
-
-    universe_clean = mda.Universe(output_file)
-
-    # Print which ion and solvant we find, and how many
+    # Print which lipid we find, and how many
     for molecule, dict_count in counts.items():
         name = dict_count.get("name")
         count = dict_count.get("graph")
@@ -1063,8 +1039,8 @@ def count_remove_lipid(
         )
         logger.success(f"Found: {count} {name} ({res_name})")
 
-    logger.info(f"{len(universe_clean.atoms):,} atoms remaining")
-    return (universe_clean, counts)
+    logger.info(f"{len(universe.atoms):,} atoms remaining")
+    return (universe, counts)
 
 
 def check_overlapping_residue_between_graphs(graph_list: list[nx.classes.graph.Graph]):
@@ -1085,7 +1061,18 @@ def check_overlapping_residue_between_graphs(graph_list: list[nx.classes.graph.G
     res_id_common = []
 
     for graph in graph_list:
+        # Here it only compare the residue id
+        # But in some case, the residue id is reinitialize
+        # So some molecule will have the same id but it's not the same
+        # res_id_set = set((nx.get_node_attributes(graph, "residue_id").values()))
+
+        # Here I add the residue name to the comparaison
+        # So we see the overlapping with the residue id and the residue name
         res_id_set = set((nx.get_node_attributes(graph, "residue_id").values()))
+        res_id_name_list = [(nx.get_node_attributes(graph, "residue_name").values())]
+        res_id_set = set((tuple(res_id_set), tuple(res_id_name_list)))
+        # print(res_id_set)
+
         res_id_intersect = res_id_set_all.intersection(res_id_set)
         res_id_set_all.update(res_id_set)
         if res_id_intersect:
@@ -1195,7 +1182,7 @@ def export_protein_sequence_into_FASTA(
 
 
 def is_lipid(
-    resolution: str, graph: nx.classes.graph.Graph, dict_count: dict[str, str]
+    resolution: str, graph: nx.classes.graph.Graph, dict_count: dict[str, int|str]
 ) -> bool:
     """Determines if the given graph represents a lipid.
 
@@ -1223,7 +1210,7 @@ def is_lipid(
         if "formula_no_h" in dict_count.keys():
             formula_graph = dict_count["formula_no_h"]
             selected_row = lipid_csml_charmm_gui.loc[
-                (lipid_csml_charmm_gui["Alias"] == res_name_graph)
+                (lipid_csml_charmm_gui["Alias"].str.contains(res_name_graph))
                 & (lipid_csml_charmm_gui["Formula"] == formula_graph)
             ]
 
@@ -1437,13 +1424,12 @@ def main(
             If we want to have informations (PDB ID, name, organism) about the protein identified in the PDB API. By default at False.
     """
     start_time = time.perf_counter()
-
+    
     molecular_system = remove_hydrogene(input_file_path)
     molecular_system, count_ion_solvant = count_remove_ion_solvant(
-        molecular_system,
-        input_file_path,
+        molecular_system, input_file_path,
     )
-
+    
     resolution = guess_resolution(molecular_system)
     logger.info(f"Molecular resolution: {resolution}")
     if bond_threshold == "auto":
@@ -1451,8 +1437,7 @@ def main(
             atom_pairs = get_atom_pairs_from_guess_bonds(molecular_system)
         else:
             molecular_system, count_lipid = count_remove_lipid(
-                molecular_system,
-                input_file_path,
+                molecular_system, input_file_path, 
             )
             count_ion_solvant.update(count_lipid)
             atom_pairs = get_atom_pairs_from_threshold(molecular_system, 5.0)
