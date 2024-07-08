@@ -56,16 +56,19 @@ https://grodecoder.streamlit.app/
 ```
 
 ## Update the database
+## CSML Charmm-gui database
+Run the script to download all-atom model molecule data: 
+```bash
+python script/scrap_charmm_gui_CSML.py
+```
+This script analyze the CHARMM-GUI CSML database (https://www.charmm-gui.org/?doc=archive&lib=lipid). It scrap information and download the data into a CSV file, if it's not already exist. This database contains information of different molecular type in all atom model (amino acid, nucleic acid, carb, lipid, ...), but for now we only going to use the data about lipid.
+This CSV file (`data/databases/lipid_CHARMM_GUI_CSML.csv`) contains information for each molecule, like: the category of the molecule, their alias, their common name, a link to view their structure, a link to download the PDB of this file, the formula and the residue name from the PDB file. All this information help to identify lipids in the PDB or GRO file we want to analyze.
 
+
+## MAD database
 Run the script to download coarse-grain model molecule data: 
 ```bash
 python script/scrap_MAD.py
 ```
-
-And run the script to download all-atom model molecule data: 
-```bash
-python script/scrap_charmm_gui_CSML.py
-```
-
-These scripts analyzes the database MAD (https://mad.ibcp.fr/explore) and CHARMM-GUI CSML (https://www.charmm-gui.org/?doc=archive&lib=lipid). It download the data - if it's not already exist. It extracts information that can be used to identify lipids in the GRO and PDB files and save it into a CSV file.  
-These CSV files are available in `data/database`
+This script analyze the MAD database (https://mad.ibcp.fr/explore). It scrap information and download the data into a CSV file, if it's not already exist. This database contains information of different molecular type in coarse grain model (amino acid, solvent, sugar, lipid, ...), but for now we only going to use the data about lipid.
+This CSV file (`data/databases/lipid_MAD.csv`) contains information for each molecule, like: their common name, their alias, the category of the molecule, a link to download the PDB of this file. All this information help to identify lipids in the PDB or GRO file we want to analyze.
