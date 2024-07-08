@@ -26,15 +26,19 @@ if __name__ == "__main__":
     logo = Image.open("assets/grodecoder_logo.png")
     st.sidebar.image(logo)
     st.sidebar.markdown(
-        """
+        f"""
     **GroDecoder** extracts and identifies
     the molecular components of a structure file (PDB or GRO)
     issued from a molecular dynamics simulation.
 
     ---
-    [Source code](https://github.com/pierrepo/grodecoder)                 
+    [Source code](https://github.com/pierrepo/grodecoder)  
+
+    **Last commit date**: `{gd.get_git_last_commit_date()}`  
+    **Last commit hash**: `{gd.get_git_last_commit_hash()}`
     """
     )
+
 
     st.markdown("# GroDecoder 📦")
 
