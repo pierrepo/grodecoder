@@ -57,14 +57,15 @@ https://grodecoder.streamlit.app/
 
 ## Update the database
 
-Run the script for coarse-grain model molecule data: 
+Run the script to download coarse-grain model molecule data: 
 ```bash
 python script/scrap_MAD.py
 ```
 
-And run the script for all-atom model molecule data: 
+And run the script to download all-atom model molecule data: 
 ```bash
 python script/scrap_charmm_gui_CSML.py
 ```
 
-These scripts analyzes the database MAD (https://mad.ibcp.fr/explore) and CHARMM-GUI CSML (https://www.charmm-gui.org/?doc=archive&lib=lipid). It download the data - if it's not already exist. It extracts information that can be used to identify lipids in the GRO and PDB files and save it into a CSV file.
+These scripts analyzes the database MAD (https://mad.ibcp.fr/explore) and CHARMM-GUI CSML (https://www.charmm-gui.org/?doc=archive&lib=lipid). It download the data - if it's not already exist. It extracts information that can be used to identify lipids in the GRO and PDB files and save it into a CSV file.  
+These CSV files are availeble in `data/database`
