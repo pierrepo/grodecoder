@@ -1315,9 +1315,9 @@ def is_met(graph: nx.classes.graph.Graph) -> bool:
 
 
 def is_nucleic_acids(graph: nx.classes.graph.Graph) -> bool:
-    set_key_amino_acid_mda = set(mol_def.NUCLEIC_ACIDS.keys())
+    set_key_amino_acid_resname = set(mol_def.NUCLEIC_ACIDS.keys())
     set_res_name_graph = set(nx.get_node_attributes(graph, "residue_name").values())
-    return len(set_key_amino_acid_mda.intersection(set_res_name_graph)) > 1
+    return len(set_key_amino_acid_resname.intersection(set_res_name_graph)) > 1
 
 
 def extract_nucleic_acids_sequence(graph: nx.classes.graph.Graph) -> str:
