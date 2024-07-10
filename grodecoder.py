@@ -28,6 +28,7 @@ import networkx as nx
 from networkx.algorithms.components.connected import connected_components
 from scipy.sparse import triu
 from scipy.spatial.distance import cdist
+from typing import List, Dict, Tuple, Union
 
 import mol_def
 import search_into_PDB
@@ -117,7 +118,7 @@ def get_atom_pairs(
 
 def get_atom_pairs_from_threshold(
     mol: mda.core.universe.Universe, threshold: float
-) -> np.ndarray[np.ndarray]:
+) -> np.ndarray:
     """Get atom pairs within a specified distance threshold.
 
     Parameters
@@ -378,7 +379,7 @@ def get_graph_fingerprint(
     # Use sorted so the atom_names will be in the same order if it's the same molecule.
     # Otherwise it's different even if it's the same molecule
     # And the dictionnary comparaison will say it's different molecule
-    atom_names = dict(sorted(atom_names.most_common()))
+    atom_names_dict: dict[str, int] = dict(sorted(atom_names.most_common()))
 
     # Get all residue ids and resides names pairs.
     residue_pairs = zip(
@@ -388,22 +389,22 @@ def get_graph_fingerprint(
     # Convert to dictionnary to have only one residue id (key is unique in dict).
     residue_pairs_dict = dict(residue_pairs)
     # Then extract residue names ordered by residue ids:
-    residue_names = [residue_pairs_dict[key] for key in sorted(residue_pairs_dict)]
+    residue_names: list[str] = [residue_pairs_dict[key] for key in sorted(residue_pairs_dict)]
 
     # Exemple :
     # graph.degree = [(1, 1), (2, 3), (3, 1), (4, 2), (5, 1)]
     # dict(graph.degree) = { 1: 1, 2: 2, 3: 1, 5: 1 }
-    graph_degrees_dict = dict(
+    graph_degrees_dict: dict[int, int] = dict(
         Counter([degree for _, degree in graph.degree]).most_common()
     )
 
-    return (nodes, edges, atom_names, residue_names, graph_degrees_dict)
+    return (nodes, edges, atom_names_dict, residue_names, graph_degrees_dict)
 
 
 def get_graph_fingerprint_str(
     graph: nx.classes.graph.Graph,
     check_connectivity: bool,
-) -> tuple[int, str, list[str]]:
+) -> tuple[int, int, str, list[str], str] | tuple[int, str, list[str]]:
     """Collect the tuple return by get_graph_fingerprint, to only extract
     the number of nodes, the dictionary of atom_name (that we going to convert to str so it's haschable)
     and the list of res_names.
@@ -540,8 +541,8 @@ def get_formula_based_atom_name(atom_name_dict: dict[str, int]) -> str:
         if atom_name != "H":
             atom_names.append(atom_name)
 
-    atom_names = Counter(atom_names)
-    sorted_atom_counts = sorted(atom_names.items())
+    atom_names_counter = Counter(atom_names)
+    sorted_atom_counts = sorted(atom_names_counter.items())
     formula = "".join(
         f"{atom}{count}" if count > 1 else atom for atom, count in sorted_atom_counts
     )
@@ -552,7 +553,7 @@ def get_formula_based_atom_name(atom_name_dict: dict[str, int]) -> str:
 def count_molecule(
     graph_list: list[nx.classes.graph.Graph],
     check_connectivity: bool,
-) -> dict[nx.classes.graph.Graph, dict[str, int]]:
+) -> dict[nx.classes.graph.Graph, dict[str, Union[int, str]]]:
     """Count the occurrence of molecules in a list of graphs based on their fingerprints.
 
     This function takes a list of graphs and counts the occurrence of each unique molecule
@@ -607,8 +608,8 @@ def count_molecule(
         atom_id_interval = get_intervals(sorted(atom_id))
 
         atom_names = Counter(nx.get_node_attributes(graph, "atom_name").values())
-        atom_names = dict(sorted(atom_names.most_common()))
-        formula = get_formula_based_atom_name(atom_names)
+        atom_names_dict = dict(sorted(atom_names.most_common()))
+        formula = get_formula_based_atom_name(atom_names_dict)
 
         # If for this fingerprint, there is only one graph
         if nb_graph == 1:
@@ -862,7 +863,7 @@ def count_remove_ion_solvant(
     universe: mda.core.universe.Universe,
     input_filepath: str,
 ) -> tuple[
-    mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int | str]]
+    mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, Union[str, int]]]
 ]:
     """Count and remove ions and solvents from the MDAnalysis Universe return by
     the function find_ion_solvant().
@@ -883,7 +884,7 @@ def count_remove_ion_solvant(
                     - the key is a graph
                     - and the value is an other dictionary with: atom_start, atom_end, name of the ion-solvant, the counts of removed ions-solvant
     """
-    counts = {}
+    counts: dict[str, Union[str, int]] = {}
 
     logger.info("Searching ions...")
     for ion in mol_def.IONS_LIST:
@@ -1184,7 +1185,7 @@ def get_git_last_commit_hash() -> str:
 
 
 def export_inventory(
-    graph_count_dict: dict[nx.classes.graph.Graph, dict[str, int]],
+    graph_count_dict: dict[nx.classes.graph.Graph, dict[str, int | str]],
     resolution: str,
     filename: str,
     execution_time: float,
@@ -1222,10 +1223,10 @@ def export_inventory(
         )
         residue_pairs_dict = dict(residue_pairs)
         residue_names = [residue_pairs_dict[key] for key in sorted(residue_pairs_dict)]
-        residue_names = " ".join(residue_names)
+        residue_names_str = " ".join(residue_names)
 
-        atom_names = Counter(nx.get_node_attributes(graph, "atom_name").values())
-        atom_names = dict(sorted(atom_names.most_common()))
+        # atom_names = Counter(nx.get_node_attributes(graph, "atom_name").values())
+        # atom_names = dict(sorted(atom_names.most_common()))
 
         if "formula_no_h" in information.keys():
             formula = information["formula_no_h"]
@@ -1246,7 +1247,7 @@ def export_inventory(
             "id": index_graph,
             "number_of_atoms": graph.number_of_nodes(),
             "number_of_molecules": information["graph"],
-            "residue_names": residue_names,
+            "residue_names": residue_names_str,
             "residue_ids": " ".join(information["res_id_interval"]),
             "formula_without_h": formula,
             "molecular_type": molecular_type,
