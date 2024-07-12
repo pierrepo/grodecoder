@@ -1293,7 +1293,7 @@ def get_git_last_commit_date() -> str:
     """Get the last commit date from the git repository."""
     try:
         command = "git show --no-patch --no-notes --pretty='%cI' HEAD"
-        git_date = subprocess.check_output(command.split()).decode("ascii").strip()
+        git_date = subprocess.check_output(command.split()).decode("ascii").strip("' \n")
         return git_date
     except subprocess.CalledProcessError:
         return ""
@@ -1303,7 +1303,7 @@ def get_git_last_commit_hash() -> str:
     """Get the last commit hash from the git repository."""
     try:
         command = "git show --no-patch --no-notes --pretty='%H' HEAD"
-        git_hash = subprocess.check_output(command.split()).decode("ascii").strip()
+        git_hash = subprocess.check_output(command.split()).decode("ascii").strip("' \n")
         return git_hash
     except subprocess.CalledProcessError:
         return ""
