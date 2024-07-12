@@ -42,9 +42,13 @@ AMINO_ACID_DICT["CYSP"] = "C"
 # (mostly AMBER and CHARMM, the other don't have these files) 
 # in https://github.com/gromacs/gromacs/blob/main/share/top/)
 NUCLEIC_ACIDS_DNA = {"DA": 'A',
-                     "DT": 'T', 
-                     "DC": 'C', 
-                     "DG": 'G', 
+                     "DT": 'T',
+                     "DC": 'C',
+                     "DG": 'G',
+                     "A": "A",
+                     "T": "T",
+                     "C": 'C',
+                     "G": 'G',
 
                      "DA5": 'A',
                      "DA3": 'A',
@@ -56,10 +60,14 @@ NUCLEIC_ACIDS_DNA = {"DA": 'A',
                      "DG3": 'G', 
                     }
 
-NUCLEIC_ACIDS_RNA ={"RA": 'A', 
-                    "RU": 'U', 
-                    "RC": 'C', 
-                    "RG": 'G', 
+NUCLEIC_ACIDS_RNA ={"RA": 'A',
+                    "RU": 'U',
+                    "RC": 'C',
+                    "RG": 'G',
+                    "A": "A",
+                    "T": "T",
+                    "C": 'C',
+                    "G": 'G',
 
                     "RA5": 'A', 
                     "RA3": 'A', 
