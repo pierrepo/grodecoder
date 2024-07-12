@@ -862,7 +862,7 @@ def count_remove_ion_solvant(
     universe: mda.core.universe.Universe,
     input_filepath: str,
 ) -> tuple[mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int]]]:
-    """Count and remove ions, solvents from the MDAnalysis Universe return by
+    """Count and remove ions and solvents from the MDAnalysis Universe return by
     the function find_ion_solvant().
 
     Parameters
@@ -1217,8 +1217,19 @@ def is_lipid(
         ]
         if "formula_no_h" in dict_count.keys():
             formula_graph = dict_count["formula_no_h"]
+
+            # Sometimes, the residue name found in the database does not match
+            # with the one found in the strcture file, because:
+            # - in GRO files, residue names are trimed at 5 characters
+            # (https://manual.gromacs.org/archive/5.0.3/online/gro.html),
+            # - in PDB files, residue names are trimed at 3 characters
+            # (https://www.cgl.ucsf.edu/chimera/docs/UsersGuide/tutorials/pdbintro.html).
+            # Thus we check that residue name (called alias) from the database starts
+            # with the residue name from the structure file.
+            # In case of ambiguity (for instance SB3-10, SB3-12, and SB3-14,
+            # all trimed at SB3-1 in a GRO file, the formula is used to solve this ambiguity.
             selected_row = lipid_csml_charmm_gui.loc[
-                (lipid_csml_charmm_gui["Alias"].str.contains(res_name_graph))
+                (lipid_csml_charmm_gui["Alias"].str.startswith(res_name_graph))
                 & (lipid_csml_charmm_gui["Formula"] == formula_graph)
             ]
 
@@ -1322,7 +1333,7 @@ def export_inventory(
     for index_graph, (graph, information) in enumerate(
         graph_count_dict.items(), start=1
     ):
-        formula, molecular_type, protein_sequence, remark_message, comment = (
+        formula, molecular_type, sequence, remark_message, comment = (
             "",
             "unknown",
             "",
@@ -1347,11 +1358,13 @@ def export_inventory(
         if "molecular_type" in information.keys():
             molecular_type = information["molecular_type"]
             if molecular_type == "protein":
-                protein_sequence = information["protein_sequence"]
+                sequence = information["sequence"]
                 if "putative_pdb" in information.keys():
                     putative_pdb = information["putative_pdb"]
             elif molecular_type in ["lipid", "ion", "solvant"]:
                 putative_name = information["name"]
+            elif molecular_type == "nucleic acid":
+                sequence = information["sequence"]
         if "comment" in information.keys():
             comment = information["comment"]
 
@@ -1363,7 +1376,7 @@ def export_inventory(
             "residue_ids": " ".join(information["res_id_interval"]),
             "formula_without_h": formula,
             "molecular_type": molecular_type,
-            "protein_sequence": protein_sequence,
+            "sequence": sequence,
             "putative_pdb": putative_pdb,
             "putative_name": putative_name,
             "comment": comment,
@@ -1425,6 +1438,59 @@ def is_met(graph: nx.classes.graph.Graph) -> bool:
     if res_name == "MET" and nb_atom == 2:
         return True
     return False
+
+
+def is_nucleic_acid(graph: nx.classes.graph.Graph) -> bool:
+    """Check if the molecule represented by the graph is a nucleic acid.
+
+    Parameters
+    ----------
+        graph: networkx.Graph
+            The input graph representing the molecule.
+
+    Returns
+    -------
+        bool
+            True if the molecule is a nucleic acid, False otherwise.
+    """
+    set_key_amino_acid_mda = set(mol_def.NUCLEIC_ACIDS.keys())
+    set_res_name_graph = set(nx.get_node_attributes(graph, "residue_name").values())
+    return len(set_key_amino_acid_mda.intersection(set_res_name_graph)) > 3
+
+
+def extract_nucleic_acid_sequence(graph: nx.classes.graph.Graph) -> dict[str, int]:
+    """Extract the nucleic acid sequence from a graph.
+
+    Parameters
+    ----------
+        graph: networkx.Graph
+            The input graph representing the molecule.
+
+    Returns
+    -------
+        dict
+            A dictionary containing the following keys:
+                - 'sequence': str
+                    The protein sequence extracted from the molecule.
+                - 'molecular_type': str
+                    The molecule type of this graph (here it will be 'nucleic acid')
+    """
+    logger.info("Extracting nucleic acid sequence...")
+    info_seq = {}
+    nucleic_acid_sequence = []
+
+    residue_pairs = zip(
+        nx.get_node_attributes(graph, "residue_id").values(),
+        nx.get_node_attributes(graph, "residue_name").values(),
+    )
+    residue_pairs_dict = dict(residue_pairs)
+    residue_names = [residue_pairs_dict[key] for key in sorted(residue_pairs_dict)]
+    for resname in residue_names:
+        nucleic_acid_sequence.append(mol_def.NUCLEIC_ACIDS.get(resname, "?"))
+
+    info_seq["sequence"] = "".join(nucleic_acid_sequence)
+    info_seq["molecular_type"] = "nucleic acid"
+    return info_seq
 
 
 def main(
@@ -1497,7 +1563,7 @@ def main(
 
             protein_sequence_dict[index_graph] = sequence_nbres
             graph_count_dict[graph]["molecular_type"] = "protein"
-            graph_count_dict[graph]["protein_sequence"] = sequence
+            graph_count_dict[graph]["sequence"] = sequence
 
             list_dict_info_pdb = []
             if query_pdb:
@@ -1513,6 +1579,11 @@ def main(
                 graph_count_dict[graph]["putative_pdb"] = list_dict_info_pdb
         elif is_lipid(resolution, graph, key):
             graph_count_dict[graph]["molecular_type"] = "lipid"
+        elif is_nucleic_acid(graph):
+            na_sequence_molecular_type = extract_nucleic_acid_sequence(graph)
+            graph_count_dict[graph]["molecular_type"] = na_sequence_molecular_type["molecular_type"]
+            graph_count_dict[graph]["sequence"] = na_sequence_molecular_type["sequence"]
+
     export_protein_sequence_into_FASTA(protein_sequence_dict, f"{filename}.fasta")
 
     # execution_time in seconds
