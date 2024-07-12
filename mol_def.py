@@ -140,6 +140,8 @@ IONS_LIST = [
     {"name": "calcium ion - CG model with MARTINI", "res_name": "ION", "atom_names": ["CA"]},
     {"name": "chloride ion - CG model with MARTINI", "res_name": "ION", "atom_names": ["CL-"]},
     {"name": "chloride ion - CG model with MARTINI", "res_name": "ION", "atom_names": ["CL"]},
+    {"name": "chloride ion - CG model with MARTINI", "res_name": "Cl_s", "atom_names": ["Cl_s"]},
+    {"name": "potassium ion - CG model with MARTINI", "res_name": "K_s", "atom_names": ["K_s"]},
     {"name": "sodium ion - CG model with MARTINI", "res_name": "ION", "atom_names": ["NA+"]},
     {"name": "sodium ion - CG model with MARTINI", "res_name": "ION", "atom_names": ["NA"]},
     {"name": "choloneion ion - CG model with MARTINI", "res_name": "ION", "atom_names": ["NC3"]}
@@ -173,7 +175,8 @@ SOLVANTS_LIST = [{"name": "water TIP3P solvant", "res_name": "TIP3", "atom_names
                  {"name": "organic solvant propanol/OPLS", "res_name": "POL", "atom_names": ["C", "H", "H", "H", "C", "H", "H", "C", "H", "H", "OA", "HO"]},
                  {"name": "acetonitrile", "res_name": "ACN", "atom_names": ["C1", "C2", "N"]},
 
-                 {"name": "water - in CG model with MARTINI", "res_name": "W", "atom_names": ["W"]}, 
+                 {"name": "water W - in CG model with MARTINI", "res_name": "W", "atom_names": ["W"]}, 
+                 {"name": "water WF - in CG model with MARTINI", "res_name": "WF", "atom_names": ["WF"]}, 
                  {"name": "organic solvant ethanol - CG model with MARTINI", "res_name": "EOL", "atom_names": ["COH"]}, 
                  {"name": "organic solvant ether - CG model with MARTINI", "res_name": "ETH", "atom_names": ["CO"]}, 
                  {"name": "organic solvant butane - CG model with MARTINI", "res_name": "BUT", "atom_names": ["C1"]},

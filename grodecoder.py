@@ -793,7 +793,7 @@ def find_ion_solvant(
                 - the atom_id of the last atom (for each molecule)
                 - the name of this molecule (collected from the dictionary in mol_def.py)
                 - the occurence if this molecule in this system
-                - boolean key for ion, solvant and lipid
+                - molecular type (ion, solvant, lipid, protein, nucelic acids)
     """
     (name, res_name, atom_names) = molecule.values()
 
@@ -861,9 +861,7 @@ def find_ion_solvant(
 def count_remove_ion_solvant(
     universe: mda.core.universe.Universe,
     input_filepath: str,
-) -> tuple[
-    mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int | str]]
-]:
+) -> tuple[mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int]]]:
     """Count and remove ions and solvents from the MDAnalysis Universe return by
     the function find_ion_solvant().
 
@@ -923,6 +921,134 @@ def count_remove_ion_solvant(
 
     logger.info(f"{len(universe_clean.atoms):,} atoms remaining")
     return (universe_clean, counts)
+
+
+def find_lipids(lipid: list, universe: mda.core.universe.Universe, counts: dict):
+    """Counts and removes lipid from the MDAnalysis Universe.
+
+    Parameters
+    ----------
+        lipid: list
+            List that contains information about a lipid (one line from the CSV based on the resolution of the system) to be remove
+        universe : MDAnalysis.core.universe.Universe
+            MDAnalysis Universe object representing the system.
+        counts : dict
+            Dictionary to store the counts of lipids.
+
+    Return
+    ------
+        MDAnalysis.core.universe.Universe
+            MDAnalysis Universe object containing only non-lipid.
+        dict
+            Dictionary containing the counts of removed atoms.
+            With the graph (representing this molecule) as key,
+            and in the value :
+                - the atom_id of the first atom (for each molecule)
+                - the atom_id of the last atom (for each molecule)
+                - the name of this molecule (collected from the dictionary in the corresponding CSV based on the system's resolution )
+                - the occurence if this molecule in this system
+                - molecular type (ion, solvant, lipid, protein, nucelic acids)
+    """
+    (name, alias, category, _) = lipid
+    selection = f"resname {alias}"
+    selected_atoms = universe.select_atoms(selection)
+
+    # select the lipid who have the same resname
+    selection = f"resname {alias}"
+    selected_atoms = universe.select_atoms(selection)
+
+    # collect all resids from each res selected, to remove it from the universe
+    selected_res_ids = [str(residue.resid) for residue in selected_atoms.residues]
+    res_count = len(selected_res_ids)
+
+    if res_count > 0:
+        list_graph = []
+        # For each residues in the selection, create a graph in the same format as a molecule (but added to that a key 'name')
+        # which give us direct acces of their composition
+        for index_resID in selected_atoms.residues:
+            graph = nx.Graph()
+            graph.add_nodes_from(index_resID.atoms.ids)
+            graph = add_attributes_to_nodes(graph, index_resID)
+            list_graph.append(graph)
+
+        atom_id, res_id = [], []
+        for subgraph in list_graph:
+            residue_pairs = zip(
+                nx.get_node_attributes(subgraph, "residue_id").values(),
+                nx.get_node_attributes(subgraph, "residue_name").values(),
+            )
+            residue_pairs_dict = dict(residue_pairs)
+
+            res_id.extend([key for key in sorted(residue_pairs_dict)])
+            atom_id.extend(nx.get_node_attributes(subgraph, "atom_id").values())
+
+        res_id_interval = get_intervals(res_id)
+        atom_id_interval = get_intervals(atom_id)
+
+        counts[list_graph[0]] = {
+            "res_id": res_id,
+            "res_id_interval": res_id_interval,
+            "atom_id": atom_id,
+            "atom_id_interval": atom_id_interval,
+            "name": name,
+            "graph": res_count,
+            "molecular_type": "lipid",
+        }
+        # Here we remove all the resIDS (from selected_res_ids) from this universe
+        for interval in res_id_interval:
+            start_end = interval.split("-")
+            if len(start_end) == 1:
+                selection = f"not (resname {alias} and resid {start_end[0]})"
+            else:
+                selection = (
+                    f"not (resname {alias} and resid {start_end[0]}:{start_end[1]})"
+                )
+
+            universe = universe.select_atoms(f"{selection}")
+    return (universe, counts)
+
+
+def count_remove_lipid(
+    universe: mda.core.universe.Universe,
+    input_filepath: str,
+) -> tuple[mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int]]]:
+    """Count and remove lipid from the MDAnalysis Universe return by
+    the function find_ion_lipid().
+
+    Parameters
+    ----------
+        universe : MDAnalysis.core.universe.Universe
+            MDAnalysis Universe object representing the system.
+        input_filepath : str
+            Path to the input file.
+
+    Returns
+    -------
+        tuple
+            Containing :
+                - the new Universe without lipid.
+                - a dictionary where
+                    - the key is a graph
+                    - and the value is an other dictionary with: atom_start, atom_end, name of the lipid, the counts of removed lipid
+    """
+    counts = {}
+    logger.info("Searching lipid...")
+    lipid_MAD = MAD_DB[MAD_DB["Category"].str.contains("Lipids", case=False, na=False)]
+
+    for lipid in lipid_MAD.values:
+        universe, counts = find_lipids(lipid.tolist(), universe, counts)
+
+    # Print which lipid we find, and how many
+    for molecule, dict_count in counts.items():
+        name = dict_count.get("name")
+        count = dict_count.get("graph")
+        res_name = " ".join(
+            set(nx.get_node_attributes(molecule, "residue_name").values())
+        )
+        logger.success(f"Found: {count} {name} ({res_name})")
+
+    logger.info(f"{len(universe.atoms):,} atoms remaining")
+    return (universe, counts)
 
 
 def check_overlapping_residue_between_graphs(graph_list: list[nx.classes.graph.Graph]):
@@ -1237,7 +1363,7 @@ def export_inventory(
                     putative_pdb = information["putative_pdb"]
             elif molecular_type in ["lipid", "ion", "solvant"]:
                 putative_name = information["name"]
-            elif molecular_type == "nucleic acids":
+            elif molecular_type == "nucleic acid":
                 sequence = information["sequence"]
         if "comment" in information.keys():
             comment = information["comment"]
@@ -1314,16 +1440,44 @@ def is_met(graph: nx.classes.graph.Graph) -> bool:
     return False
 
 
-def is_nucleic_acids(graph: nx.classes.graph.Graph) -> bool:
+def is_nucleic_acid(graph: nx.classes.graph.Graph) -> bool:
+    """Check if the molecule represented by the graph is a nucleic acid.
+
+    Parameters
+    ----------
+        graph: networkx.Graph
+            The input graph representing the molecule.
+
+    Returns
+    -------
+        bool
+            True if the molecule is a nucleic acid, False otherwise.
+    """
     set_key_amino_acid_mda = set(mol_def.NUCLEIC_ACIDS.keys())
     set_res_name_graph = set(nx.get_node_attributes(graph, "residue_name").values())
     return len(set_key_amino_acid_mda.intersection(set_res_name_graph)) > 3
 
 
-def extract_nucleic_acids_sequence(graph: nx.classes.graph.Graph) -> str:
-    logger.info("Extracting nucleic acids sequence...")
+def extract_nucleic_acid_sequence(graph: nx.classes.graph.Graph) -> dict[str, int]:
+    """Extract the nucleic acid sequence from a graph.
+
+    Parameters
+    ----------
+        graph: networkx.Graph
+            The input graph representing the molecule.
+
+    Returns
+    -------
+        dict
+            A dictionary containing the following keys:
+                - 'sequence': str
+                    The protein sequence extracted from the molecule.
+                - 'molecular_type': str
+                    The molecule type of this graph (here it will be 'nucleic acid')
+    """
+    logger.info("Extracting nucleic acid sequence...")
     info_seq = {}
-    nucleic_acids_sequence = []
+    nucleic_acid_sequence = []
 
     residue_pairs = zip(
         nx.get_node_attributes(graph, "residue_id").values(),
@@ -1332,10 +1486,10 @@ def extract_nucleic_acids_sequence(graph: nx.classes.graph.Graph) -> str:
     residue_pairs_dict = dict(residue_pairs)
     residue_names = [residue_pairs_dict[key] for key in sorted(residue_pairs_dict)]
     for resname in residue_names:
-        nucleic_acids_sequence.append(mol_def.NUCLEIC_ACIDS.get(resname, "?"))
+        nucleic_acid_sequence.append(mol_def.NUCLEIC_ACIDS.get(resname, "?"))
 
-    info_seq["sequence"] = "".join(nucleic_acids_sequence)
-    info_seq["molecular_type"] = "nucleic acids"
+    info_seq["sequence"] = "".join(nucleic_acid_sequence)
+    info_seq["molecular_type"] = "nucleic acid"
     return info_seq
 
 
@@ -1365,13 +1519,17 @@ def main(
         molecular_system,
         input_file_path,
     )
-
     resolution = guess_resolution(molecular_system)
     logger.info(f"Molecular resolution: {resolution}")
     if bond_threshold == "auto":
         if resolution == "AA":
             atom_pairs = get_atom_pairs_from_guess_bonds(molecular_system)
         else:
+            molecular_system, count_lipid = count_remove_lipid(
+                molecular_system,
+                input_file_path,
+            )
+            count_ion_solvant.update(count_lipid)
             atom_pairs = get_atom_pairs_from_threshold(molecular_system, 5.0)
     else:
         atom_pairs = get_atom_pairs_from_threshold(molecular_system, bond_threshold)
@@ -1421,8 +1579,8 @@ def main(
                 graph_count_dict[graph]["putative_pdb"] = list_dict_info_pdb
         elif is_lipid(resolution, graph, key):
             graph_count_dict[graph]["molecular_type"] = "lipid"
-        elif is_nucleic_acids(graph):
-            na_sequence_molecular_type = extract_nucleic_acids_sequence(graph)
+        elif is_nucleic_acid(graph):
+            na_sequence_molecular_type = extract_nucleic_acid_sequence(graph)
             graph_count_dict[graph]["molecular_type"] = na_sequence_molecular_type["molecular_type"]
             graph_count_dict[graph]["sequence"] = na_sequence_molecular_type["sequence"]
 
