@@ -733,7 +733,7 @@ def read_structure_file_remove_hydrogens(file_path: str) -> mda.core.universe.Un
     return molecule_without_h
 
 
-def remove_hydrogene(filename: str) -> mda.core.universe.Universe:
+def remove_hydrogene(filename: str, filename2: str = None) -> mda.core.universe.Universe:
     """Removes hydrogen atoms from a molecular system.
 
     Parameters
@@ -746,7 +746,7 @@ def remove_hydrogene(filename: str) -> mda.core.universe.Universe:
         mda.core.universe.Universe
             MDAnalysis Universe object representing the molecular system without hydrogen atoms.
     """
-    molecule = mda.Universe(filename)
+    molecule = mda.Universe(filename2, filename)
     logger.info(f"Found {len(molecule.atoms):,} atoms in {filename}")
 
     # Remove hydrogene from the system
@@ -758,7 +758,7 @@ def remove_hydrogene(filename: str) -> mda.core.universe.Universe:
     logger.debug(f" New structure file without hydrogens : {filename_tmp}")
 
     # We need to read structure from disk to be extra sure hydrogen atoms are removed.
-    mol = mda.Universe(filename_tmp)
+    # mol = mda.Universe(filename_tmp)
     logger.info(f"{len(mol.atoms):,} atoms remaining")
     return mol
 
@@ -906,7 +906,7 @@ def count_remove_ion_solvant(
         f" New structure file without hydrogens, ions and solvants : {output_file}"
     )
 
-    universe_clean = mda.Universe(output_file)
+    # universe_clean = mda.Universe(output_file)
 
     # Print which ion and solvant we find, and how many
     for molecule, dict_count in counts.items():
@@ -918,12 +918,12 @@ def count_remove_ion_solvant(
         logger.success(f"Found: {count} {name} ({res_name})")
 
     # Check if there is other residue with the resname SOL in the updated MDAnalysis.core.universe.Universe
-    selected_atoms = universe_clean.select_atoms("resname SOL")
+    selected_atoms = universe.select_atoms("resname SOL")
     count = len(selected_atoms.residues)
     logger.info(f"{count} residues SOL remaining")
 
-    logger.info(f"{len(universe_clean.atoms):,} atoms remaining")
-    return (universe_clean, counts)
+    logger.info(f"{len(universe.atoms):,} atoms remaining")
+    return (universe, counts)
 
 
 def find_lipids(lipid: list, universe: mda.core.universe.Universe, counts: dict):
@@ -1013,7 +1013,6 @@ def find_lipids(lipid: list, universe: mda.core.universe.Universe, counts: dict)
 
 def count_remove_lipid(
     universe: mda.core.universe.Universe,
-    input_filepath: str,
 ) -> tuple[mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int]]]:
     """Count and remove lipid from the MDAnalysis Universe return by
     the function find_ion_lipid().
@@ -1022,8 +1021,6 @@ def count_remove_lipid(
     ----------
         universe : MDAnalysis.core.universe.Universe
             MDAnalysis Universe object representing the system.
-        input_filepath : str
-            Path to the input file.
 
     Returns
     -------
@@ -1497,7 +1494,11 @@ def extract_nucleic_acid_sequence(graph: nx.classes.graph.Graph) -> dict[str, in
 
 
 def main(
-    input_file_path: str,
+    input_file_path_pdb: str,
+    input_file_path_gro: str,
+    input_file_path_coor: str,
+    input_file_path_psf: str,
+    input_file_path_crd: str,
     check_connectivity: bool = False,
     bond_threshold: str | float = "auto",
     query_pdb=False,
@@ -1517,7 +1518,19 @@ def main(
     """
     start_time = time.perf_counter()
 
-    molecular_system = remove_hydrogene(input_file_path)
+    if input_file_path_pdb: 
+        input_file_path = input_file_path_pdb
+        molecular_system = remove_hydrogene(input_file_path)
+    elif input_file_path_gro:
+        input_file_path = input_file_path_gro
+        molecular_system = remove_hydrogene(input_file_path_gro)
+    elif input_file_path_coor and input_file_path_psf:
+        input_file_path = input_file_path_coor
+        molecular_system = remove_hydrogene(input_file_path_coor, input_file_path_psf)
+    else:
+        input_file_path = input_file_path_crd
+        molecular_system = remove_hydrogene(input_file_path_crd, input_file_path_psf)
+    
     molecular_system, count_ion_solvant = count_remove_ion_solvant(
         molecular_system,
         input_file_path,
@@ -1529,9 +1542,7 @@ def main(
             atom_pairs = get_atom_pairs_from_guess_bonds(molecular_system)
         else:
             molecular_system, count_lipid = count_remove_lipid(
-                molecular_system,
-                input_file_path,
-            )
+                molecular_system)
             count_ion_solvant.update(count_lipid)
             atom_pairs = get_atom_pairs_from_threshold(molecular_system, 5.0)
     else:
@@ -1621,7 +1632,7 @@ def is_a_structure_file(filepath: str) -> str:
     if not Path.is_file(filename):
         raise argparse.ArgumentTypeError(f"{filepath} does not exist")
 
-    if filename.suffix not in (".gro", ".pdb"):
+    if filename.suffix not in (".gro", ".pdb", ".psf", ".coor", ".crd"):
         raise argparse.ArgumentTypeError(f"{filepath} is not a .gro or .pdb file.")
     return filepath
 
@@ -1679,11 +1690,31 @@ def parse_arg() -> argparse.Namespace:
         usage="grodecoder.py [-h] --input structure_file [--drawgraph]",
     )
     parser.add_argument(
-        "--input",
+        "--pdb",
         type=is_a_structure_file,
         help="structure file path (.gro, .pdb)",
-        required=True,
     )
+    parser.add_argument(
+        "--gro",
+        type=is_a_structure_file,
+        help="structure file path (.gro, .pdb)",
+    )
+    parser.add_argument(
+        "--psf",
+        type=is_a_structure_file,
+        help="structure file path (.gro, .pdb)",
+    )
+    parser.add_argument(
+        "--coor",
+        type=is_a_structure_file,
+        help="structure file path (.gro, .pdb)",
+    )
+    parser.add_argument(
+        "--crd",
+        type=is_a_structure_file,
+        help="structure file path (.gro, .pdb)",
+    )
+
     parser.add_argument(
         "--checkconnectivity",
         help="Add edges and degre in the fingerprint. Default: False.",
@@ -1708,7 +1739,11 @@ def parse_arg() -> argparse.Namespace:
 if __name__ == "__main__":
     args = parse_arg()
     main(
-        args.input,
+        args.pdb,
+        args.gro,
+        args.coor,
+        args.psf,
+        args.crd,
         check_connectivity=args.checkconnectivity,
         bond_threshold=args.bondthreshold,
         query_pdb=args.querypdb,
