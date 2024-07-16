@@ -746,7 +746,10 @@ def remove_hydrogene(filename: str, filename2: str = None) -> mda.core.universe.
         mda.core.universe.Universe
             MDAnalysis Universe object representing the molecular system without hydrogen atoms.
     """
-    molecule = mda.Universe(filename2, filename)
+    if filename2:
+        molecule = mda.Universe(filename2, filename)
+    else:
+        molecule = mda.Universe(filename)
     logger.info(f"Found {len(molecule.atoms):,} atoms in {filename}")
 
     # Remove hydrogene from the system
@@ -1453,7 +1456,7 @@ def is_nucleic_acid(graph: nx.classes.graph.Graph) -> bool:
         bool
             True if the molecule is a nucleic acid, False otherwise.
     """
-    set_key_amino_acid_mda = set(mol_def.NUCLEIC_ACIDS.keys())
+    set_key_amino_acid_resname = set(mol_def.NUCLEIC_ACIDS.keys())
     set_res_name_graph = set(nx.get_node_attributes(graph, "residue_name").values())
     return len(set_key_amino_acid_resname.intersection(set_res_name_graph)) > 1
 
@@ -1529,7 +1532,7 @@ def main(
         molecular_system = remove_hydrogene(input_file_path_coor, input_file_path_psf)
     else:
         input_file_path = input_file_path_crd
-        molecular_system = remove_hydrogene(input_file_path_crd, input_file_path_psf)
+        molecular_system = remove_hydrogene(input_file_path_crd)
     
     molecular_system, count_ion_solvant = count_remove_ion_solvant(
         molecular_system,
