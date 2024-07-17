@@ -27,6 +27,9 @@ dependencies:
   - streamlit
   - pillow
   - pytest
+  # poetry : Python packaging and dependency management
+  # https://python-poetry.org/
+  - poetry
   - pip:
     # watermark: keep track of dependency versions
     - watermark
