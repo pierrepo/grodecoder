@@ -235,3 +235,47 @@
     - 26 301 water molecules (TIP3P)
 - resolution: all-atom
 - source: Zenodo [dataset](https://zenodo.org/records/10647894), file `RNA_start.gro`
+
+
+`opls4_stripped.pdb`
+- molecular inventory:
+    - residues 689 to 701 from ?GACGCUAGCGU?
+    - residues 702 to 714 from ?ACGCUAGCGUC?
+- resolution: all-atom
+- source: Zenodo [dataset](https://zenodo.org/records/7695265), file `opls4_stripped.pdb`
+
+
+`seq075_sample10_restraint.pdb`
+- molecular inventory:
+    - residues 1 to 100 from CGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCG
+    - 60 chloride ions
+    - 160 potassium ions
+    - 21 095 water molecules (TIP3P)
+- resolution: all-atom
+- source: Zenodo [dataset](https://zenodo.org/records/3992686), file `Inputs/SEQ_0.75/sample_10/restraint.pdb`
+
+
+`tipsy_pull_start.pdb`
+- molecular inventory:
+    - residues 1 to 21 from ACCGCTTGACAGCCACCGAAA
+    - residues 1 to 21 from TTTCGGTGGCTGTCAAGCGGT
+    - residues 15 to 178 from immunity repressor (PDB: 7R6R_1)
+    - 51 chloride ions
+    - 93 sodium ion
+    - 25 687 water molecules (TIP3P)
+- resolution: all-atom
+- source: Zenodo [dataset](https://zenodo.org/records/6604543), file `tipsy_pull_start.pdb`
+
+
+`M1.gro`
+- molecular inventory:
+    - residues 121 to 187 from GCAGTTTCCAAATACACTTTTGGTAGTATCTGCAGGTGGATATTGATGACTGACTGACTGACTGACT
+    - residues 1 to 68 from AGTCAGTCAGTCAGTCAGTCATCAATATCCACCTGCAGATACTACCAAAAGTGTATTTGGAAACTGCT
+    - residues 69 to 187 from CCATCAAAAGGCATGTTCAGCTGGAATCCAGCTGAACATGCCTTTTGATGGAGCAGTTTCCAAATACACTTTTGGTAGTATCTGCAGGTGGATATTGATAGTCAGTCAGTCAGTCAGTC
+    - residues 1 to 120 from GACTGACTGACTGACTGACTATCAATATCCACCTGCAGATACTACCAAAAGTGTATTTGGAAACTGCTCCATCAAAAGGCATGTTCAGCTGGATTCCAGCTGAACATGCCTTTTGATGGA
+    - 2* residues 188 to 289 from histone H4 (PDB: 1EQZ)
+    - 2* residues 188 to 309 from histone H2B (PDB: 1F66)
+    - 2* residues 188 to 315 from histone H2A.1 (PDB: 1KX3)
+    - 2* residues 188 to 322 from histone H3 (PDB: 1KX3)
+- resolution: all-atom
+- source: Zenodo [dataset](https://figshare.com/articles/dataset/M1_gro/5840706), file `M1.gro`
