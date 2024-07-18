@@ -1501,7 +1501,6 @@ def main(
     input_file_path_gro: str,
     input_file_path_coor: str,
     input_file_path_psf: str,
-    input_file_path_crd: str,
     check_connectivity: bool = False,
     bond_threshold: str | float = "auto",
     query_pdb=False,
@@ -1530,9 +1529,6 @@ def main(
     elif input_file_path_coor and input_file_path_psf:
         input_file_path = input_file_path_coor
         molecular_system = remove_hydrogene(input_file_path_coor, input_file_path_psf)
-    else:
-        input_file_path = input_file_path_crd
-        molecular_system = remove_hydrogene(input_file_path_crd)
     
     molecular_system, count_ion_solvant = count_remove_ion_solvant(
         molecular_system,
@@ -1635,7 +1631,7 @@ def is_a_structure_file(filepath: str) -> str:
     if not Path.is_file(filename):
         raise argparse.ArgumentTypeError(f"{filepath} does not exist")
 
-    if filename.suffix not in (".gro", ".pdb", ".psf", ".coor", ".crd"):
+    if filename.suffix not in (".gro", ".pdb", ".psf", ".coor"):
         raise argparse.ArgumentTypeError(f"{filepath} is not a .gro or .pdb file.")
     return filepath
 
@@ -1713,12 +1709,6 @@ def parse_arg() -> argparse.Namespace:
         help="structure file path (.gro, .pdb)",
     )
     parser.add_argument(
-        "--crd",
-        type=is_a_structure_file,
-        help="structure file path (.gro, .pdb)",
-    )
-
-    parser.add_argument(
         "--checkconnectivity",
         help="Add edges and degre in the fingerprint. Default: False.",
         default=False,
@@ -1746,7 +1736,6 @@ if __name__ == "__main__":
         args.gro,
         args.coor,
         args.psf,
-        args.crd,
         check_connectivity=args.checkconnectivity,
         bond_threshold=args.bondthreshold,
         query_pdb=args.querypdb,
