@@ -1,0 +1,7 @@
+[tool.poetry]
+name = "grodecoder"
+version = "0.1.0"
+description = "Extract each molecule of a GRO file and print their occurence."
+authors = ["Karine DUONG", "Pierre POULAIN"]
+license = "BSD 3-Clause"
+readme = "README.md"
