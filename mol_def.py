@@ -106,6 +106,7 @@ IONS_LIST = [
     {"name": "chloride ion", "res_name": "CLA", "atom_names": ["CLA"]},  # CL
     {"name": "chloride ion", "res_name": "CL", "atom_names": ["CL"]},
     {"name": "chloride ion", "res_name": "CL-", "atom_names": ["CL"]},
+    {"name": "chloride ion", "res_name": "Cl-", "atom_names": ["Cl-"]},
     {"name": "chloride ion", "res_name": "CL", "atom_names": ["CA"]},
     {"name": "caesium ion", "res_name": "CS", "atom_names": ["CS"]},
     {"name": "caesium ion", "res_name": "Cs+", "atom_names": ["Cs"]},
@@ -130,6 +131,7 @@ IONS_LIST = [
     {"name": "sodium ion", "res_name": "NA", "atom_names": ["NA"]},
     {"name": "sodium ion", "res_name": "NAs", "atom_names": ["NA"]},
     {"name": "sodium ion", "res_name": "NA+", "atom_names": ["NA"]},
+    {"name": "sodium ion", "res_name": "Na+", "atom_names": ["Na+"]},
     {"name": "ammonium", "res_name": "NH4", "atom_names": ["HZ1", "NZ", "HZ2", "HZ3", "HZ4"]},
     {"name": "hydroxide ion", "res_name": "OH", "atom_names": ["O1"]},
     {"name": "plutonium ion", "res_name": "PU3P", "atom_names": ["PU3P"]},
