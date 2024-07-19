@@ -63,10 +63,12 @@
             "residue_names": "SB3-1",
             "residue_ids": "283-316",
             "formula_without_h": "C19NO3S",
-            "molecular_type": "unknown",
+            "molecular_type": "lipid",
             "sequence": "",
             "putative_pdb": [],
-            "putative_name": [],
+            "putative_name": [
+                "N-TETRADECYL-N,N-DIMETHYL-3-AMMONIO-1-PROPANESULFONATE"
+            ],
             "comment": ""
         },
         {
@@ -212,7 +214,7 @@
             "molecular_type": "ion",
             "sequence": "",
             "putative_pdb": [],
-            "putative_name": "Calcium ion",
+            "putative_name": "calcium ion",
             "comment": ""
         },
         {
@@ -225,7 +227,7 @@
             "molecular_type": "ion",
             "sequence": "",
             "putative_pdb": [],
-            "putative_name": "Magnesium ion",
+            "putative_name": "magnesium ion",
             "comment": ""
         },
         {
@@ -238,7 +240,7 @@
             "molecular_type": "ion",
             "sequence": "",
             "putative_pdb": [],
-            "putative_name": "Sodium ion",
+            "putative_name": "sodium ion",
             "comment": ""
         },
         {
@@ -251,7 +253,7 @@
             "molecular_type": "ion",
             "sequence": "",
             "putative_pdb": [],
-            "putative_name": "Potassium ion",
+            "putative_name": "potassium ion",
             "comment": ""
         },
         {
@@ -282,11 +284,11 @@
         }
     ],
     "resolution": "AA",
-    "date": "2024-07-05_14-19-11",
-    "execution_time_in_sec": "108.22",
+    "date": "2024-07-19_15-22-48",
+    "execution_time_in_sec": "105.18",
     "remark": "",
     "file_path": "data/examples/4ZRY.gro",
     "file_md5sum": "2e4cd6da66752987b5c41173c0c394c5",
-    "git_last_commit_date": "'2024-07-03T20:23:24+02:00'",
-    "git_last_commit_hash": "'f44166da6e94e3ab9b6328f6ddf8c129e94c2000'"
+    "git_last_commit_date": "2024-07-18T20:58:02+02:00",
+    "git_last_commit_hash": "85a7a6527fee09c8797e75e9dbc4e1719844c297"
 }

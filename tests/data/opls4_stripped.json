@@ -1,0 +1,77 @@
+{
+    "inventory": [
+        {
+            "id": 1,
+            "number_of_atoms": 273,
+            "number_of_molecules": 1,
+            "residue_names": "C5 G A C G C U A G C G U C3",
+            "residue_ids": "689-701",
+            "formula_without_h": "C10N7O9P",
+            "molecular_type": "nucleic acid",
+            "sequence": "?GACGCUAGCGU?",
+            "putative_pdb": [],
+            "putative_name": [],
+            "comment": ""
+        },
+        {
+            "id": 2,
+            "number_of_atoms": 276,
+            "number_of_molecules": 1,
+            "residue_names": "G5 A C G C U A G C G U C G3",
+            "residue_ids": "702-714",
+            "formula_without_h": "C10N7O9P",
+            "molecular_type": "nucleic acid",
+            "sequence": "?ACGCUAGCGUC?",
+            "putative_pdb": [],
+            "putative_name": [],
+            "comment": ""
+        },
+        {
+            "id": 3,
+            "number_of_atoms": 5523,
+            "number_of_molecules": 1,
+            "residue_names": "PRO PHE LYS PRO ARG ASN TYR GLN LEU GLU LEU ALA LEU PRO ALA MET LYS GLY LYS ASN THR ILE ILE CYS ALA PRO THR GLY PHE GLY LYS THR PHE VAL SER LEU LEU ILE CYS GLU HIS HIS LEU LYS LYS PHE PRO GLN GLY GLN LYS GLY LYS VAL VAL PHE PHE ALA ASN GLN ILE PRO VAL TYR GLU GLN GLN LYS SER VAL PHE SER LYS TYR PHE GLU ARG HIS GLY TYR ARG VAL THR GLY ILE SER GLY ALA THR ALA GLU ASN VAL PRO VAL GLU GLN ILE VAL GLU ASN ASN ASP ILE ILE ILE LEU THR PRO GLN ILE LEU VAL ASN ASN LEU LYS LYS GLY THR ILE PRO SER LEU SER ILE PHE THR LEU MET ILE PHE ASP GLU CYS HIS ASN THR SER LYS GLN HIS PRO TYR ASN MET ILE MET PHE ASN TYR LEU ASP GLN LYS LEU GLY GLY SER SER GLY PRO LEU PRO GLN VAL ILE GLY LEU THR ALA SER VAL GLY VAL GLY ASP ALA LYS ASN THR ASP GLU ALA LEU ASP TYR ILE CYS LYS LEU CYS ALA SER LEU ASP ALA SER VAL ILE ALA THR VAL LYS HIS ASN LEU GLU GLU LEU GLU GLN VAL VAL TYR LYS PRO GLN LYS PHE PHE ARG LYS VAL GLU SER ARG ILE SER ASP LYS PHE LYS TYR ILE ILE ALA GLN LEU MET ARG ASP THR GLU SER LEU ALA LYS ARG ILE CYS LYS ASP LEU GLU ASN LEU SER GLN ILE GLN ASN ARG GLU PHE GLY THR GLN LYS TYR GLU GLN TRP ILE VAL THR VAL GLN LYS ALA CYS MET VAL PHE GLN MET PRO ASP LYS ASP GLU GLU SER ARG ILE CYS LYS ALA LEU PHE LEU TYR THR SER HIS LEU ARG LYS TYR ASN ASP ALA LEU ILE ILE SER GLU HIS ALA ARG MET LYS ASP ALA LEU ASP TYR LEU LYS ASP PHE PHE SER ASN VAL ARG ALA ALA GLY PHE ASP GLU ILE GLU GLN ASP LEU THR GLN ARG PHE GLU GLU LYS LEU GLN GLU LEU GLU SER VAL SER ARG ASP PRO SER ASN GLU ASN PRO LYS LEU GLU ASP LEU CYS PHE ILE LEU GLN GLU GLU TYR HIS LEU ASN PRO GLU THR ILE THR ILE LEU PHE VAL LYS THR ARG ALA LEU VAL ASP ALA LEU LYS ASN TRP ILE GLU GLY ASN PRO LYS LEU SER PHE LEU LYS PRO GLY ILE LEU THR GLY ARG GLY LYS THR ASN GLN ASN THR GLY MET THR LEU PRO ALA GLN LYS CYS ILE LEU ASP ALA PHE LYS ALA SER GLY ASP HIS ASN ILE LEU ILE ALA THR SER VAL ALA ASP GLU GLY ILE ASP ILE ALA GLN CYS ASN LEU VAL ILE LEU TYR GLU TYR VAL GLY ASN VAL ILE LYS MET ILE GLN THR ARG GLY ARG GLY ARG ALA ARG GLY SER LYS CYS PHE LEU LEU THR SER ASN ALA GLY VAL ILE GLU LYS GLU GLN ILE ASN MET TYR LYS GLU LYS MET MET ASN ASP SER ILE LEU ARG LEU GLN THR TRP ASP GLU ALA VAL PHE ARG GLU LYS ILE LEU HIS ILE GLN THR HIS GLU LYS PHE ILE ARG ASP SER GLN GLU LYS PRO LYS PRO VAL PRO ASP LYS GLU ASN LYS LYS LEU LEU CYS ARG LYS CYS LYS ALA LEU ALA CYS TYR THR ALA ASP VAL ARG VAL ILE GLU GLU CYS HIS TYR THR VAL LEU GLY ASP ALA PHE LYS GLU CYS PHE VAL SER ARG PRO HIS PRO LYS PRO LYS GLN PHE SER SER PHE GLU LYS ARG ALA LYS ILE PHE CYS ALA ARG GLN ASN CYS SER HIS ASP TRP GLY ILE HIS VAL LYS TYR LYS THR PHE GLU ILE PRO VAL ILE LYS ILE GLU SER PHE VAL VAL GLU ASP ILE ALA THR GLY VAL GLN THR LEU TYR SER LYS TRP LYS ASP PHE HIS PHE GLU LYS ILE PRO PHE ASP PRO ALA GLU MET SER LYS",
+            "residue_ids": "1-686",
+            "formula_without_h": "C17N9O9S2",
+            "molecular_type": "protein",
+            "sequence": "PFKPRNYQLELALPAMKGKNTIICAPTGFGKTFVSLLICEHHLKKFPQGQKGKVVFFANQIPVYEQQKSVFSKYFERHGYRVTGISGATAENVPVEQIVENNDIIILTPQILVNNLKKGTIPSLSIFTLMIFDECHNTSKQHPYNMIMFNYLDQKLGGSSGPLPQVIGLTASVGVGDAKNTDEALDYICKLCASLDASVIATVKHNLEELEQVVYKPQKFFRKVESRISDKFKYIIAQLMRDTESLAKRICKDLENLSQIQNREFGTQKYEQWIVTVQKACMVFQMPDKDEESRICKALFLYTSHLRKYNDALIISEHARMKDALDYLKDFFSNVRAAGFDEIEQDLTQRFEEKLQELESVSRDPSNENPKLEDLCFILQEEYHLNPETITILFVKTRALVDALKNWIEGNPKLSFLKPGILTGRGKTNQNTGMTLPAQKCILDAFKASGDHNILIATSVADEGIDIAQCNLVILYEYVGNVIKMIQTRGRGRARGSKCFLLTSNAGVIEKEQINMYKEKMMNDSILRLQTWDEAVFREKILHIQTHEKFIRDSQEKPKPVPDKENKKLLCRKCKALACYTADVRVIEECHYTVLGDAFKECFVSRPHPKPKQFSSFEKRAKIFCARQNCSHDWGIHVKYKTFEIPVIKIESFVVEDIATGVQTLYSKWKDFHFEKIPFDPAEMSK",
+            "putative_pdb": [],
+            "putative_name": [],
+            "comment": ""
+        },
+        {
+            "id": 4,
+            "number_of_atoms": 1,
+            "number_of_molecules": 1,
+            "residue_names": "MG",
+            "residue_ids": "688",
+            "formula_without_h": "",
+            "molecular_type": "ion",
+            "sequence": "",
+            "putative_pdb": [],
+            "putative_name": "magnesium ion",
+            "comment": ""
+        },
+        {
+            "id": 5,
+            "number_of_atoms": 1,
+            "number_of_molecules": 1,
+            "residue_names": "ZN",
+            "residue_ids": "687",
+            "formula_without_h": "",
+            "molecular_type": "ion",
+            "sequence": "",
+            "putative_pdb": [],
+            "putative_name": "zinc ion",
+            "comment": ""
+        }
+    ],
+    "resolution": "AA",
+    "date": "2024-07-19_15-38-01",
+    "execution_time_in_sec": "7.02",
+    "remark": "",
+    "file_path": "data/examples/opls4_stripped.pdb",
+    "file_md5sum": "15749a6bfe146b2585ed5b731228534c",
+    "git_last_commit_date": "2024-07-18T20:58:02+02:00",
+    "git_last_commit_hash": "85a7a6527fee09c8797e75e9dbc4e1719844c297"
+}

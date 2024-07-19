@@ -91,10 +91,14 @@
             "residue_names": "POPI1",
             "residue_ids": "514-545",
             "formula_without_h": "C43O16P2",
-            "molecular_type": "unknown",
+            "molecular_type": "lipid",
             "sequence": "",
             "putative_pdb": [],
-            "putative_name": [],
+            "putative_name": [
+                "1-PALMITOYL-2-OLEOYL-INOSITOL-3-PHOSPHATE PIP1",
+                "1-PALMITOYL-2-OLEOYL-INOSITOL-4-PHOSPHATE PIP1",
+                "1-PALMITOYL-2-OLEOYL-INOSITOL-5-PHOSPHATE PIP1"
+            ],
             "comment": ""
         },
         {
@@ -167,7 +171,7 @@
             "molecular_type": "ion",
             "sequence": "",
             "putative_pdb": [],
-            "putative_name": "Calcium ion",
+            "putative_name": "calcium ion",
             "comment": ""
         },
         {
@@ -180,7 +184,7 @@
             "molecular_type": "ion",
             "sequence": "",
             "putative_pdb": [],
-            "putative_name": "Sodium ion",
+            "putative_name": "sodium ion",
             "comment": ""
         },
         {
@@ -206,7 +210,7 @@
             "molecular_type": "ion",
             "sequence": "",
             "putative_pdb": [],
-            "putative_name": "Potassium ion",
+            "putative_name": "potassium ion",
             "comment": ""
         },
         {
@@ -224,11 +228,11 @@
         }
     ],
     "resolution": "AA",
-    "date": "2024-07-05_14-15-41",
-    "execution_time_in_sec": "28.69",
+    "date": "2024-07-19_15-35-19",
+    "execution_time_in_sec": "30.53",
     "remark": "",
     "file_path": "data/examples/5ZOA.gro",
     "file_md5sum": "ca2ed2d3f69e80fc5b135107fa4cf060",
-    "git_last_commit_date": "'2024-07-03T20:23:24+02:00'",
-    "git_last_commit_hash": "'f44166da6e94e3ab9b6328f6ddf8c129e94c2000'"
+    "git_last_commit_date": "2024-07-18T20:58:02+02:00",
+    "git_last_commit_hash": "85a7a6527fee09c8797e75e9dbc4e1719844c297"
 }
