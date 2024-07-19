@@ -1499,6 +1499,7 @@ def extract_nucleic_acid_sequence(graph: nx.classes.graph.Graph) -> dict[str, in
 def main(
     input_file_path_pdb: str,
     input_file_path_gro: str,
+    input_file_path_crd: str,
     input_file_path_coor: str,
     input_file_path_psf: str,
     check_connectivity: bool = False,
@@ -1526,10 +1527,12 @@ def main(
     elif input_file_path_gro:
         input_file_path = input_file_path_gro
         molecular_system = remove_hydrogene(input_file_path_gro)
+    elif input_file_path_crd:
+        input_file_path = input_file_path_crd
+        molecular_system = remove_hydrogene(input_file_path_crd)
     elif input_file_path_coor and input_file_path_psf:
         input_file_path = input_file_path_coor
         molecular_system = remove_hydrogene(input_file_path_coor, input_file_path_psf)
-    
     molecular_system, count_ion_solvant = count_remove_ion_solvant(
         molecular_system,
         input_file_path,
@@ -1631,7 +1634,7 @@ def is_a_structure_file(filepath: str) -> str:
     if not Path.is_file(filename):
         raise argparse.ArgumentTypeError(f"{filepath} does not exist")
 
-    if filename.suffix not in (".gro", ".pdb", ".psf", ".coor"):
+    if filename.suffix not in (".gro", ".pdb", ".psf", ".coor", ".crd"):
         raise argparse.ArgumentTypeError(f"{filepath} is not a .gro or .pdb file.")
     return filepath
 
@@ -1691,22 +1694,27 @@ def parse_arg() -> argparse.Namespace:
     parser.add_argument(
         "--pdb",
         type=is_a_structure_file,
-        help="structure file path (.gro, .pdb)",
+        help="structure file path (.pdb)",
     )
     parser.add_argument(
         "--gro",
         type=is_a_structure_file,
-        help="structure file path (.gro, .pdb)",
+        help="structure file path (.gro)",
     )
     parser.add_argument(
         "--psf",
         type=is_a_structure_file,
-        help="structure file path (.gro, .pdb)",
+        help="topology file path (.psf)",
     )
     parser.add_argument(
         "--coor",
         type=is_a_structure_file,
-        help="structure file path (.gro, .pdb)",
+        help="structure file path (.coor)",
+    )
+    parser.add_argument(
+        "--crd",
+        type=is_a_structure_file,
+        help="structure file path (.crd)",
     )
     parser.add_argument(
         "--checkconnectivity",
@@ -1734,6 +1742,7 @@ if __name__ == "__main__":
     main(
         args.pdb,
         args.gro,
+        args.crd,
         args.coor,
         args.psf,
         check_connectivity=args.checkconnectivity,
