@@ -1,0 +1,77 @@
+{
+    "inventory": [
+        {
+            "id": 1,
+            "number_of_atoms": 345,
+            "number_of_molecules": 1,
+            "residue_names": "DG DC DC DC DC DC DC DC DC DC DC DC DC DC DC DC DG DC",
+            "residue_ids": "19-36",
+            "formula_without_h": "C10N6O7P",
+            "molecular_type": "nucleic acid",
+            "sequence": "GCCCCCCCCCCCCCCCGC",
+            "putative_pdb": [],
+            "putative_name": [],
+            "comment": ""
+        },
+        {
+            "id": 2,
+            "number_of_atoms": 387,
+            "number_of_molecules": 1,
+            "residue_names": "DG DC DG DG DG DG DG DG DG DG DG DG DG DG DG DG DG DC",
+            "residue_ids": "1-18",
+            "formula_without_h": "C10N6O7P",
+            "molecular_type": "nucleic acid",
+            "sequence": "GCGGGGGGGGGGGGGGGC",
+            "putative_pdb": [],
+            "putative_name": [],
+            "comment": ""
+        },
+        {
+            "id": 3,
+            "number_of_atoms": 1,
+            "number_of_molecules": 88,
+            "residue_names": "CL",
+            "residue_ids": "31842-31929",
+            "formula_without_h": "",
+            "molecular_type": "ion",
+            "sequence": "",
+            "putative_pdb": [],
+            "putative_name": "chloride ion",
+            "comment": ""
+        },
+        {
+            "id": 4,
+            "number_of_atoms": 1,
+            "number_of_molecules": 122,
+            "residue_names": "K",
+            "residue_ids": "31720-31841",
+            "formula_without_h": "",
+            "molecular_type": "ion",
+            "sequence": "",
+            "putative_pdb": [],
+            "putative_name": "potassium ion",
+            "comment": ""
+        },
+        {
+            "id": 5,
+            "number_of_atoms": 1,
+            "number_of_molecules": 31683,
+            "residue_names": "SOL",
+            "residue_ids": "37-31719",
+            "formula_without_h": "",
+            "molecular_type": "solvant",
+            "sequence": "",
+            "putative_pdb": [],
+            "putative_name": "water TIP3P/spce solvant",
+            "comment": ""
+        }
+    ],
+    "resolution": "AA",
+    "date": "2024-07-19_14-47-48",
+    "execution_time_in_sec": "39.16",
+    "remark": "",
+    "file_path": "data/examples/DNA_start.gro",
+    "file_md5sum": "70cec020ebb099a82f5dec0c3a0dc6a7",
+    "git_last_commit_date": "2024-07-18T20:58:02+02:00",
+    "git_last_commit_hash": "85a7a6527fee09c8797e75e9dbc4e1719844c297"
+}
