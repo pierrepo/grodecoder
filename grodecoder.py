@@ -733,7 +733,7 @@ def read_structure_file_remove_hydrogens(file_path: str) -> mda.core.universe.Un
     return molecule_without_h
 
 
-def remove_hydrogene(filename: str) -> mda.core.universe.Universe:
+def remove_hydrogene(filename: str, filename2: str = None) -> mda.core.universe.Universe:
     """Removes hydrogen atoms from a molecular system.
 
     Parameters
@@ -746,7 +746,10 @@ def remove_hydrogene(filename: str) -> mda.core.universe.Universe:
         mda.core.universe.Universe
             MDAnalysis Universe object representing the molecular system without hydrogen atoms.
     """
-    molecule = mda.Universe(filename)
+    if filename2:
+        molecule = mda.Universe(filename2, filename)
+    else:
+        molecule = mda.Universe(filename)
     logger.info(f"Found {len(molecule.atoms):,} atoms in {filename}")
 
     # Remove hydrogene from the system
@@ -758,7 +761,7 @@ def remove_hydrogene(filename: str) -> mda.core.universe.Universe:
     logger.debug(f" New structure file without hydrogens : {filename_tmp}")
 
     # We need to read structure from disk to be extra sure hydrogen atoms are removed.
-    mol = mda.Universe(filename_tmp)
+    # mol = mda.Universe(filename_tmp)
     logger.info(f"{len(mol.atoms):,} atoms remaining")
     return mol
 
@@ -906,7 +909,7 @@ def count_remove_ion_solvant(
         f" New structure file without hydrogens, ions and solvants : {output_file}"
     )
 
-    universe_clean = mda.Universe(output_file)
+    # universe_clean = mda.Universe(output_file)
 
     # Print which ion and solvant we find, and how many
     for molecule, dict_count in counts.items():
@@ -918,12 +921,12 @@ def count_remove_ion_solvant(
         logger.success(f"Found: {count} {name} ({res_name})")
 
     # Check if there is other residue with the resname SOL in the updated MDAnalysis.core.universe.Universe
-    selected_atoms = universe_clean.select_atoms("resname SOL")
+    selected_atoms = universe.select_atoms("resname SOL")
     count = len(selected_atoms.residues)
     logger.info(f"{count} residues SOL remaining")
 
-    logger.info(f"{len(universe_clean.atoms):,} atoms remaining")
-    return (universe_clean, counts)
+    logger.info(f"{len(universe.atoms):,} atoms remaining")
+    return (universe, counts)
 
 
 def find_lipids(lipid: list, universe: mda.core.universe.Universe, counts: dict):
@@ -1497,6 +1500,8 @@ def main(
     input_file_path_pdb: str,
     input_file_path_gro: str,
     input_file_path_crd: str,
+    input_file_path_coor: str,
+    input_file_path_psf: str,
     check_connectivity: bool = False,
     bond_threshold: str | float = "auto",
     query_pdb=False,
@@ -1522,10 +1527,12 @@ def main(
     elif input_file_path_gro:
         input_file_path = input_file_path_gro
         molecular_system = remove_hydrogene(input_file_path_gro)
-    else:
+    elif input_file_path_crd:
         input_file_path = input_file_path_crd
         molecular_system = remove_hydrogene(input_file_path_crd)
-   
+    elif input_file_path_coor and input_file_path_psf:
+        input_file_path = input_file_path_coor
+        molecular_system = remove_hydrogene(input_file_path_coor, input_file_path_psf)
     molecular_system, count_ion_solvant = count_remove_ion_solvant(
         molecular_system,
         input_file_path,
@@ -1627,7 +1634,7 @@ def is_a_structure_file(filepath: str) -> str:
     if not Path.is_file(filename):
         raise argparse.ArgumentTypeError(f"{filepath} does not exist")
 
-    if filename.suffix not in (".gro", ".pdb", ".crd"):
+    if filename.suffix not in (".gro", ".pdb", ".psf", ".coor", ".crd"):
         raise argparse.ArgumentTypeError(f"{filepath} is not a .gro or .pdb file.")
     return filepath
 
@@ -1687,18 +1694,27 @@ def parse_arg() -> argparse.Namespace:
     parser.add_argument(
         "--pdb",
         type=is_a_structure_file,
-        help="structure file path (.gro, .pdb)",
+        help="structure file path (.pdb)",
     )
     parser.add_argument(
         "--gro",
         type=is_a_structure_file,
-        help="structure file path (.gro, .pdb)",
-        required=True,
+        help="structure file path (.gro)",
+    )
+    parser.add_argument(
+        "--psf",
+        type=is_a_structure_file,
+        help="topology file path (.psf)",
+    )
+    parser.add_argument(
+        "--coor",
+        type=is_a_structure_file,
+        help="structure file path (.coor)",
     )
     parser.add_argument(
         "--crd",
         type=is_a_structure_file,
-        help="structure file path (.gro, .pdb)",
+        help="structure file path (.crd)",
     )
     parser.add_argument(
         "--checkconnectivity",
@@ -1727,6 +1743,8 @@ if __name__ == "__main__":
         args.pdb,
         args.gro,
         args.crd,
+        args.coor,
+        args.psf,
         check_connectivity=args.checkconnectivity,
         bond_threshold=args.bondthreshold,
         query_pdb=args.querypdb,
