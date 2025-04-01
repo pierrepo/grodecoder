@@ -5,12 +5,16 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "beautifulsoup4>=4.13.3",
     "biopython>=1.85",
     "loguru>=0.7.3",
     "mdanalysis>=2.9.0",
     "networkx>=3.4.2",
     "numpy>=2.2.4",
     "pandas>=2.2.3",
+    "pillow>=11.1.0",
+    "playwright>=1.51.0",
+    "requests>=2.32.3",
     "scipy>=1.15.2",
     "streamlit>=1.44.0",
 ]
