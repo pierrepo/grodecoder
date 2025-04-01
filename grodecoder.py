@@ -1441,15 +1441,18 @@ def main(
     """
     start_time = time.perf_counter()
 
+    # Reads the topology file and removes hydrogens.
     if psf_path:
         molecular_system = remove_hydrogene(topology_path, psf_path)
     else:
         molecular_system = remove_hydrogene(topology_path)
 
+    # Count and remove ions and solvants from the molecular system.
     molecular_system, count_ion_solvant = count_remove_ion_solvant(
         molecular_system,
         topology_path,
     )
+
     resolution = guess_resolution(molecular_system)
     logger.info(f"Molecular resolution: {resolution}")
     if bond_threshold == "auto":
@@ -1568,26 +1571,24 @@ def is_a_valid_threshold(threshold: str) -> str | float:
 
     Parameters
     ----------
-        filepath : str
-            Path of the file.
+        threshold : str | float
+            "auto" or a positive float number.
 
     Raises
     ------
-        argparse.ArgumentTypeError
-            If the given filepath is not an existing file,
-            or if it does not have a '.gro' or '.pdb' extension.
+        argparse.ArgumentTypeError: If the given threshold is not "auto" or a positive number.
 
     Returns
     -------
-        str
-            The validated path.
+        str | float
+            "auto" or the validated threshold as a float number.
     """
     if threshold == "auto":
         return threshold
     try:
         threshold_as_float = float(threshold)
-    except argparse.ArgumentTypeError:
-        raise argparse.ArgumentTypeError("Argument should 'auto' or a number")
+    except ValueError as _e:
+        raise argparse.ArgumentTypeError("Argument should 'auto' or a positive number")
     if not threshold_as_float > 0.0:
         raise argparse.ArgumentTypeError("Argument should be > 0")
     return threshold_as_float
