@@ -18,25 +18,25 @@ cd grodecoder
 Run GROdecoder on a test file:
 
 ```bash
-uv run grodecoder.py --gro data/examples/barstar.gro
+uv run grodecoder.py --topology data/examples/barstar.gro
 ```
 
 Add edges and degre in the fingerprint (by default at false)"
 
 ```bash
-uv run grodecoder.py --gro data/examples/barstar.gro --checkconnectivity
+uv run grodecoder.py --topology data/examples/barstar.gro --checkconnectivity
 ```
 
 Choose the method to calculate the atom pairs. If we know the resolution of the system is coarse-grain enter a threshold (a positiv float number) or we don't know so choose 'auto' (by default at 'auto'): 
 
 ```bash
-uv run grodecoder.py --gro data/examples/barstar.gro --bondthreshold [auto or a threshold]
+uv run grodecoder.py --topology data/examples/barstar.gro --bondthreshold [auto or a threshold]
 ```
 
 Add PDB id, their putative name and the organism name in the JSON file for each protein sequence (by default at false):
 
 ```bash
-uv run grodecoder.py --gro data/examples/barstar.gro --querypdb
+uv run grodecoder.py --topology data/examples/barstar.gro --querypdb
 ```
 
 ## Run the web app
