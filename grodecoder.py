@@ -7,31 +7,30 @@ Usage:
 __authors__ = ("Karine DUONG", "Pierre POULAIN")
 __contact__ = "pierre.poulain@u-paris.fr"
 
-from collections import Counter
+import argparse
 import datetime
 import hashlib
 import itertools
-from itertools import groupby
 import json
 import os
-import pandas as pd
-from pathlib import Path
 import subprocess
 import time
+from collections import Counter
+from itertools import groupby
+from pathlib import Path
 
-import argparse
-from loguru import logger
 import MDAnalysis as mda
-from MDAnalysis.analysis.distances import contact_matrix, self_distance_array
-import numpy as np
 import networkx as nx
+import numpy as np
+import pandas as pd
+from loguru import logger
+from MDAnalysis.analysis.distances import self_distance_array
 from networkx.algorithms.components.connected import connected_components
-from scipy.sparse import triu
-from scipy.spatial.distance import cdist
-from typing import List, Dict, Tuple, Union
 
 import mol_def
 import search_into_PDB
+
+CountDict = dict[str, str | int]
 
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -476,7 +475,7 @@ def get_formula_based_atom_name(atom_name_dict: dict[str, int]) -> str:
 def count_molecule(
     graph_list: list[nx.classes.graph.Graph],
     check_connectivity: bool,
-) -> dict[nx.classes.graph.Graph, dict[str, Union[int, str]]]:
+) -> dict[nx.classes.graph.Graph, CountDict]:
     """Count the occurrence of molecules in a list of graphs based on their fingerprints.
 
     This function takes a list of graphs and counts the occurrence of each unique molecule
@@ -789,7 +788,7 @@ def count_remove_ion_solvant(
     universe: mda.core.universe.Universe,
     input_filepath: str,
 ) -> tuple[
-    mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, Union[str, int]]]
+    mda.core.universe.Universe, dict[nx.classes.graph.Graph, CountDict]
 ]:
     """Count and remove ions and solvents from the MDAnalysis Universe return by
     the function find_ion_solvant().
@@ -810,7 +809,7 @@ def count_remove_ion_solvant(
                     - the key is a graph
                     - and the value is an other dictionary with: atom_start, atom_end, name of the ion-solvant, the counts of removed ions-solvant
     """
-    counts: dict[str, Union[str, int]] = {}
+    counts: CountDict = {}
 
     logger.info("Searching ions...")
     for ion in mol_def.IONS_LIST:
