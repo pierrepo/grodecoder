@@ -33,13 +33,10 @@ import search_into_PDB
 CountDict = dict[str, str | int]
 
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-
-filepath_CSML = os.path.join(current_dir, "data/databases/lipid_CHARMM_GUI_CSML.csv")
-CSML_CHARMM_GUI = pd.read_csv(filepath_CSML, sep=",")
-
-filepath_MAD = os.path.join(current_dir, "data/databases/lipid_MAD.csv")
-MAD_DB = pd.read_csv(filepath_MAD, sep=",")
+DATA_PATH = Path(__file__).parent / "data"
+DATABASE_PATH = DATA_PATH / "databases"
+CSML_DB_PATH =  DATABASE_PATH / "lipid_CHARMM_GUI_CSML.csv"
+MAD_DB_PATH = DATABASE_PATH/ "lipid_MAD.csv"
 
 
 def get_atom_pairs_from_threshold(
@@ -958,7 +955,8 @@ def count_remove_lipid(
     """
     counts = {}
     logger.info("Searching lipid...")
-    lipid_MAD = MAD_DB[MAD_DB["Category"].str.contains("Lipids", case=False, na=False)]
+    mad_db = pd.read_csv(MAD_DB_PATH)
+    lipid_MAD = mad_db[mad_db["Category"].str.contains("Lipids", case=False, na=False)]
 
     for lipid in lipid_MAD.values:
         universe, counts = find_lipids(lipid.tolist(), universe, counts)
@@ -1136,9 +1134,12 @@ def is_lipid(
     res_name_graph = set(nx.get_node_attributes(graph, "residue_name").values())
     res_name_graph = res_name_graph.pop()
 
+    mad_db = pd.read_csv(MAD_DB_PATH)
+    csml_charmm_gui = pd.read_csv(CSML_DB_PATH)
+
     if resolution == "AA":
-        lipid_csml_charmm_gui = CSML_CHARMM_GUI[
-            CSML_CHARMM_GUI["Category"].str.contains("lipid", case=False, na=False)
+        lipid_csml_charmm_gui = csml_charmm_gui[
+            csml_charmm_gui["Category"].str.contains("lipid", case=False, na=False)
         ]
         if "formula_no_h" in dict_count.keys():
             formula_graph = dict_count["formula_no_h"]
@@ -1163,8 +1164,8 @@ def is_lipid(
                 dict_count["name"] = list(selected_row["Name"].values)
                 return True
     else:
-        lipid_MAD = MAD_DB[
-            MAD_DB["Category"].str.contains("Lipids", case=False, na=False)
+        lipid_MAD = mad_db[
+            mad_db["Category"].str.contains("Lipids", case=False, na=False)
         ]
         selected_row = lipid_MAD.loc[(lipid_MAD["Alias"] == res_name_graph)]
         if not selected_row.empty:
