@@ -1420,11 +1420,8 @@ def extract_nucleic_acid_sequence(graph: nx.classes.graph.Graph) -> dict[str, in
 
 
 def main(
-    input_file_path_pdb: str,
-    input_file_path_gro: str,
-    input_file_path_crd: str,
-    input_file_path_coor: str,
-    input_file_path_psf: str,
+    topology_path: Path,
+    psf_path: Path,
     check_connectivity: bool = False,
     bond_threshold: str | float = "auto",
     query_pdb=False,
@@ -1444,21 +1441,14 @@ def main(
     """
     start_time = time.perf_counter()
 
-    if input_file_path_pdb: 
-        input_file_path = input_file_path_pdb
-        molecular_system = remove_hydrogene(input_file_path)
-    elif input_file_path_gro:
-        input_file_path = input_file_path_gro
-        molecular_system = remove_hydrogene(input_file_path_gro)
-    elif input_file_path_crd:
-        input_file_path = input_file_path_crd
-        molecular_system = remove_hydrogene(input_file_path_crd)
-    elif input_file_path_coor and input_file_path_psf:
-        input_file_path = input_file_path_coor
-        molecular_system = remove_hydrogene(input_file_path_coor, input_file_path_psf)
+    if psf_path:
+        molecular_system = remove_hydrogene(topology_path, psf_path)
+    else:
+        molecular_system = remove_hydrogene(topology_path)
+
     molecular_system, count_ion_solvant = count_remove_ion_solvant(
         molecular_system,
-        input_file_path,
+        topology_path,
     )
     resolution = guess_resolution(molecular_system)
     logger.info(f"Molecular resolution: {resolution}")
@@ -1488,7 +1478,7 @@ def main(
     graph_count_dict.update(count_ion_solvant)
     print_graph_inventory(graph_count_dict)
 
-    filename = Path(input_file_path).stem
+    filename = topology_path.stem
 
     protein_sequence_dict = {}
     for index_graph, (graph, key) in enumerate(graph_count_dict.items(), start=1):
@@ -1529,12 +1519,17 @@ def main(
     execution_time = time.perf_counter() - start_time
     logger.info(f"execution_time: {execution_time}")
     JSON_filepath = export_inventory(
-        graph_count_dict, resolution, input_file_path, execution_time, overlap_residue
+        graph_count_dict, resolution, topology_path, execution_time, overlap_residue
     )
     return JSON_filepath
 
 
-def is_a_structure_file(filepath: str) -> str:
+
+class NotATopologyFileError(argparse.ArgumentTypeError):
+    """Raised when the given file is not a topology (based on its extension)."""
+
+
+def is_a_structure_file(filepath: str) -> Path:
     """Check if the given filepath points to an existing structure file (.gro, .pdb).
 
     Parameters
@@ -1553,13 +1548,19 @@ def is_a_structure_file(filepath: str) -> str:
         str
             The validated path.
     """
-    filename = Path(filepath)
-    if not Path.is_file(filename):
-        raise argparse.ArgumentTypeError(f"{filepath} does not exist")
+    path = Path(filepath)
 
-    if filename.suffix not in (".gro", ".pdb", ".psf", ".coor", ".crd"):
-        raise argparse.ArgumentTypeError(f"{filepath} is not a .gro or .pdb file.")
-    return filepath
+    if not path.exists():
+        raise argparse.ArgumentTypeError(f"'{path}' does not exist")
+
+    if not path.is_file():
+        raise argparse.ArgumentTypeError(f"'{path}' is not a file")
+
+    valid_extensions = (".gro", ".pdb", ".coor", ".crd")
+    if path.suffix not in valid_extensions:
+        raise NotATopologyFileError(f"'{path!s}': invalid extension '{path.suffix}' (valid extensions are {valid_extensions})")
+
+    return path
 
 
 def is_a_valid_threshold(threshold: str) -> str | float:
@@ -1612,37 +1613,20 @@ def parse_arg() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="grodecoder",
         description="Extract molecules from a structure file (.gro, .pdb).",
-        usage="grodecoder.py [-h] --input structure_file [--drawgraph]",
     )
     parser.add_argument(
-        "--pdb",
+        "--topology",
         type=is_a_structure_file,
-        help="structure file path (.pdb)",
-    )
-    parser.add_argument(
-        "--gro",
-        type=is_a_structure_file,
-        help="structure file path (.gro)",
+        help="path to topology file",
     )
     parser.add_argument(
         "--psf",
-        type=is_a_structure_file,
+        type=Path,
         help="topology file path (.psf)",
-    )
-    parser.add_argument(
-        "--coor",
-        type=is_a_structure_file,
-        help="structure file path (.coor)",
-    )
-    parser.add_argument(
-        "--crd",
-        type=is_a_structure_file,
-        help="structure file path (.crd)",
     )
     parser.add_argument(
         "--checkconnectivity",
         help="Add edges and degre in the fingerprint. Default: False.",
-        default=False,
         action="store_true",
     )
     parser.add_argument(
@@ -1654,19 +1638,23 @@ def parse_arg() -> argparse.Namespace:
     parser.add_argument(
         "--querypdb",
         help="Add PDB id and their putative name in the JSON file for the protein. Default: False.",
-        default=False,
         action="store_true",
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    if args.topology.suffix == ".coor" and not args.psf:
+        parser.error("The '--psf' argument is required when the topology file is a .coor file.")
+
+    if args.psf and args.topology.suffix != ".coor":
+        parser.error("The '--psf' argument is valid only when the topology file is a .coor file.")
+
+    return args
 
 
 if __name__ == "__main__":
     args = parse_arg()
     main(
-        args.pdb,
-        args.gro,
-        args.crd,
-        args.coor,
+        args.topology,
         args.psf,
         check_connectivity=args.checkconnectivity,
         bond_threshold=args.bondthreshold,
