@@ -43,79 +43,6 @@ filepath_MAD = os.path.join(current_dir, "data/databases/lipid_MAD.csv")
 MAD_DB = pd.read_csv(filepath_MAD, sep=",")
 
 
-def get_distance_matrix_between_atom(
-    file_gro: mda.core.universe.Universe,
-) -> np.ndarray:
-    """Calculate interatomic distances between all atoms in the GRO file \
-    https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html \
-    https://stackoverflow.com/questions/72701992/convert-a-matrix-of-distance-to-adjacency-list/72702534#72702534 .
-
-    Warning
-    -------
-    MDAnalysis convert the coordonate in Angstrom
-    despite in the gro file it's in nm
-    https://userguide.mdanalysis.org/stable/units.html#table-baseunits
-    https://manual.gromacs.org/current/reference-manual/file-formats.html#gro
-
-    Parameters
-    ----------
-        file_gro: MDAnalysis.core.universe.Universe
-            An object representing the molecular structure loaded from a GRO file.
-
-    Returns
-    -------
-        numpy.ndarray
-            matrix of interatomic distances between all atoms
-    """
-    position = file_gro.atoms.positions
-    size = len(file_gro.atoms)
-    tmp = np.full((size, size), 100.0)
-    for index_i, pos_i in enumerate(position):
-        for index_j, pos_j in enumerate(position[index_i + 1 :], start=index_i + 1):
-            tmp[index_i][index_j] = cdist([pos_i], [pos_j])
-    return tmp
-
-
-def get_atom_pairs(
-    molecular_system: mda.core.universe.Universe, threshold: float
-) -> np.ndarray:
-    """Create a list of atom pairs based on the contact matrix (which based on the input system and threshold).
-
-    This function calculates the pairs of atoms in the molecular system based on their distances.
-    It uses a specified threshold to determine which pairs of atoms are considered to be in contact.
-
-    Reference
-    ---------
-    - https://docs.mdanalysis.org/1.1.0/documentation_pages/analysis/distances.html#MDAnalysis.analysis.distances.contact_matrix
-    - https://numpy.org/doc/stable/reference/generated/numpy.argwhere.html
-
-    Parameters
-    ----------
-        molecular_system: MDAnalysis.core.groups.AtomGroup
-            The molecular system object containing information about atoms.
-        threshold: float
-            The distance threshold used to determine atom contacts.
-
-    Returns
-    -------
-        numpy.ndarray
-            An array containing pairs of atom indices representing atom contacts.
-    """
-    logger.info("Creating contact_matrix...")
-    matrix = contact_matrix(
-        molecular_system.atoms.positions, cutoff=threshold, returntype="sparse"
-    )
-    # Output matrix is sparse matrix of type: scipy.sparse.lil_matrix
-    # Keep only the upper triangular part of the sparse matrix (without the diagonal)
-    # https://docs.scipy.org/doc/scipy-1.13.0/reference/generated/scipy.sparse.triu.html
-    matrix = triu(matrix, k=1)
-
-    logger.info("Creating atom pairs list...")
-    atom_pairs = np.argwhere(matrix)
-    logger.success(f"Found {len(atom_pairs):,} atom pairs")
-    return atom_pairs
-
-
 def get_atom_pairs_from_threshold(
     mol: mda.core.universe.Universe, threshold: float
 ) -> np.ndarray:
@@ -199,9 +126,7 @@ def get_atom_pairs_from_threshold(
         return atom_pairs
 
 
-def get_atom_pairs_from_guess_bonds(
-    molecular_system: mda.core.universe.Universe,
-) -> np.ndarray:
+def get_atom_pairs_from_guess_bonds(molecular_system: mda.core.universe.Universe) -> np.ndarray:
     """This function retrieves atom pairs within a specified distance threshold from the given molecular system.
     This specified distance based on the distance between two selected atoms and their Van der Waals radius.
 
@@ -235,9 +160,7 @@ def get_atom_pairs_from_guess_bonds(
     return np.array(atom_pairs)
 
 
-def convert_atom_pairs_to_graph(
-    atom_pairs: np.ndarray, mol: mda.core.universe.Universe
-) -> nx.classes.graph.Graph:
+def convert_atom_pairs_to_graph(atom_pairs: np.ndarray, mol: mda.core.universe.Universe) -> nx.classes.graph.Graph:
     """Convert a list of pairs to a graph and its connected components.
 
     Reference
