@@ -44,7 +44,6 @@ CSML_DB_PATH =  DATABASE_PATH / "lipid_CHARMM_GUI_CSML.csv"
 MAD_DB_PATH = DATABASE_PATH/ "lipid_MAD.csv"
 
 
-
 def pairs[T](iterable: Iterable[T]) -> list[(T, T)]:
     """Returns the list of commutative pairs from the iterable.
 
@@ -115,8 +114,8 @@ def calculate_bonds(universe: AtomGroup, threshold: float | None = None) -> np.n
     return np.unique(np.concatenate(bonds), axis=0)
 
 
-def convert_atom_pairs_to_graph(atom_pairs: np.ndarray, mol: mda.core.universe.Universe) -> nx.classes.graph.Graph:
-    """Convert a list of pairs to a graph and its connected components.
+def universe_to_graph(universe: AtomGroup, bonds: np.ndarray[Bond]) -> nx.classes.graph.Graph:
+    """Converts atoms and bonds to a graph.
 
     Reference
     ---------
@@ -124,24 +123,23 @@ def convert_atom_pairs_to_graph(atom_pairs: np.ndarray, mol: mda.core.universe.U
 
     Parameters
     ----------
-        atom_pairs: list
-            A list of pairs representing edges in the graph.
-        mol: mda.core.universe.Universe
-            The MDAnalysis universe object representing the molecular system.
+        universe: AtomGroup
+            The ensemble of atoms.
+            Will be used to create the nodes of the graph.
+        bonds: numpy.ndarray[Bond]
+            Collection of bonds, i.e. pairs of atom ids.
+            Will be used as edges in the graph.
 
     Returns
     -------
         networkx.classes.graph.Graph
             A graph object representing the molecular system.
     """
-    logger.info("Converting atom pairs to graph...")
+    logger.info("Converting the molecular system to a graph...")
 
     graph = nx.Graph()
-    # Add all atoms as single nodes.
-    graph.add_nodes_from(mol.atoms.ids)
-
-    # Add atom pairs as edges.
-    graph.add_edges_from(atom_pairs)
+    graph.add_nodes_from(universe.atoms.ids)
+    graph.add_edges_from(bonds)
     return graph
 
 
@@ -1414,18 +1412,21 @@ def main(
 
     resolution = guess_resolution(molecular_system)
     logger.info(f"Molecular resolution: {resolution}")
+
+    
+    # Calculates the bonds.
     if bond_threshold == "auto":
         if resolution == "AA":
-            atom_pairs = calculate_bonds(molecular_system)
+            bonds = calculate_bonds(molecular_system)
         else:
             molecular_system, count_lipid = count_remove_lipid(
                 molecular_system)
             count_ion_solvant.update(count_lipid)
-            atom_pairs = calculate_bonds(molecular_system, threshold=5.0)
+            bonds = calculate_bonds(molecular_system, threshold=5.0)
     else:
-        atom_pairs = calculate_bonds(molecular_system, threshold=bond_threshold)
+        bonds = calculate_bonds(molecular_system, threshold=bond_threshold)
 
-    graph_return = convert_atom_pairs_to_graph(atom_pairs, molecular_system)
+    graph_return = universe_to_graph(molecular_system, bonds)
 
     graph_with_node_attributes = add_attributes_to_nodes(graph_return, molecular_system)
     graph_list = get_graph_components(graph_with_node_attributes)
