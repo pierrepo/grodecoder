@@ -34,8 +34,8 @@ import search_into_PDB
 AtomGroup = mda.core.groups.AtomGroup
 AtomId = int
 Bond = tuple[AtomId, AtomId]
-
 CountDict = dict[str, str | int]
+Graph = nx.classes.graph.Graph
 
 
 DATA_PATH = Path(__file__).parent / "data"
@@ -114,12 +114,8 @@ def calculate_bonds(universe: AtomGroup, threshold: float | None = None) -> np.n
     return np.unique(np.concatenate(bonds), axis=0)
 
 
-def universe_to_graph(universe: AtomGroup, bonds: np.ndarray[Bond]) -> nx.classes.graph.Graph:
+def universe_to_graph(universe: AtomGroup, bonds: np.ndarray[Bond]) -> Graph:
     """Converts atoms and bonds to a graph.
-
-    Reference
-    ---------
-    - https://stackoverflow.com/questions/4842613/merge-lists-that-share-common-elements
 
     Parameters
     ----------
@@ -134,6 +130,10 @@ def universe_to_graph(universe: AtomGroup, bonds: np.ndarray[Bond]) -> nx.classe
     -------
         networkx.classes.graph.Graph
             A graph object representing the molecular system.
+
+    Reference
+    ---------
+        - https://stackoverflow.com/questions/4842613/merge-lists-that-share-common-elements
     """
     logger.info("Converting the molecular system to a graph...")
 
@@ -143,43 +143,28 @@ def universe_to_graph(universe: AtomGroup, bonds: np.ndarray[Bond]) -> nx.classe
     return graph
 
 
-def add_attributes_to_nodes(
-    graph: nx.classes.graph.Graph, mol_system: mda.core.universe.Universe
-) -> nx.classes.graph.Graph:
-    """Add molecular attributes to graph nodes.
+def add_attributes_to_nodes(graph: Graph, mol_system: AtomGroup) -> nx.classes.graph.Graph:
+    """Adds molecular attributes to the graph nodes.
 
-    Attributes are taken from the molecular system (MDAnalysis universe).
-    Attributes are: atom id, atom name, residue id, and residue name.
+    Attributes read from the molecular system are:
+        - atom id,
+        - atom name,
+        - residue id,
+        - residue name.
 
-    References
-    ----------
-    - https://networkx.org/documentation/stable/reference/generated/networkx.classes.function.set_node_attributes.html
+    Modification of the graph is done in-place.
 
     Parameters
     ----------
-        graph: networkx.classes.graph.Graph
+        graph: Graph
             The NetworkX graph representing the molecular system.
         mol_system: MDAnalysis.core.groups.AtomGroup
             The MDAanalysis universe representing the molecular system
 
-    Returns
-    -------
-        networkx.classes.graph.Graph
-            The NetworkX graph representing the updated molecular system.
+    References
+    ----------
+        - https://networkx.org/documentation/stable/reference/generated/networkx.classes.function.set_node_attributes.html
     """
-    # logger.info(f"Adding attributes to {graph.number_of_nodes():,} nodes...")
-    # logger.opt(lazy=True).debug("10 first nodes:")
-    # for node_id, node_attr in sorted(graph.nodes.items())[:10]:
-    #     logger.opt(lazy=True).debug(f"Node id: {node_id}")
-    #     logger.opt(lazy=True).debug(f"attributes: {node_attr}")
-
-    # Define attributes in batch: one attribute for all nodes at once.
-    # This is possible because the order of nodes in the NetworkX graph
-    # is the same as the order of atoms in the MDAnalysis universe.
-    # Examples for note attributes after the graph is updated:
-    # {'atom_id': 47, 'atom_name': 'N', 'residue_id': 3, 'residue_name': 'ALA'}
-    # {'atom_id': 49, 'atom_name': 'CA', 'residue_id': 3, 'residue_name': 'ALA'}
-    # {'atom_id': 51, 'atom_name': 'CB', 'residue_id': 3, 'residue_name': 'ALA'}
     nx.set_node_attributes(
         graph, dict(zip(graph.nodes, mol_system.atoms.ids)), "atom_id"
     )
@@ -192,15 +177,10 @@ def add_attributes_to_nodes(
     nx.set_node_attributes(
         graph, dict(zip(graph.nodes, mol_system.atoms.resnames)), "residue_name"
     )
-    # logger.opt(lazy=True).debug("10 first nodes with updated attributes:")
-    # for node_id, node_attr in sorted(graph.nodes.items())[:10]:
-    #     logger.opt(lazy=True).debug(f"Node id: {node_id}")
-    #     logger.opt(lazy=True).debug(f"attributes: {node_attr}")
-    return graph
 
 
-def get_graph_components(graph: nx.classes.graph.Graph) -> list[nx.classes.graph.Graph]:
-    """Extract the connected components of a graph.
+def get_graph_components(graph: Graph) -> list[Graph]:
+    """Extracts the connected components of a graph.
 
     Parameters
     ----------
@@ -215,14 +195,11 @@ def get_graph_components(graph: nx.classes.graph.Graph) -> list[nx.classes.graph
     logger.info("Extracting graph components...")
     graph_components = connected_components(graph)
     graph_list = [graph.subgraph(subgraph) for subgraph in graph_components]
-
-    logger.success(f"Found {len(graph_list):,} subgraphs")
+    logger.success(f"Found {len(graph_list):,} component(s)")
     return graph_list
 
 
-def get_graph_fingerprint(
-    graph: nx.classes.graph.Graph,
-) -> tuple[int, int, dict[str, int], list[str], dict[int, int]]:
+def get_graph_fingerprint(graph: Graph) -> tuple[int, int, dict[str, int], list[str], dict[int, int]]:
     """Generate a fingerprint for a given graph.
 
     This function calculates a fingerprint for a given graph based on its properties, including
@@ -694,7 +671,7 @@ def find_ion_solvant(
         for index_resID in selected_atoms.residues:
             graph = nx.Graph()
             graph.add_nodes_from(index_resID.atoms.ids)
-            graph = add_attributes_to_nodes(graph, index_resID)
+            add_attributes_to_nodes(graph, index_resID)
             list_graph.append(graph)
 
         atom_id, res_id = [], []
@@ -890,9 +867,7 @@ def find_lipids(lipid: list, universe: mda.core.universe.Universe, counts: dict)
     return (universe, counts)
 
 
-def count_remove_lipid(
-    universe: mda.core.universe.Universe,
-) -> tuple[mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, int]]]:
+def count_remove_lipid(universe: AtomGroup) -> (AtomGroup, dict[Graph, CountDict]):
     """Count and remove lipid from the MDAnalysis Universe return by
     the function find_ion_lipid().
 
@@ -1404,7 +1379,7 @@ def main(
     else:
         molecular_system = remove_hydrogene(topology_path)
 
-    # Count and remove ions and solvants from the molecular system.
+    # Counts and removes ions and solvants from the molecular system.
     molecular_system, count_ion_solvant = count_remove_ion_solvant(
         molecular_system,
         topology_path,
@@ -1413,7 +1388,6 @@ def main(
     resolution = guess_resolution(molecular_system)
     logger.info(f"Molecular resolution: {resolution}")
 
-    
     # Calculates the bonds.
     if bond_threshold == "auto":
         if resolution == "AA":
@@ -1426,14 +1400,16 @@ def main(
     else:
         bonds = calculate_bonds(molecular_system, threshold=bond_threshold)
 
-    graph_return = universe_to_graph(molecular_system, bonds)
+    # Creates a graph from the molecular system.
+    universe_graph = universe_to_graph(molecular_system, bonds)
+    add_attributes_to_nodes(universe_graph, molecular_system)
 
-    graph_with_node_attributes = add_attributes_to_nodes(graph_return, molecular_system)
-    graph_list = get_graph_components(graph_with_node_attributes)
+    # Calculates the graph components.
+    graph_components = get_graph_components(universe_graph)
 
-    overlap_residue = check_overlapping_residue_between_graphs(graph_list)
+    overlap_residue = check_overlapping_residue_between_graphs(graph_components)
 
-    graph_count_dict = count_molecule(graph_list, check_connectivity)
+    graph_count_dict = count_molecule(graph_components, check_connectivity)
 
     for index_graph, graph in enumerate(graph_count_dict.keys(), start=1):
         print_graph_fingerprint(graph, index_graph)
