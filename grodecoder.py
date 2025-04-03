@@ -12,12 +12,12 @@ import datetime
 import hashlib
 import itertools
 import json
-import os
 import subprocess
 import time
 from collections import Counter
 from itertools import groupby
 from pathlib import Path
+from typing import Iterable
 
 import MDAnalysis as mda
 import networkx as nx
@@ -30,6 +30,11 @@ from networkx.algorithms.components.connected import connected_components
 import mol_def
 import search_into_PDB
 
+# Custom types.
+AtomGroup = mda.core.groups.AtomGroup
+AtomId = int
+Bond = tuple[AtomId, AtomId]
+
 CountDict = dict[str, str | int]
 
 
@@ -39,121 +44,75 @@ CSML_DB_PATH =  DATABASE_PATH / "lipid_CHARMM_GUI_CSML.csv"
 MAD_DB_PATH = DATABASE_PATH/ "lipid_MAD.csv"
 
 
-def get_atom_pairs_from_threshold(
-    mol: mda.core.universe.Universe, threshold: float
-) -> np.ndarray:
-    """Get atom pairs within a specified distance threshold.
+
+def pairs[T](iterable: Iterable[T]) -> list[(T, T)]:
+    """Returns the list of commutative pairs from the iterable.
+
+    "Commutative" means that (A, B) and (B, A) are considered the same pair.
+    """
+    return list(itertools.combinations(iterable, 2))
+
+
+def calculate_bonds(universe: AtomGroup, threshold: float | None = None) -> np.ndarray[Bond]:
+    """Returns the list of bonds between atoms in the universe.
 
     Parameters
     ----------
-        mol : MDAnalysis.core.universe.Universe
-            The MDAnalysis universe object representing the molecular system.
-        threshold : float
+        universe : AtomGroup
+            Ensemble of atoms.
+        threshold : float, optional
             The distance threshold for determining atom contacts.
+            If None, the function will use MDAnalaysis's guess_bonds algorithm.
 
     Returns
     -------
-        numpy.ndarray
-            An array containing the atom pairs that are within the specified distance threshold.
-    """
-    logger.info("Creating atom pairs list with a specific threshold...")
-    contacts_list = []
+        numpy.ndarray[Bond]
+            An array containing the pairs of atom ids of atoms that are bonded together.
 
-    # Get the list of all residues.
-    # A residue is identified by its name and its id.
-    residues_list = list(mol.residues)
-
-    if len(residues_list) > 1:
-        # Compare residues side-by-side, between 0 and N-1 and between 1 and N
-        for residue_1, residue_2 in zip(residues_list[:-1], residues_list[1:]):
-            # print(f"Finding contacts for {residue_1.resid}-{residue_1.resname} and {residue_2.resid}-{residue_2.resname}")
-            # Concatenate atom coordinates from both residues.
-            # Example:
-            #   residue_1.atoms.positions = [53.05 64.78 78.47]
-            #   residue_2.atoms.positions = [54.31 65.49 78.92]
-            #   ==> coords = [[53.05 64.78 78.47]
-            #                 [54.31 65.49 78.92]]
-            coords = np.concatenate(
-                (residue_1.atoms.positions, residue_2.atoms.positions), axis=0
-            )
-
-            # Get distance between all atoms (upper-left matrix)
-            # https://docs.mdanalysis.org/stable/_modules/MDAnalysis/lib/distances.html#self_distance_array
-            # Result is output as a vector with (N)(N-1)/2 values.
-            # Example:
-            #   coords = [[53.04999924 64.77999878 78.47000122]
-            #             [54.31000137 65.48999786 78.91999817]
-            #             [54.         64.         74.        ]]
-            #   ==> distances = [1.51466212 4.63592606 5.15000742]
-            # where 1.51466212 is the distance between coords[0] and coords[1]
-            #       4.63592606 is between coords[0] and coords[2]
-            #       and 5.15000742 is between coords[1] and coords[2]
-            distances = self_distance_array(coords)
-
-            # Cocatenates the list of atoms ids from both residues
-            atom_ids = np.concatenate((residue_1.atoms.ids, residue_2.atoms.ids))
-            # Create all possible combinations between atom ids.
-            pairs = np.array(list(itertools.combinations(atom_ids, 2)))
-            # Create a mask for distances below a given threshold.
-            # And select only atom pairs below the threshold.
-            atom_pairs = pairs[distances < threshold]
-
-            # Append atom pairs to a bigger list.
-            contacts_list.append(atom_pairs)
-
-        # Concatenate all atom pairs.
-        contacts_array2 = np.concatenate(contacts_list, axis=0)
-
-        # Remove redundant contacts
-        # We have quite a lot of redundancy since we are calculating inter-contacts
-        # twice for each residue: residue_1-residue_2, residue_2-residue_3, residue_3-residue_4....
-        # contacts_array2 is a pair list
-        contacts_array2 = np.unique(contacts_array2, axis=0)
-        return contacts_array2
-    else:
-        # It's mean there is only one residue in this molecular system
-        # So we going to return the atom pairs between the atom of this residue itself
-        distances = self_distance_array(residues_list[0].atoms.positions)
-        # Create all possible combinations between atom ids.
-        pairs = np.array(list(itertools.combinations(residues_list[0].atoms.ids, 2)))
-        # Create a mask for distances below a given threshold.
-        # And select only atom pairs below the threshold.
-        atom_pairs = pairs[distances < threshold]
-        return atom_pairs
-
-
-def get_atom_pairs_from_guess_bonds(molecular_system: mda.core.universe.Universe) -> np.ndarray:
-    """This function retrieves atom pairs within a specified distance threshold from the given molecular system.
-    This specified distance based on the distance between two selected atoms and their Van der Waals radius.
-
-    References
-    ----------
+    .. MDAnalysis's algorithm:
         https://docs.mdanalysis.org/stable/documentation_pages/core/groups.html#MDAnalysis.core.groups.AtomGroup.guess_bonds
-        https://docs.mdanalysis.org/stable/documentation_pages/topology/guessers.html#MDAnalysis.topology.guessers.guess_bonds
-
-    Parameters
-    ----------
-        molecular_system: mda.core.universe.Universe
-            The MDAnalysis universe object representing the molecular system.
-
-    Returns
-    -------
-        numpy.ndarray
-            An array containing the atom pairs that are within the specified distance threshold.
     """
-    logger.info(
-        "Creating atom pairs list with the Van der Waals radius of each atom..."
-    )
+    if threshold is None:
+        logger.info("Calculating bonds using MDAnalysis's guess_bonds algorithm...")
+        universe.atoms.guess_bonds()
+        bonds = [[bond[0].id, bond[1].id] for bond in universe.atoms.bonds]
+        return np.array(bonds)
 
-    molecular_system.atoms.guess_bonds()
-    # Example:
-    # bonds = <TopologyGroup containing n bonds>, where n is the number of bonds in this system
-    # Each element in bonds is <Bond between: Atom n1, Atom n2>, where n1 and n2 are the indice of atom in the system
-    # We can extract information of Atom n1 and Atom n2 with bond[0] and bond[1] respectively
-    # bond[0] or bond[1] gives information on atom id, atom name, residue name, residue id and segid
-    bonds = molecular_system.atoms.bonds
-    atom_pairs = [[bond[0].id, bond[1].id] for bond in bonds]
-    return np.array(atom_pairs)
+    logger.info(f"Calculating bonds using threshold at {threshold:2.f}...")
+
+    residues_list = list(universe.residues)
+
+    # If there is only 1 residue in the system, returns pairs of atom ids where the distance is less than the threshold.
+    if len(residues_list) == 1:
+        coordinates = residues_list[0].atoms.positions
+        atom_ids = residues_list[0].atoms.ids
+
+        distances = self_distance_array(coordinates)
+        bond_ids = np.array(pairs(atom_ids))
+
+        return bond_ids[distances < threshold]
+
+    # Else, calculates the contacts between consecutive residues (in the sequence) and returns the list
+    # of unique atom id pairs.
+
+    bonds = []
+    for residue_1, residue_2 in zip(residues_list[:-1], residues_list[1:]):
+
+        # Gets the coordinates and atom ids of the two residues.
+        coordinates = np.concatenate((residue_1.atoms.positions, residue_2.atoms.positions))
+        atom_ids = np.concatenate((residue_1.atoms.ids, residue_2.atoms.ids))
+
+        # Calculates the distance between all atoms, meaning intra- and inter-residue.
+        distances = self_distance_array(coordinates)
+
+        # Creates the list of all pairs of atoms ids to be able to fetch elements from the distance matrix.
+        bond_ids = np.array(pairs(atom_ids))
+
+        # Appends atom pairs to the list of all contacts for the molecule.
+        these_bonds = bond_ids[distances < threshold]
+        bonds.append(these_bonds)
+
+    return np.unique(np.concatenate(bonds), axis=0)
 
 
 def convert_atom_pairs_to_graph(atom_pairs: np.ndarray, mol: mda.core.universe.Universe) -> nx.classes.graph.Graph:
@@ -1457,14 +1416,14 @@ def main(
     logger.info(f"Molecular resolution: {resolution}")
     if bond_threshold == "auto":
         if resolution == "AA":
-            atom_pairs = get_atom_pairs_from_guess_bonds(molecular_system)
+            atom_pairs = calculate_bonds(molecular_system)
         else:
             molecular_system, count_lipid = count_remove_lipid(
                 molecular_system)
             count_ion_solvant.update(count_lipid)
-            atom_pairs = get_atom_pairs_from_threshold(molecular_system, 5.0)
+            atom_pairs = calculate_bonds(molecular_system, threshold=5.0)
     else:
-        atom_pairs = get_atom_pairs_from_threshold(molecular_system, bond_threshold)
+        atom_pairs = calculate_bonds(molecular_system, threshold=bond_threshold)
 
     graph_return = convert_atom_pairs_to_graph(atom_pairs, molecular_system)
 
