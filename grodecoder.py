@@ -556,69 +556,6 @@ def print_first_atoms(
         )
 
 
-def read_structure_file_remove_hydrogens(file_path: str) -> mda.core.universe.Universe:
-    """Read Groamacs .gro file and remove hydrogen atoms.
-
-    Parameters
-    ----------
-        filepath: str
-            The filepath of the structure file (.gro, .pdb)..
-
-    Returns
-    -------
-        MDAnalysis.core.universe.Universe
-            A MDAnalysis universe object containing only non-hydrogen atoms.
-    """
-    logger.info(f"Reading file: {file_path}")
-    molecule = mda.Universe(file_path)
-    logger.success(f"Found {len(molecule.atoms):,} atoms")
-
-    # Print 10 first atoms for debugging.
-    print_first_atoms(molecule)
-    logger.info("Removing H atoms...")
-    molecule_without_h = molecule.select_atoms("not (name H*)")
-    logger.success(f"{len(molecule_without_h.atoms):,} atoms remaining")
-
-    # Print 10 first atoms for debugging.
-    print_first_atoms(molecule_without_h)
-    without_h_file_path = Path(file_path).stem + "_without_H.gro"
-    molecule_without_h.write(without_h_file_path, reindex=False)
-    return molecule_without_h
-
-
-def remove_hydrogene(filename: str, filename2: str = None) -> mda.core.universe.Universe:
-    """Removes hydrogen atoms from a molecular system.
-
-    Parameters
-    ----------
-        filename : str
-            Path to the file containing the molecular structure.
-
-    Returns
-    -------
-        mda.core.universe.Universe
-            MDAnalysis Universe object representing the molecular system without hydrogen atoms.
-    """
-    if filename2:
-        molecule = mda.Universe(filename2, filename)
-    else:
-        molecule = mda.Universe(filename)
-    logger.info(f"Found {len(molecule.atoms):,} atoms in {filename}")
-
-    # Remove hydrogene from the system
-    logger.info("Removing hydrogen atoms...")
-    mol = molecule.select_atoms("not (name H* or name [123456789]H*)")
-    filename_tmp = f"{Path(filename).stem}_without_H{Path(filename).suffix}"
-    # Write the new system in a new file
-    mol.write(filename_tmp, reindex=False)
-    logger.debug(f" New structure file without hydrogens : {filename_tmp}")
-
-    # We need to read structure from disk to be extra sure hydrogen atoms are removed.
-    # mol = mda.Universe(filename_tmp)
-    logger.info(f"{len(mol.atoms):,} atoms remaining")
-    return mol
-
-
 def find_ion_solvant(
     molecule: dict,
     universe: mda.core.universe.Universe,
@@ -1351,9 +1288,16 @@ def extract_nucleic_acid_sequence(graph: nx.classes.graph.Graph) -> dict[str, in
     return info_seq
 
 
+def read_topology(path: Path, psf_path: Path | None = None) -> mda.Universe:
+    """Reads the topology file and returns a MDAnalysis Universe object."""
+    if psf_path:
+        return mda.Universe(path, psf_path)
+    return mda.Universe(path)
+
+
 def main(
     topology_path: Path,
-    psf_path: Path,
+    psf_path: Path | None,
     check_connectivity: bool = False,
     bond_threshold: str | float = "auto",
     query_pdb=False,
@@ -1374,10 +1318,8 @@ def main(
     start_time = time.perf_counter()
 
     # Reads the topology file and removes hydrogens.
-    if psf_path:
-        molecular_system = remove_hydrogene(topology_path, psf_path)
-    else:
-        molecular_system = remove_hydrogene(topology_path)
+    molecular_system = read_topology(topology_path, psf_path)
+    molecular_system = molecular_system.select_atoms("not (name H* or name [123456789]H*)")
 
     # Counts and removes ions and solvants from the molecular system.
     molecular_system, count_ion_solvant = count_remove_ion_solvant(
