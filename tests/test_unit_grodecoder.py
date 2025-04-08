@@ -1,4 +1,3 @@
-import sys
 import warnings
 from collections import Counter
 from dataclasses import dataclass, field
@@ -9,18 +8,10 @@ import networkx as nx
 import numpy as np
 import pytest
 
+import grodecoder.main as gd
 
 # Path to directory containing files required for tests.
 TEST_DATA_ROOT = Path(__file__).resolve().parent / "data"
-
-
-# Adds project root directory to the system path.
-# Necessary as long as grodecoder is not a proper package.
-# TODO: make grodecoder a package.
-parent_dir = Path(__file__).resolve().parents[1]
-sys.path.append(str(parent_dir))
-
-import grodecoder as gd
 
 
 def test_remove_hydrogen_gro():
