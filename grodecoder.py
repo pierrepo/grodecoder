@@ -1297,7 +1297,7 @@ def read_topology(path: Path, psf_path: Path | None = None) -> mda.Universe:
 
 def main(
     topology_path: Path,
-    psf_path: Path | None,
+    psf_path: Path | None = None,
     check_connectivity: bool = False,
     bond_threshold: str | float = "auto",
     query_pdb=False,

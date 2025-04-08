@@ -1,8 +1,10 @@
 # GROdecoder
 
-GroDecoder extracts and identifies the molecular components of a structure file (PDB or GRO) issued from a molecular dynamics simulation. 
+GroDecoder extracts and identifies molecular components of a structure file (PDB or GRO) issued from a molecular dynamics simulation. 
 
 ## Installation
+
+We use [uv](https://docs.astral.sh/uv/getting-started/installation/) to manage dependencies and the project environment.
 
 Clone the project:
 
@@ -11,7 +13,7 @@ git clone https://github.com/pierrepo/grodecoder.git
 cd grodecoder
 ```
 
-## Usage as command line tool
+## Use as command line tool
 
 Run GROdecoder on a test file:
 
@@ -47,14 +49,14 @@ uv run streamlit run streamlit_app.py
 
 then open your web browser at <http://localhost:8501>
 
-or with the URL:
 
-```bash
-https://grodecoder.streamlit.app/
-```
+A demo of the web app is also available at <https://grodecoder.streamlit.app/>
 
-## Update the database
-## CSML Charmm-gui database
+
+## Update the database of molecules
+
+### CSML Charmm-gui database
+
 Run the script to download all-atom model molecule data:
 
 ```bash
@@ -64,7 +66,7 @@ This script analyze the CHARMM-GUI CSML database (https://www.charmm-gui.org/?do
 This CSV file (`data/databases/lipid_CHARMM_GUI_CSML.csv`) contains information for each molecule, like: the category of the molecule, their alias, their common name, a link to view their structure, a link to download the PDB of this file, the formula and the residue name from the PDB file. All this information help to identify lipids in the PDB or GRO file we want to analyze.
 
 
-## MAD database
+### MAD database
 
 Run the script to download coarse-grain model molecule data: 
 
