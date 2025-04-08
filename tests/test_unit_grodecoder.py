@@ -25,7 +25,8 @@ import grodecoder as gd
 
 def test_remove_hydrogen_gro():
     topology_path = TEST_DATA_ROOT / "fake_hydrogen.gro"
-    universe = gd.remove_hydrogene(topology_path)
+    universe = mda.Universe(topology_path)
+    universe = gd.remove_hydrogen(universe)
     expected = [1, 5, 9, 13, 14, 16, 18, 20, 23, 26, 30, 35, 38, 41, 42] 
     assert np.array_equal(universe.atoms.ids, expected)
 
@@ -34,7 +35,8 @@ def test_remove_hydrogen_gro():
 @pytest.mark.filterwarnings("ignore:Found no information for attr")
 def test_remove_hydrogen_pdb():
     topology_path = TEST_DATA_ROOT / "fake_hydrogen.pdb"
-    universe = gd.remove_hydrogene(topology_path)
+    universe = mda.Universe(topology_path)
+    universe = gd.remove_hydrogen(universe)
     expected = [1, 2, 3, 4, 5, 6, 7, 12, 16, 19, 21]
     assert np.array_equal(universe.atoms.ids, expected)
 

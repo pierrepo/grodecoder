@@ -1288,6 +1288,22 @@ def extract_nucleic_acid_sequence(graph: nx.classes.graph.Graph) -> dict[str, in
     return info_seq
 
 
+def remove_hydrogen(universe: AtomGroup) -> AtomGroup:
+    """Remove hydrogens from the system.
+
+    Parameters
+    ----------
+        universe: AtomGroup
+            Collection of atoms
+
+    Returns
+    -------
+        AtomGroup
+            The same universe without hydrogens.
+    """
+    return universe.select_atoms("not (name H* or name [123456789]H*)")
+
+
 def read_topology(path: Path, psf_path: Path | None = None) -> mda.Universe:
     """Reads the topology file and returns a MDAnalysis Universe object."""
     if psf_path:
@@ -1319,7 +1335,7 @@ def main(
 
     # Reads the topology file and removes hydrogens.
     molecular_system = read_topology(topology_path, psf_path)
-    molecular_system = molecular_system.select_atoms("not (name H* or name [123456789]H*)")
+    molecular_system = remove_hydrogen(molecular_system)
 
     # Counts and removes ions and solvants from the molecular system.
     molecular_system, count_ion_solvant = count_remove_ion_solvant(
