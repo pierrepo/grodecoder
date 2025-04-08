@@ -1420,7 +1420,7 @@ def extract_nucleic_acid_sequence(graph: nx.classes.graph.Graph) -> dict[str, in
 
 def main(
     topology_path: Path,
-    psf_path: Path,
+    psf_path: Path | None = None,
     check_connectivity: bool = False,
     bond_threshold: str | float = "auto",
     query_pdb=False,
