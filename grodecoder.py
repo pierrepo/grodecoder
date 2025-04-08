@@ -7,31 +7,30 @@ Usage:
 __authors__ = ("Karine DUONG", "Pierre POULAIN")
 __contact__ = "pierre.poulain@u-paris.fr"
 
-from collections import Counter
+import argparse
 import datetime
 import hashlib
 import itertools
-from itertools import groupby
 import json
 import os
-import pandas as pd
-from pathlib import Path
 import subprocess
 import time
+from collections import Counter
+from itertools import groupby
+from pathlib import Path
 
-import argparse
-from loguru import logger
 import MDAnalysis as mda
-from MDAnalysis.analysis.distances import contact_matrix, self_distance_array
-import numpy as np
 import networkx as nx
+import numpy as np
+import pandas as pd
+from loguru import logger
+from MDAnalysis.analysis.distances import self_distance_array
 from networkx.algorithms.components.connected import connected_components
-from scipy.sparse import triu
-from scipy.spatial.distance import cdist
-from typing import List, Dict, Tuple, Union
 
 import mol_def
 import search_into_PDB
+
+CountDict = dict[str, str | int]
 
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -41,79 +40,6 @@ CSML_CHARMM_GUI = pd.read_csv(filepath_CSML, sep=",")
 
 filepath_MAD = os.path.join(current_dir, "data/databases/lipid_MAD.csv")
 MAD_DB = pd.read_csv(filepath_MAD, sep=",")
-
-
-def get_distance_matrix_between_atom(
-    file_gro: mda.core.universe.Universe,
-) -> np.ndarray:
-    """Calculate interatomic distances between all atoms in the GRO file \
-    https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html \
-    https://stackoverflow.com/questions/72701992/convert-a-matrix-of-distance-to-adjacency-list/72702534#72702534 .
-
-    Warning
-    -------
-    MDAnalysis convert the coordonate in Angstrom
-    despite in the gro file it's in nm
-    https://userguide.mdanalysis.org/stable/units.html#table-baseunits
-    https://manual.gromacs.org/current/reference-manual/file-formats.html#gro
-
-    Parameters
-    ----------
-        file_gro: MDAnalysis.core.universe.Universe
-            An object representing the molecular structure loaded from a GRO file.
-
-    Returns
-    -------
-        numpy.ndarray
-            matrix of interatomic distances between all atoms
-    """
-    position = file_gro.atoms.positions
-    size = len(file_gro.atoms)
-    tmp = np.full((size, size), 100.0)
-    for index_i, pos_i in enumerate(position):
-        for index_j, pos_j in enumerate(position[index_i + 1 :], start=index_i + 1):
-            tmp[index_i][index_j] = cdist([pos_i], [pos_j])
-    return tmp
-
-
-def get_atom_pairs(
-    molecular_system: mda.core.universe.Universe, threshold: float
-) -> np.ndarray:
-    """Create a list of atom pairs based on the contact matrix (which based on the input system and threshold).
-
-    This function calculates the pairs of atoms in the molecular system based on their distances.
-    It uses a specified threshold to determine which pairs of atoms are considered to be in contact.
-
-    Reference
-    ---------
-    - https://docs.mdanalysis.org/1.1.0/documentation_pages/analysis/distances.html#MDAnalysis.analysis.distances.contact_matrix
-    - https://numpy.org/doc/stable/reference/generated/numpy.argwhere.html
-
-    Parameters
-    ----------
-        molecular_system: MDAnalysis.core.groups.AtomGroup
-            The molecular system object containing information about atoms.
-        threshold: float
-            The distance threshold used to determine atom contacts.
-
-    Returns
-    -------
-        numpy.ndarray
-            An array containing pairs of atom indices representing atom contacts.
-    """
-    logger.info("Creating contact_matrix...")
-    matrix = contact_matrix(
-        molecular_system.atoms.positions, cutoff=threshold, returntype="sparse"
-    )
-    # Output matrix is sparse matrix of type: scipy.sparse.lil_matrix
-    # Keep only the upper triangular part of the sparse matrix (without the diagonal)
-    # https://docs.scipy.org/doc/scipy-1.13.0/reference/generated/scipy.sparse.triu.html
-    matrix = triu(matrix, k=1)
-
-    logger.info("Creating atom pairs list...")
-    atom_pairs = np.argwhere(matrix)
-    logger.success(f"Found {len(atom_pairs):,} atom pairs")
-    return atom_pairs
 
 
 def get_atom_pairs_from_threshold(
@@ -199,9 +125,7 @@ def get_atom_pairs_from_threshold(
         return atom_pairs
 
 
-def get_atom_pairs_from_guess_bonds(
-    molecular_system: mda.core.universe.Universe,
-) -> np.ndarray:
+def get_atom_pairs_from_guess_bonds(molecular_system: mda.core.universe.Universe) -> np.ndarray:
     """This function retrieves atom pairs within a specified distance threshold from the given molecular system.
     This specified distance based on the distance between two selected atoms and their Van der Waals radius.
 
@@ -235,9 +159,7 @@ def get_atom_pairs_from_guess_bonds(
     return np.array(atom_pairs)
 
 
-def convert_atom_pairs_to_graph(
-    atom_pairs: np.ndarray, mol: mda.core.universe.Universe
-) -> nx.classes.graph.Graph:
+def convert_atom_pairs_to_graph(atom_pairs: np.ndarray, mol: mda.core.universe.Universe) -> nx.classes.graph.Graph:
     """Convert a list of pairs to a graph and its connected components.
 
     Reference
@@ -553,7 +475,7 @@ def get_formula_based_atom_name(atom_name_dict: dict[str, int]) -> str:
 def count_molecule(
     graph_list: list[nx.classes.graph.Graph],
     check_connectivity: bool,
-) -> dict[nx.classes.graph.Graph, dict[str, Union[int, str]]]:
+) -> dict[nx.classes.graph.Graph, CountDict]:
     """Count the occurrence of molecules in a list of graphs based on their fingerprints.
 
     This function takes a list of graphs and counts the occurrence of each unique molecule
@@ -866,7 +788,7 @@ def count_remove_ion_solvant(
     universe: mda.core.universe.Universe,
     input_filepath: str,
 ) -> tuple[
-    mda.core.universe.Universe, dict[nx.classes.graph.Graph, dict[str, Union[str, int]]]
+    mda.core.universe.Universe, dict[nx.classes.graph.Graph, CountDict]
 ]:
     """Count and remove ions and solvents from the MDAnalysis Universe return by
     the function find_ion_solvant().
@@ -887,7 +809,7 @@ def count_remove_ion_solvant(
                     - the key is a graph
                     - and the value is an other dictionary with: atom_start, atom_end, name of the ion-solvant, the counts of removed ions-solvant
     """
-    counts: dict[str, Union[str, int]] = {}
+    counts: CountDict = {}
 
     logger.info("Searching ions...")
     for ion in mol_def.IONS_LIST:
@@ -1497,11 +1419,8 @@ def extract_nucleic_acid_sequence(graph: nx.classes.graph.Graph) -> dict[str, in
 
 
 def main(
-    input_file_path_pdb: str,
-    input_file_path_gro: str,
-    input_file_path_crd: str,
-    input_file_path_coor: str,
-    input_file_path_psf: str,
+    topology_path: Path,
+    psf_path: Path,
     check_connectivity: bool = False,
     bond_threshold: str | float = "auto",
     query_pdb=False,
@@ -1521,22 +1440,18 @@ def main(
     """
     start_time = time.perf_counter()
 
-    if input_file_path_pdb: 
-        input_file_path = input_file_path_pdb
-        molecular_system = remove_hydrogene(input_file_path)
-    elif input_file_path_gro:
-        input_file_path = input_file_path_gro
-        molecular_system = remove_hydrogene(input_file_path_gro)
-    elif input_file_path_crd:
-        input_file_path = input_file_path_crd
-        molecular_system = remove_hydrogene(input_file_path_crd)
-    elif input_file_path_coor and input_file_path_psf:
-        input_file_path = input_file_path_coor
-        molecular_system = remove_hydrogene(input_file_path_coor, input_file_path_psf)
+    # Reads the topology file and removes hydrogens.
+    if psf_path:
+        molecular_system = remove_hydrogene(topology_path, psf_path)
+    else:
+        molecular_system = remove_hydrogene(topology_path)
+
+    # Count and remove ions and solvants from the molecular system.
     molecular_system, count_ion_solvant = count_remove_ion_solvant(
         molecular_system,
-        input_file_path,
+        topology_path,
     )
+
     resolution = guess_resolution(molecular_system)
     logger.info(f"Molecular resolution: {resolution}")
     if bond_threshold == "auto":
@@ -1565,7 +1480,7 @@ def main(
     graph_count_dict.update(count_ion_solvant)
     print_graph_inventory(graph_count_dict)
 
-    filename = Path(input_file_path).stem
+    filename = topology_path.stem
 
     protein_sequence_dict = {}
     for index_graph, (graph, key) in enumerate(graph_count_dict.items(), start=1):
@@ -1606,12 +1521,17 @@ def main(
     execution_time = time.perf_counter() - start_time
     logger.info(f"execution_time: {execution_time}")
     JSON_filepath = export_inventory(
-        graph_count_dict, resolution, input_file_path, execution_time, overlap_residue
+        graph_count_dict, resolution, topology_path, execution_time, overlap_residue
     )
     return JSON_filepath
 
 
-def is_a_structure_file(filepath: str) -> str:
+
+class NotATopologyFileError(argparse.ArgumentTypeError):
+    """Raised when the given file is not a topology (based on its extension)."""
+
+
+def is_a_structure_file(filepath: str) -> Path:
     """Check if the given filepath points to an existing structure file (.gro, .pdb).
 
     Parameters
@@ -1630,13 +1550,19 @@ def is_a_structure_file(filepath: str) -> str:
         str
             The validated path.
     """
-    filename = Path(filepath)
-    if not Path.is_file(filename):
-        raise argparse.ArgumentTypeError(f"{filepath} does not exist")
+    path = Path(filepath)
 
-    if filename.suffix not in (".gro", ".pdb", ".psf", ".coor", ".crd"):
-        raise argparse.ArgumentTypeError(f"{filepath} is not a .gro or .pdb file.")
-    return filepath
+    if not path.exists():
+        raise argparse.ArgumentTypeError(f"'{path}' does not exist")
+
+    if not path.is_file():
+        raise argparse.ArgumentTypeError(f"'{path}' is not a file")
+
+    valid_extensions = (".gro", ".pdb", ".coor", ".crd")
+    if path.suffix not in valid_extensions:
+        raise NotATopologyFileError(f"'{path!s}': invalid extension '{path.suffix}' (valid extensions are {valid_extensions})")
+
+    return path
 
 
 def is_a_valid_threshold(threshold: str) -> str | float:
@@ -1644,26 +1570,24 @@ def is_a_valid_threshold(threshold: str) -> str | float:
 
     Parameters
     ----------
-        filepath : str
-            Path of the file.
+        threshold : str | float
+            "auto" or a positive float number.
 
     Raises
     ------
-        argparse.ArgumentTypeError
-            If the given filepath is not an existing file,
-            or if it does not have a '.gro' or '.pdb' extension.
+        argparse.ArgumentTypeError: If the given threshold is not "auto" or a positive number.
 
     Returns
     -------
-        str
-            The validated path.
+        str | float
+            "auto" or the validated threshold as a float number.
     """
     if threshold == "auto":
         return threshold
     try:
         threshold_as_float = float(threshold)
-    except argparse.ArgumentTypeError:
-        raise argparse.ArgumentTypeError("Argument should 'auto' or a number")
+    except ValueError as _e:
+        raise argparse.ArgumentTypeError("Argument should 'auto' or a positive number")
     if not threshold_as_float > 0.0:
         raise argparse.ArgumentTypeError("Argument should be > 0")
     return threshold_as_float
@@ -1689,37 +1613,20 @@ def parse_arg() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="grodecoder",
         description="Extract molecules from a structure file (.gro, .pdb).",
-        usage="grodecoder.py [-h] --input structure_file [--drawgraph]",
     )
     parser.add_argument(
-        "--pdb",
+        "--topology",
         type=is_a_structure_file,
-        help="structure file path (.pdb)",
-    )
-    parser.add_argument(
-        "--gro",
-        type=is_a_structure_file,
-        help="structure file path (.gro)",
+        help="path to topology file",
     )
     parser.add_argument(
         "--psf",
-        type=is_a_structure_file,
+        type=Path,
         help="topology file path (.psf)",
-    )
-    parser.add_argument(
-        "--coor",
-        type=is_a_structure_file,
-        help="structure file path (.coor)",
-    )
-    parser.add_argument(
-        "--crd",
-        type=is_a_structure_file,
-        help="structure file path (.crd)",
     )
     parser.add_argument(
         "--checkconnectivity",
         help="Add edges and degre in the fingerprint. Default: False.",
-        default=False,
         action="store_true",
     )
     parser.add_argument(
@@ -1731,19 +1638,23 @@ def parse_arg() -> argparse.Namespace:
     parser.add_argument(
         "--querypdb",
         help="Add PDB id and their putative name in the JSON file for the protein. Default: False.",
-        default=False,
         action="store_true",
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    if args.topology.suffix == ".coor" and not args.psf:
+        parser.error("The '--psf' argument is required when the topology file is a .coor file.")
+
+    if args.psf and args.topology.suffix != ".coor":
+        parser.error("The '--psf' argument is valid only when the topology file is a .coor file.")
+
+    return args
 
 
 if __name__ == "__main__":
     args = parse_arg()
     main(
-        args.pdb,
-        args.gro,
-        args.crd,
-        args.coor,
+        args.topology,
         args.psf,
         check_connectivity=args.checkconnectivity,
         bond_threshold=args.bondthreshold,
