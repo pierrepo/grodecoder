@@ -2,7 +2,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from .typing import PathLike, Json
+from ._typing import PathLike, Json
 
 
 MOLECULE_DEFINITIONS_DATABASE_PATH = Path(__file__).parent / "data" / "databases" / "molecule_definitions.json"

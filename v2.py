@@ -1,7 +1,7 @@
-import grodecoder.main as v1
 from dataclasses import dataclass
 
 import grodecoder as gd
+import grodecoder.v1 as v1
 import grodecoder.databases as DB
 
 # DEBUG

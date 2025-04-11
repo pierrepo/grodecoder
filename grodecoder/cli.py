@@ -131,7 +131,7 @@ def parse_arg() -> argparse.Namespace:
 
 def main():
     args = parse_arg()
-    grodecoder.main.main(
+    grodecoder.v1.main(
         args.topology,
         args.psf,
         check_connectivity=args.checkconnectivity,
