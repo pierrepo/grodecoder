@@ -45,6 +45,7 @@ import grodecoder as gd
             "data/3CAL_CG.json",
         ),
         (os.path.join(parent_dir, "data/examples/2MAT.gro"),"data/2MAT.json",),
+        (os.path.join(parent_dir, "data/examples/OMPX_DMPC_step5_input.crd"),"data/OMPX_DMPC_step5_input.json",),
     ],
 )
 def test_with_param(path_structure_file, path_reference_json):
