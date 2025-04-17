@@ -8,7 +8,7 @@
             "residue_ids": "2-263",
             "formula_without_h": "C17N9O8S2",
             "molecular_type": "protein",
-            "protein_sequence": "AISIKTPEDIEKMRVAGRLAAEVLEMIEPYVKPGVSTGELDRICNDYIVNEQHAVSACLGYHGYPKSVCISINEVVCHGIPDDAKLLKDGDIVNIDVTVIKDGFHGDTSKMFIVGKPTIMGERLCRITQESLYLALRMVKPGINLREIGAAIQKFVEAEGFSVVREYCGHGIGQGFHEEPQVLHYDSRETNVVLKPGMTFTIEPMVNAGKKEIRTMKDGWTVKTKDRSLSAQYEHTIVVTDNGCEILTLRKDDTIPAIISHD",
+            "sequence": "AISIKTPEDIEKMRVAGRLAAEVLEMIEPYVKPGVSTGELDRICNDYIVNEQHAVSACLGYHGYPKSVCISINEVVCHGIPDDAKLLKDGDIVNIDVTVIKDGFHGDTSKMFIVGKPTIMGERLCRITQESLYLALRMVKPGINLREIGAAIQKFVEAEGFSVVREYCGHGIGQGFHEEPQVLHYDSRETNVVLKPGMTFTIEPMVNAGKKEIRTMKDGWTVKTKDRSLSAQYEHTIVVTDNGCEILTLRKDDTIPAIISHD",
             "putative_pdb": [],
             "putative_name": [],
             "comment": ""
@@ -21,7 +21,7 @@
             "residue_ids": "1-200",
             "formula_without_h": "CO",
             "molecular_type": "solvant",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": "organic solvant methanol/OPLS",
             "comment": ""
@@ -34,7 +34,7 @@
             "residue_ids": "1-200",
             "formula_without_h": "",
             "molecular_type": "solvant",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": "water TIP3P/spce solvant",
             "comment": ""
@@ -47,7 +47,7 @@
             "residue_ids": "1-200",
             "formula_without_h": "",
             "molecular_type": "solvant",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": "urea solvant",
             "comment": ""
@@ -60,18 +60,18 @@
             "residue_ids": "1-200",
             "formula_without_h": "",
             "molecular_type": "solvant",
-            "protein_sequence": "",
+            "sequence": "",
             "putative_pdb": [],
             "putative_name": "organic solvant ethanol/OPLS",
             "comment": ""
         }
     ],
     "resolution": "AA",
-    "date": "2024-07-05_16-22-09",
-    "execution_time_in_sec": "2.66",
+    "date": "2024-07-19_15-29-33",
+    "execution_time_in_sec": "2.43",
     "remark": "",
-    "file_path": "/home/karine/Documents/grodecoder/fileGRO/PACKMOL/2MAT/output.pdb",
+    "file_path": "data/examples/2MAT.pdb",
     "file_md5sum": "a9ac84cf0f98261c9fa9ff4fed8cd0ea",
-    "git_last_commit_date": "'2024-07-05T16:08:51+02:00'",
-    "git_last_commit_hash": "'adaf52e6bb74b5a06f0f9b15897a3464aeaf44d9'"
+    "git_last_commit_date": "2024-07-18T20:58:02+02:00",
+    "git_last_commit_hash": "85a7a6527fee09c8797e75e9dbc4e1719844c297"
 }
