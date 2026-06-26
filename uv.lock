@@ -366,6 +366,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
+    { name = "logger" },
     { name = "loguru" },
     { name = "mdanalysis" },
     { name = "pydantic" },
@@ -390,6 +391,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "click", specifier = ">=8.1.8" },
+    { name = "logger", specifier = ">=1.4" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "mdanalysis", specifier = ">=2.9.0" },
     { name = "pydantic", specifier = ">=2.11.3" },
@@ -550,6 +552,12 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/0c/28/4b2e5c47a0da96896fdfdb006340ade064afa1e63675d01ea5ac222b6d52/kiwisolver-1.4.9-cp314-cp314t-win_amd64.whl", hash = "sha256:1fa333e8b2ce4d9660f2cda9c0e1b6bafcfb2457a9d259faa82289e73ec24891", size = 79988, upload-time = "2025-08-10T21:27:35.587Z" },
     { url = "https://files.pythonhosted.org/packages/80/be/3578e8afd18c88cdf9cb4cffde75a96d2be38c5a903f1ed0ceec061bd09e/kiwisolver-1.4.9-cp314-cp314t-win_arm64.whl", hash = "sha256:4a48a2ce79d65d363597ef7b567ce3d14d68783d2b2263d98db3d9477805ba32", size = 70260, upload-time = "2025-08-10T21:27:36.606Z" },
 ]
+
+[[package]]
+name = "logger"
+version = "1.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/73/2f/b0d28eaa1e2c1cf64129f8da3fe701888d152677fec708cd0f13e8309e1e/logger-1.4.tar.gz", hash = "sha256:4ecac57133c6376fa215f0fe6b4dc4d60e4d1ad8be005cab4e8a702df682f8b3", size = 1187, upload-time = "2013-10-22T16:49:01.48Z" }
 
 [[package]]
 name = "loguru"
